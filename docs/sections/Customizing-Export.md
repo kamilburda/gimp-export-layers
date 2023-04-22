@@ -390,8 +390,8 @@ The description for an argument often indicates the range of valid values.
 
 If a procedure contains a layer/drawable/item argument, you may select one of the following:
 * (default) "Current Layer" - applies the procedure to the currently processed layer.
-* "Background" - applies the procedure to layer placed after the current layer (i.e. the background), usually created via the "Insert background layers" procedure. Careful, if there is no such layer, the export will fail.
-* "Foreground" - applies the procedure to layer placed before the current layer (i.e. the foreground), usually created via the "Insert foreground layers" procedure. Careful, if there is no such layer, the export will fail.
+* "Background Layer" - applies the procedure to layer placed after the current layer (i.e. the background), usually created via the "Insert background layers" procedure. Careful, if there is no such layer, the export will fail.
+* "Foreground Layer" - applies the procedure to layer placed before the current layer (i.e. the foreground), usually created via the "Insert foreground layers" procedure. Careful, if there is no such layer, the export will fail.
 
 
 ### More options

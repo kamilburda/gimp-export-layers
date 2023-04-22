@@ -7,7 +7,7 @@ New features:
   * export images with additional custom procedures applied before the export,
   * export each top-level group as separate multi-layer images.
 * Added a new procedure named "Export" to allow multi-layer export as described above.
-* Procedures can now be applied to background or foreground layers instead of always the layer being exported. If a procedure provides a layer/drawable/item argument, you may now select "Background" or "Foreground" (beside "Current Layer").
+* Procedures can now be applied to background or foreground layers instead of always the layer being exported. If a procedure provides a layer/drawable/item argument, you may now select "Background Layer" or "Foreground Layer" (beside "Current Layer").
 * The "Rename" procedure can now optionally rename only folders (previously allowed only layers or both layers and folders, but not folders alone).
 
 Changes to procedures:
