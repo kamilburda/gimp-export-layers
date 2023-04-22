@@ -580,13 +580,22 @@ class Item(object):
           pickle.dumps(self._tags)))
   
   def _load_tags(self):
-    parasite = self._raw_item.parasite_find(self._tags_source_name)
-    if parasite:
-      try:
-        tags = pickle.loads(parasite.data)
-      except Exception:
-        tags = set()
-      
-      return tags
-    else:
-      return set()
+    return get_tags_from_raw_item(self._raw_item, self._tags_source_name)
+
+
+def get_tags_from_raw_item(raw_item, tags_source_name):
+  """Obtains a set of tags from a `gimp.Item` instance, i.e. a raw item.
+  
+  `tags_source_name` is the name of the persistent source (parasite) to obtain
+  tags from.
+  """
+  parasite = raw_item.parasite_find(tags_source_name)
+  if parasite:
+    try:
+      tags = pickle.loads(parasite.data)
+    except Exception:
+      tags = set()
+    
+    return tags
+  else:
+    return set()
