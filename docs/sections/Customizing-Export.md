@@ -66,7 +66,8 @@ Yes, you may insert any GIMP filter as a procedure:
 1. In the preview to the right, right-click on the layer name you want to be your background.
 2. Check `Background`. A tag icon will be displayed next to the layer name.
 3. To add more layers as background, repeat steps 1 and 2. If you need to achieve a particular order of background layers, you need to reorder the layers in GIMP (i.e. outside the plug-in). The plug-in will sync with the changes done in GIMP.
-4. Add the "Insert background layers" procedure. If needed, you may place this procedure after "Use layer size" by dragging it above/onto "Use layer size".
+4. Add the "Insert background layers" procedure. If needed, you may place this procedure after "Use layer size" by dragging it onto "Use layer size".
+5. If you want to perform [batch editing](Batch-Editing.md) rather than export, you may want to merge the inserted background with each layer. To do so, add the "Merge background" procedure.
 
 
 **I want to save the image as a multi-page PDF file.**
@@ -348,13 +349,23 @@ If this is your intention, you can always move this procedure below `Use layer s
 Insert layers tagged with `Foreground` as foreground for each layer.
 To set a layer as a foreground layer, see [Tagging Layers](#tagging-layers).
 
-Note that even foreground layers get exported - to prevent this behavior, enable the `Without tags` constraint.
+For more information, see "Insert background layers" above.
 
-You may modify the tag representing the foreground layers by editing the procedure argument `Tag`.
+**Merge background**
 
-In the dialog, this procedure is always inserted in the first position.
-This prevents potential confusion when `Use layer size` is unchecked and the foreground is offset relative to the layer rather than the image canvas.
-If this is your intention, you can always move this procedure below `Use layer size`.
+Merges an already inserted background layer (via "Insert background layers", see above) with the current layer.
+
+This is useful if you wish to have a single merged layer rather than the background as a separate layer.
+
+When exporting layers, the background is merged automatically before the export, hence this procedure is only useful when batch editing layers.
+
+If there is no background layer inserted, this procedure has no effect.
+
+**Merge foreground**
+
+Merges an already inserted foreground layer (via "Insert foreground layers", see above) with the current layer.
+
+For more information, see "Merge background" above.
 
 **Rename layer**
 

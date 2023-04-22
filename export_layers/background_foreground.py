@@ -44,7 +44,7 @@ def _insert_tagged_layer(batcher, tag, insert_mode):
   while True:
     image = batcher.current_image
     current_parent = batcher.current_raw_item.parent
-      
+    
     position = pdb.gimp_image_get_item_position(image, batcher.current_raw_item)
     if insert_mode == 'after':
       position += 1
@@ -100,6 +100,42 @@ def _remove_locks_from_layer(layer):
   if not isinstance(layer, gimp.GroupLayer):
     pdb.gimp_item_set_lock_position(layer, False)
     pdb.gimp_layer_set_lock_alpha(layer, False)
+
+
+def merge_background(batcher, merge_type=gimpenums.EXPAND_AS_NECESSARY):
+  background_layer = get_background_layer(batcher)
+  
+  if background_layer is not None:
+    name = batcher.current_raw_item.name
+    visible = pdb.gimp_item_get_visible(batcher.current_raw_item)
+    
+    pdb.gimp_item_set_visible(batcher.current_raw_item, True)
+    
+    merged_layer = pdb.gimp_image_merge_down(
+      batcher.current_image, batcher.current_raw_item, merge_type)
+    merged_layer.name = name
+    
+    batcher.current_raw_item = merged_layer
+    
+    pdb.gimp_item_set_visible(batcher.current_raw_item, visible)
+
+
+def merge_foreground(batcher, merge_type=gimpenums.EXPAND_AS_NECESSARY):
+  foreground_layer = get_foreground_layer(batcher)
+  
+  if foreground_layer is not None:
+    name = batcher.current_raw_item.name
+    visible = pdb.gimp_item_get_visible(batcher.current_raw_item)
+    
+    pdb.gimp_item_set_visible(batcher.current_raw_item, True)
+    
+    merged_layer = pdb.gimp_image_merge_down(
+      batcher.current_image, foreground_layer, merge_type)
+    merged_layer.name = name
+    
+    batcher.current_raw_item = merged_layer
+    
+    pdb.gimp_item_set_visible(batcher.current_raw_item, visible)
 
 
 def get_background_layer(batcher):

@@ -9,6 +9,7 @@ import collections
 
 import gimp
 from gimp import pdb
+import gimpenums
 
 from export_layers import pygimplib as pg
 
@@ -238,6 +239,42 @@ _BUILTIN_PROCEDURES_LIST = [
         'type': pg.SettingTypes.string,
         'name': 'tag',
         'default_value': 'foreground',
+      },
+    ],
+  },
+  {
+    'name': 'merge_background',
+    'function': background_foreground.merge_background,
+    'display_name': _('Merge background'),
+    'arguments': [
+      {
+        'type': pg.SettingTypes.enumerated,
+        'name': 'merge_type',
+        'default_value': 'expand_as_necessary',
+        'items': [
+          ('expand_as_necessary', _('Expand as necessary'), gimpenums.EXPAND_AS_NECESSARY),
+          ('clip_to_image', _('Clip to image'), gimpenums.CLIP_TO_IMAGE),
+          ('clip_to_bottom_layer', _('Clip to bottom layer'), gimpenums.CLIP_TO_BOTTOM_LAYER),
+        ],
+        'display_name': _('Merge type'),
+      },
+    ],
+  },
+  {
+    'name': 'merge_foreground',
+    'function': background_foreground.merge_foreground,
+    'display_name': _('Merge foreground'),
+    'arguments': [
+      {
+        'type': pg.SettingTypes.enumerated,
+        'name': 'merge_type',
+        'default_value': 'expand_as_necessary',
+        'items': [
+          ('expand_as_necessary', _('Expand as necessary'), gimpenums.EXPAND_AS_NECESSARY),
+          ('clip_to_image', _('Clip to image'), gimpenums.CLIP_TO_IMAGE),
+          ('clip_to_bottom_layer', _('Clip to bottom layer'), gimpenums.CLIP_TO_BOTTOM_LAYER),
+        ],
+        'display_name': _('Merge type'),
       },
     ],
   },
