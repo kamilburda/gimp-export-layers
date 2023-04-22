@@ -45,9 +45,8 @@ def display_failure_message(main_message, failure_message, details, parent=None)
     display_details_initially=False,
     report_uri_list=pg.config.BUG_REPORT_URL_LIST,
     report_description=_(
-      'If you believe this is an error in {}, you can help fix it'
-      ' by sending a report with the text in the details to one of the sites below').format(
-        pg.config.PLUGIN_TITLE),
+      'If you believe this is an error in the plug-in, you can help fix it'
+      ' by sending a report with the text in the details to one of the sites below'),
     focus_on_button=True)
 
 
