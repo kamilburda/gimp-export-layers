@@ -535,6 +535,10 @@ def _fix_element_paths_in_parasites_3_4():
      b'export_layers.pygimplib.utils\nempty_func'),
     (b'builtin_procedures\nuse_file_extension_in_item_name',
      b'export_layers.pygimplib.utils\nempty_func'),
+    (b'builtin_procedures\ninsert_background_layer',
+     b'background_foreground\ninsert_background_layer'),
+    (b'builtin_procedures\ninsert_foreground_layer',
+     b'background_foreground\ninsert_foreground_layer'),
   ])
 
 

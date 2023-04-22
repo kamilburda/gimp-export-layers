@@ -9,10 +9,10 @@ import collections
 
 import gimp
 from gimp import pdb
-import gimpenums
 
 from export_layers import pygimplib as pg
 
+from export_layers import background_foreground
 from export_layers import export as export_
 from export_layers import renamer as renamer_
 from export_layers import settings_custom
@@ -107,94 +107,6 @@ def inherit_transparency_from_layer_groups(batcher):
     new_layer_opacity = new_layer_opacity * (parent.raw.opacity / 100.0)
   
   batcher.current_raw_item.opacity = new_layer_opacity * 100.0
-
-
-def insert_background_layer(batcher, tag):
-  return _insert_tagged_layer(batcher, tag, 'after')
-
-
-def insert_foreground_layer(batcher, tag):
-  return _insert_tagged_layer(batcher, tag, 'before')
-
-
-def _insert_tagged_layer(batcher, tag, insert_mode):
-  tagged_items = [
-    item for item in batcher.item_tree.iter(with_folders=False, filtered=False)
-    if tag in item.tags]
-  merged_tagged_layer = None
-  orig_merged_tagged_layer = None
-  
-  def _cleanup_tagged_layers(batcher):
-    if orig_merged_tagged_layer is not None and pdb.gimp_item_is_valid(orig_merged_tagged_layer):
-      pdb.gimp_item_delete(orig_merged_tagged_layer)
-    
-    batcher.invoker.remove(cleanup_tagged_layers_action_id, ['cleanup_contents'])
-  
-  # We use`Invoker.add` instead of `batcher.add_procedure` since the latter
-  # would add the function only at the start of processing and we already are in
-  # the middle of processing here.
-  cleanup_tagged_layers_action_id = batcher.invoker.add(
-    _cleanup_tagged_layers, ['cleanup_contents'])
-  
-  while True:
-    image = batcher.current_image
-    current_parent = batcher.current_raw_item.parent
-      
-    position = pdb.gimp_image_get_item_position(image, batcher.current_raw_item)
-    if insert_mode == 'after':
-      position += 1
-    
-    if not tagged_items:
-      yield
-      continue
-    
-    if orig_merged_tagged_layer is None:
-      merged_tagged_layer = _insert_merged_tagged_layer(
-        batcher, image, tagged_items, tag, current_parent, position)
-      
-      orig_merged_tagged_layer = pdb.gimp_layer_copy(merged_tagged_layer, True)
-      _remove_locks_from_layer(orig_merged_tagged_layer)
-    else:
-      merged_tagged_layer = pdb.gimp_layer_copy(orig_merged_tagged_layer, True)
-      _remove_locks_from_layer(merged_tagged_layer)
-      pdb.gimp_image_insert_layer(image, merged_tagged_layer, current_parent, position)
-    
-    yield
-
-
-def _insert_merged_tagged_layer(batcher, image, tagged_items, tag, parent, position):
-  first_tagged_layer_position = position
-  
-  for i, item in enumerate(tagged_items):
-    layer_copy = pg.pdbutils.copy_and_paste_layer(
-      item.raw, image, parent, first_tagged_layer_position + i, True, True, True)
-    layer_copy.visible = True
-    
-    batcher.invoker.invoke(
-      ['before_process_item_contents'], [batcher, batcher.current_item, layer_copy])
-
-  if parent is None:
-    children = image.layers
-  else:
-    children = parent.children
-  
-  if len(tagged_items) == 1:
-    merged_tagged_layer = children[first_tagged_layer_position]
-  else:
-    second_to_last_tagged_layer_position = first_tagged_layer_position + len(tagged_items) - 2
-    
-    for i in range(second_to_last_tagged_layer_position, first_tagged_layer_position - 1, -1):
-      merged_tagged_layer = pdb.gimp_image_merge_down(
-        image, children[i], gimpenums.EXPAND_AS_NECESSARY)
-  
-  return merged_tagged_layer
-
-
-def _remove_locks_from_layer(layer):
-  pdb.gimp_item_set_lock_content(layer, False)
-  if not isinstance(layer, gimp.GroupLayer):
-    pdb.gimp_item_set_lock_position(layer, False)
-    pdb.gimp_layer_set_lock_alpha(layer, False)
 
 
 def rename_layer(batcher, pattern, rename_layers=True, rename_folders=False):
@@ -306,7 +218,7 @@ _BUILTIN_PROCEDURES_LIST = [
   },
   {
     'name': 'insert_background_layers',
-    'function': insert_background_layer,
+    'function': background_foreground.insert_background_layer,
     'display_name': _('Insert background layers'),
     'arguments': [
       {
@@ -318,7 +230,7 @@ _BUILTIN_PROCEDURES_LIST = [
   },
   {
     'name': 'insert_foreground_layers',
-    'function': insert_foreground_layer,
+    'function': background_foreground.insert_foreground_layer,
     'display_name': _('Insert foreground layers'),
     'arguments': [
       {

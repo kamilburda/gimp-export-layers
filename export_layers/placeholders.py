@@ -23,12 +23,11 @@ from future.builtins import *
 
 import collections
 
-from gimp import pdb
 import gimpenums
 
 from export_layers import pygimplib as pg
 
-from export_layers import exceptions
+from export_layers import background_foreground
 from export_layers.gui import placeholders as gui_placeholders
 
 
@@ -54,85 +53,13 @@ def _get_current_layer(batcher):
   return batcher.current_raw_item
 
 
-def _get_background_layer(batcher):
-  return _get_adjacent_layer(
-    batcher,
-    lambda position, num_layers: position < num_layers - 1,
-    1,
-    'insert_background_layers',
-    _('There are no background layers.'))
-
-
-def _get_foreground_layer(batcher):
-  return _get_adjacent_layer(
-    batcher,
-    lambda position, num_layers: position > 0,
-    -1,
-    'insert_foreground_layers',
-    _('There are no foreground layers.'))
-
-
-def _get_adjacent_layer(
-      batcher, position_cond_func, adjacent_position_increment,
-      insert_tagged_layers_procedure_name, skip_message):
-  raw_item = batcher.current_raw_item
-  if raw_item.parent is None:
-    children = batcher.current_image.layers
-  else:
-    children = raw_item.parent.children
-  
-  adjacent_layer = None
-  
-  num_layers = len(children)
-  
-  if num_layers > 1:
-    position = pdb.gimp_image_get_item_position(batcher.current_image, batcher.current_raw_item)
-    if position_cond_func(position, num_layers):
-      next_layer = children[position + adjacent_position_increment]
-      tags = [
-        procedure['arguments/tag'].value
-        for procedure in _get_previous_enabled_procedures(
-          batcher, batcher.current_procedure, insert_tagged_layers_procedure_name)]
-      
-      if tags and _has_tag(next_layer, tags):
-        adjacent_layer = next_layer
-  
-  if adjacent_layer is not None:
-    # This is necessary for some procedures relying on the active layer, e.g.
-    # `plug-in-autocrop-layer`.
-    batcher.current_image.active_layer = adjacent_layer
-    return adjacent_layer
-  else:
-    raise exceptions.SkipAction(skip_message)
-
-
-def _get_previous_enabled_procedures(batcher, current_action, action_orig_name_to_match):
-  # HACK: This avoids a circular import. To resolve this, one possible way is to
-  # refactor `actions` to turn actions into classes.
-  from export_layers import actions
-  
-  previous_enabled_procedures = []
-  
-  for procedure in actions.walk(batcher.procedures):
-    if procedure == current_action:
-      return previous_enabled_procedures
-    
-    if procedure['enabled'].value and procedure['orig_name'].value == action_orig_name_to_match:
-      previous_enabled_procedures.append(procedure)
-  
-  return previous_enabled_procedures
-
-
-def _has_tag(layer, tags):
-  layer_tags = pg.itemtree.get_tags_from_raw_item(layer, pg.config.SOURCE_NAME)
-  return any(tag in layer_tags for tag in tags)
-
-
 _PLACEHOLDERS = collections.OrderedDict([
   ('current_image', _GimpObjectPlaceholder(_('Current Image'), _get_current_image)),
   ('current_layer', _GimpObjectPlaceholder(_('Current Layer'), _get_current_layer)),
-  ('background_layer', _GimpObjectPlaceholder(_('Background Layer'), _get_background_layer)),
-  ('foreground_layer', _GimpObjectPlaceholder(_('Foreground Layer'), _get_foreground_layer)),
+  ('background_layer',
+   _GimpObjectPlaceholder(_('Background Layer'), background_foreground.get_background_layer)),
+  ('foreground_layer',
+   _GimpObjectPlaceholder(_('Foreground Layer'), background_foreground.get_foreground_layer)),
 ])
 
 
