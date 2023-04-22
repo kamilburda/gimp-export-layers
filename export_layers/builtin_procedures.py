@@ -65,8 +65,9 @@ def remove_locks_before_action_restore_locks_after_action(batcher):
   locks_content = {}
   
   for item_or_parent in [item] + item.parents:
-    locks_content[item_or_parent] = pdb.gimp_item_get_lock_content(item_or_parent.raw)
-  if not is_item_group:
+    if pdb.gimp_item_is_valid(item_or_parent.raw):
+      locks_content[item_or_parent] = pdb.gimp_item_get_lock_content(item_or_parent.raw)
+  if not is_item_group and pdb.gimp_item_is_valid(item.raw):
     lock_position = pdb.gimp_item_get_lock_position(item.raw)
     lock_alpha = pdb.gimp_layer_get_lock_alpha(item.raw)
   else:
