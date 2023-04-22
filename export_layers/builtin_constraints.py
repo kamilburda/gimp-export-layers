@@ -83,6 +83,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'name': 'selected_in_preview',
     'type': 'constraint',
     'function': is_item_in_selected_items,
+    'display_name': _('Selected in preview'),
     'arguments': [
       {
         'type': pg.SettingTypes.generic,
@@ -91,7 +92,6 @@ _BUILTIN_CONSTRAINTS_LIST = [
         'gui_type': None,
       },
     ],
-    'display_name': _('Selected in preview'),
   },
   {
     'name': 'top_level',
