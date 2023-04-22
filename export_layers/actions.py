@@ -278,7 +278,7 @@ def _create_action(
       tags=None,
       more_options_expanded=False,
       enabled_for_previews=True,
-      display_options_on_create=True,
+      display_options_on_create=False,
       **custom_fields):
   
   def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
@@ -557,6 +557,7 @@ def get_action_dict_for_pdb_procedure(pdb_procedure):
     'arguments': [],
     'display_name': pg.utils.safe_decode_gimp(pdb_procedure.proc_name),
     'is_pdb_procedure': True,
+    'display_options_on_create': True,
   }
   
   pdb_procedure_argument_names = []

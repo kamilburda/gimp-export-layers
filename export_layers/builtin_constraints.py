@@ -66,21 +66,18 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'type': 'constraint',
     'function': is_layer,
     'display_name': _('Layers'),
-    'display_options_on_create': False,
   },
   {
     'name': 'layer_groups',
     'type': 'constraint',
     'function': is_nonempty_group,
     'display_name': _('Layer groups'),
-    'display_options_on_create': False,
   },
   {
     'name': 'matching_file_extension',
     'type': 'constraint',
     'function': has_matching_default_file_extension,
     'display_name': _('Matching file extension'),
-    'display_options_on_create': False,
   },
   {
     'name': 'selected_in_preview',
@@ -95,26 +92,24 @@ _BUILTIN_CONSTRAINTS_LIST = [
       },
     ],
     'display_name': _('Selected in preview'),
-    'display_options_on_create': False,
   },
   {
     'name': 'top_level',
     'type': 'constraint',
     'function': is_top_level,
     'display_name': _('Top-level'),
-    'display_options_on_create': False,
   },
   {
     'name': 'visible',
     'type': 'constraint',
     'function': is_path_visible,
     'display_name': _('Visible'),
-    'display_options_on_create': False,
   },
   {
     'name': 'with_tags',
     'type': 'constraint',
     'function': has_tags,
+    'display_name': _('With tags'),
     'arguments': [
       {
         'type': pg.SettingTypes.array,
@@ -123,13 +118,12 @@ _BUILTIN_CONSTRAINTS_LIST = [
         'default_value': (),
       },
     ],
-    'display_name': _('With tags'),
-    'display_options_on_create': False,
   },
   {
     'name': 'without_tags',
     'type': 'constraint',
     'function': has_no_tags,
+    'display_name': _('Without tags'),
     'arguments': [
       {
         'type': pg.SettingTypes.array,
@@ -138,8 +132,6 @@ _BUILTIN_CONSTRAINTS_LIST = [
         'default_value': (),
       },
     ],
-    'display_name': _('Without tags'),
-    'display_options_on_create': False,
   },
 ]
 

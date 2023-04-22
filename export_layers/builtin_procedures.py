@@ -231,6 +231,7 @@ _BUILTIN_PROCEDURES_LIST = [
     'function': export_.export,
     'display_name': _('Export'),
     'additional_tags': [NAME_ONLY_TAG],
+    'display_options_on_create': True,
     'arguments': [
       {
         'type': pg.SettingTypes.directory,
@@ -297,19 +298,16 @@ _BUILTIN_PROCEDURES_LIST = [
     'function': remove_folder_hierarchy_from_item,
     'display_name': _('Ignore folder structure'),
     'additional_tags': [NAME_ONLY_TAG],
-    'display_options_on_create': False,
   },
   {
     'name': 'inherit_transparency_from_layer_groups',
     'function': inherit_transparency_from_layer_groups,
     'display_name': _('Inherit transparency from layer groups'),
-    'display_options_on_create': False,
   },
   {
     'name': 'insert_background_layers',
     'function': insert_background_layer,
     'display_name': _('Insert background layers'),
-    'display_options_on_create': False,
     'arguments': [
       {
         'type': pg.SettingTypes.string,
@@ -322,7 +320,6 @@ _BUILTIN_PROCEDURES_LIST = [
     'name': 'insert_foreground_layers',
     'function': insert_foreground_layer,
     'display_name': _('Insert foreground layers'),
-    'display_options_on_create': False,
     'arguments': [
       {
         'type': pg.SettingTypes.string,
@@ -336,6 +333,7 @@ _BUILTIN_PROCEDURES_LIST = [
     'function': rename_layer,
     'display_name': _('Rename'),
     'additional_tags': [NAME_ONLY_TAG],
+    'display_options_on_create': True,
     'arguments': [
       {
         'type': settings_custom.FilenamePatternSetting,
@@ -364,7 +362,6 @@ _BUILTIN_PROCEDURES_LIST = [
     'name': 'use_layer_size',
     'function': resize_to_layer_size,
     'display_name': _('Use layer size'),
-    'display_options_on_create': False,
   },
 ]
 
