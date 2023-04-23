@@ -3,8 +3,8 @@ Getting Started with Customization
 
 Beyond the basic features, Export Layers allows you to:
 * customize the layer name,
-* apply additional procedures before the export (insert background, scale down, ...),
-* selecting which layers to export by applying constraints (only visible layers, ...),
+* apply additional *procedures* before the export (insert background, scale down, ...),
+* selecting which layers to process by applying *constraints* (only visible layers, ...),
 * customize export to save multi-layer images (e.g. multi-page PDFs).
 
 To enable customization, press the `Settings` button and select `Show More Settings`.
@@ -287,11 +287,11 @@ Examples:
 * `[layer path, [,], [[[%c]]] ]` → `[Body],[Hands],[Left]`
 
 
-Customizing Export with Procedures
-----------------------------------
+Procedures
+----------
 
-Procedures allow you to process layers before they are exported.
-To add procedures before the export of each layer, press the `Add Procedure...` button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
+Procedures allow you to apply image filters to each layer.
+Press the `Add Procedure...` button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
 
 For each added procedure, you may perform any of the following:
 * enable and disable the procedure,
@@ -329,21 +329,21 @@ When exporting each layer separately (the default), the Export procedure usually
 
 **Ignore folder structure**
 
-Export all layers to the output directory on the same level, i.e. do not create subfolders for layer groups.
+Export all layers to the output folder on the same level, i.e. do not create subfolders for layer groups.
 
 **Inherit transparency from layer groups**
 
 Combine opacity from all parent layer groups for each layer.
 This corresponds to how the layer is actually displayed in the image canvas.
 
-For example, if a layer has 50% opacity and its parent group also has 50% opacity, the resulting opacity of the exported layer will be 25%.
+For example, if a layer has 50% opacity and its parent group also has 50% opacity, the resulting opacity of the layer will be 25%.
 
 **Insert background layers**
 
 Insert layers tagged with `Background` as background for each layer.
 To set a layer as a background layer, see [Tagging Layers](#tagging-layers).
 
-Note that even background layers get exported - to prevent this behavior, enable the `Without tags` constraint.
+Note that even background layers are processed and exported - to prevent this behavior, enable the `Without tags` constraint.
 
 You may modify the tag representing the background layers by editing the procedure argument `Tag`.
 
@@ -391,6 +391,8 @@ To keep the size of the image canvas and the layer position within the image, di
 Note that in that case the layers will be cut off if they are partially outside the image canvas.
 To export the entire layer, leave this setting enabled.
 
+When batch editing, you may want to disable this procedure as the image will be resized to the last processed layer's dimensions.
+
 
 ### Adding Custom Procedures <a name="Adding-Custom-Procedures"></a>
 
@@ -408,14 +410,14 @@ The description for an argument often indicates the range of valid values.
 
 If a procedure contains a layer/drawable/item argument, you may select one of the following:
 * (default) "Current Layer" - applies the procedure to the currently processed layer.
-* "Background Layer" - applies the procedure to layer placed after the current layer (i.e. the background), usually created via the "Insert background layers" procedure. Careful, if there is no such layer, the export will fail.
-* "Foreground Layer" - applies the procedure to layer placed before the current layer (i.e. the foreground), usually created via the "Insert foreground layers" procedure. Careful, if there is no such layer, the export will fail.
+* "Background Layer" - applies the procedure to the layer representing background, inserted via the "Insert background layers" procedure. If there is no such layer, the procedure will have no effect.
+* "Foreground Layer" - applies the procedure to the layer representing foreground, inserted via the "Insert foreground layers" procedure. If there is no such layer, the procedure will have no effect.
 
 
-Selecting Layers to Export with Constraints
--------------------------------------------
+Constraints
+-----------
 
-To include or exclude layers from the export according to specific criteria, press the `Add Constraint...` button and select one of the available constraints.
+To exclude certain layers from processing and export, press the `Add Constraint...` button and select one of the available constraints.
 As with procedures, you can enable, disable, reorder, edit or remove constraints as needed.
 Adding the same constraint multiple times is also possible.
 
@@ -427,49 +429,49 @@ Future versions will allow specifying custom constraints.
 
 **Layers**
 
-Export only layers (i.e. not layer groups).
+Process only layers (i.e. ignore layer groups).
 This constraint is enabled by default.
 
 **Layer groups**
 
-Export only layer groups.
+Process only layer groups.
 
 **Matching file extension**
 
-Export only layers having a file extension matching the extension typed in the text entry.
+Process only layers having a file extension matching the extension typed in the text entry.
 
 **Selected in preview**
 
-Export only layers selected in the preview.
+Process only layers selected in the preview.
 If you save settings, the selection is saved as well.
 
 **Top-level**
 
-Export only layers at the top of the layer tree (i.e. do not export layers inside any layer group).
+Process only layers at the top of the layer tree (i.e. do not process layers inside any layer group).
 
 **Visible**
 
-If enabled, invisible layers will not be exported.
+Process only visible layers.
 
 By default, layers (visible or not) whose parent layer groups are invisible are also ignored.
 To disable this behavior, edit the constraint, click on `More options` and then uncheck `Also apply to parent folders`.
 
 **With tags**
 
-Export only layers with tags.
+Process only layers with tags.
 
-By default, all layers without tags are excluded from export.
-To export only layers with specific tags, edit this constraint and add the tags for the `Tags` argument.
-For example, adding `background` will export only layers containing the `background` tag.
+By default, all layers without tags are excluded.
+To process only layers with specific tags, edit this constraint and add the tags for the `Tags` argument.
+For example, by adding `background`, only layers containing the `background` tag will be processed.
 Other tagged layers will be excluded.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
 
 **Without tags**
 
-Export only layers with no tags.
+Process only layers with no tags.
 
-By default, all layers with tags are excluded from export.
+By default, all layers with tags are excluded.
 To ignore only specific tags, edit this constraint and add the tags for the `Tags` argument.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
@@ -485,7 +487,7 @@ Tagged layers are indicated with a tag icon in the preview.
 Adding or removing tags modifies the current image.
 Save the image to keep the tags permanently.
 
-By default, Export Layers defines `Background` and `Foreground` tags.
+By default, Export Layers provides `Background` and `Foreground` tags.
 To add custom tags, right-click anywhere on the preview, select `Add New Tag...` and name your new tag.
 The new tag will be immediately added to the currently selected layer(s).
 
