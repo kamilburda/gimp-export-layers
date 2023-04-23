@@ -81,11 +81,12 @@ Yes, you may insert any GIMP filter as a procedure:
 While multi-page PDF export is already possible in GIMP without any third-party plug-ins, Export Layers allows you to apply custom procedures before the export or export each layer group (instead of the entire image).
 
 1. Add the "Export" procedure.
-2. Type `pdf` next to `File extension`.
-3. Select an option in `Perform export:`. To export a single image, select `For the entire image at once`.
-4. If needed and if `For the entire image at once` was selected, adjust `Image filename pattern` as seen fit.
-5. Specifically for the PDF format, you need to check `Layers as pages` when the native PDF export dialog is shown. Otherwise, only a single page will be exported.
-6. You may also want to uncheck the "Use layer size" procedure to use the image size (since PDF pages have the same dimensions), otherwise you might obtain unexpected results.
+2. Adjust the output folder as needed. The folder explorer in the main dialog will be ignored.
+3. Type `pdf` next to `File extension`.
+4. Select an option in `Perform export:`. To export a single image, select `For the entire image at once`.
+5. If needed and if `For the entire image at once` was selected, adjust `Image filename pattern` as seen fit.
+6. Specifically for the PDF format, you need to check `Layers as pages` when the native PDF export dialog is shown. Otherwise, only a single page will be exported.
+7. You may also want to uncheck the "Use layer size" procedure to use the image size (since PDF pages have the same dimensions), otherwise you might obtain unexpected results.
 
 Also note that if you export top-level layer groups and the first layer group contains only a single layer, the `Layers as pages` option in the PDF dialog cannot be checked, even if subsequent layer groups contain multiple layers. This is the current behavior of the PDF export in GIMP (at least in GIMP 2.10).
 
