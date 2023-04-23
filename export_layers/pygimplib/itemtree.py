@@ -423,7 +423,7 @@ class Item(object):
     
     self.name = pgutils.safe_decode_gimp(raw_item.name)
     
-    self._tags_source_name = _get_tags_source_name(
+    self._tags_source_name = _get_effective_tags_source_name(
       tags_source_name if tags_source_name else 'tags', self._type)
     
     self._tags = self._load_tags()
@@ -569,14 +569,7 @@ class Item(object):
   
   def _save_tags(self):
     """Saves tags persistently to the item."""
-    remove_tags_from_raw_item(self._raw_item, self._tags_source_name)
-    
-    if self._tags:
-      self._raw_item.parasite_attach(
-        gimp.Parasite(
-          self._tags_source_name,
-          gimpenums.PARASITE_PERSISTENT | gimpenums.PARASITE_UNDOABLE,
-          pickle.dumps(self._tags)))
+    set_tags_for_raw_item(self._raw_item, self._tags, self._tags_source_name)
   
   def _load_tags(self):
     return get_tags_from_raw_item(self._raw_item, self._tags_source_name)
@@ -588,7 +581,7 @@ def get_tags_from_raw_item(raw_item, source_name, item_type=None):
   `tags_source_name` is the name of the persistent source (parasite) to obtain
   tags from.
   """
-  parasite = raw_item.parasite_find(_get_tags_source_name(source_name, item_type))
+  parasite = raw_item.parasite_find(_get_effective_tags_source_name(source_name, item_type))
   if parasite:
     try:
       tags = pickle.loads(parasite.data)
@@ -600,12 +593,23 @@ def get_tags_from_raw_item(raw_item, source_name, item_type=None):
     return set()
 
 
-def remove_tags_from_raw_item(raw_item, tags_source_name, item_type=None):
-  raw_item.parasite_detach(_get_tags_source_name(tags_source_name, item_type))
+def set_tags_for_raw_item(raw_item, tags, source_name, item_type=None):
+  remove_tags_from_raw_item(raw_item, source_name, item_type)
+  
+  if tags:
+    raw_item.parasite_attach(
+      gimp.Parasite(
+        _get_effective_tags_source_name(source_name, item_type),
+        gimpenums.PARASITE_PERSISTENT | gimpenums.PARASITE_UNDOABLE,
+        pickle.dumps(tags)))
 
 
-def _get_tags_source_name(base_name, item_type=None):
+def remove_tags_from_raw_item(raw_item, source_name, item_type=None):
+  raw_item.parasite_detach(_get_effective_tags_source_name(source_name, item_type))
+
+
+def _get_effective_tags_source_name(source_name, item_type=None):
   if item_type == TYPE_FOLDER:
-    return base_name + '_' + FOLDER_KEY
+    return source_name + '_' + FOLDER_KEY
   else:
-    return base_name
+    return source_name
