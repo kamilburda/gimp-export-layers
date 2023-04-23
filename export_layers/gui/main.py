@@ -865,7 +865,7 @@ class ExportLayersDialog(object):
       
       if self._settings['main/edit_mode'].value:
         self._image_preview.update()
-        self._name_preview.update()
+        self._name_preview.update(reset_items=True)
       
       self._set_warning_on_actions(self._batcher)
       
