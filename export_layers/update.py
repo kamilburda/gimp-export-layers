@@ -413,6 +413,8 @@ def _update_to_3_4(settings):
     builtin_constraints.BUILTIN_CONSTRAINTS,
   )
   
+  settings['main/constraints/visible/also_apply_to_parent_folders'].set_value(True)
+  
   _refresh_actions(
     constraints,
     settings['main/constraints'],
@@ -539,6 +541,8 @@ def _fix_element_paths_in_parasites_3_4():
      b'background_foreground\ninsert_background_layer'),
     (b'builtin_procedures\ninsert_foreground_layer',
      b'background_foreground\ninsert_foreground_layer'),
+    (b'builtin_procedures\nis_path_visible',
+     b'builtin_procedures\nis_visible'),
   ])
 
 

@@ -36,17 +36,8 @@ def is_top_level(item):
   return item.depth == 0
 
 
-def is_path_visible(item):
-  path_visible = True
-  if not item.raw.visible:
-    path_visible = False
-  else:
-    for parent in item.parents:
-      if not parent.raw.visible:
-        path_visible = False
-        break
-  
-  return path_visible
+def is_visible(item):
+  return item.raw.visible
 
 
 def has_tags(item, tags=None):
@@ -102,7 +93,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
   {
     'name': 'visible',
     'type': 'constraint',
-    'function': is_path_visible,
+    'function': is_visible,
     'display_name': _('Visible'),
   },
   {

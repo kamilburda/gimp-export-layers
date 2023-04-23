@@ -29,6 +29,12 @@ Uncheck or remove the "Use layer size" procedure.
 Check the "Visible" constraint (or add one if not already).
 
 
+**I want to export only visible layers, including those that have invisible parent layer groups.**
+
+1. Check the "Visible" constraint (or add one if not already).
+2. Edit the "Visible" constraint (hover over the constraint and click on the pen and paper icon). In the dialog, click on `More options` and then uncheck `Also apply to parent folders`.
+
+
 **I don't want to preserve folder hierarchy when exporting layers.**
 
 Add the "Ignore folder structure" procedure.
@@ -442,7 +448,9 @@ Export only layer groups.
 **Visible**
 
 If enabled, invisible layers will not be exported.
-Visible layers within invisible layer groups will also not be exported.
+
+By default, layers (visible or not) whose parent layer groups are invisible are also ignored.
+To disable this behavior, edit the constraint, click on `More options` and then uncheck `Also apply to parent folders`.
 
 **Top-level**
 

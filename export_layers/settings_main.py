@@ -152,6 +152,7 @@ def create_settings():
   
   visible_constraint_dict = dict(builtin_constraints.BUILTIN_CONSTRAINTS['visible'])
   visible_constraint_dict['enabled'] = False
+  visible_constraint_dict['also_apply_to_parent_folders'] = True
   
   settings['main'].add([actions.create(
     name='constraints',
