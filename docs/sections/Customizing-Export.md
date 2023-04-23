@@ -502,3 +502,21 @@ To add custom tags, right-click anywhere on the preview, select `Add New Tag...`
 The new tag will be immediately added to the currently selected layer(s).
 
 To remove custom tags, remove them first from all layers, then right-click anywhere on the preview, select `Remove Tag...` and select the tag you wish to remove.
+
+
+More Options
+------------
+
+When editing procedures or constraints, you may adjust additional options when clicking on `More options`.
+
+**Enable for previews**
+
+If checked (the default), apply the procedure or constraint in the preview.
+Unchecking this can be handy if there are procedures taking too long to process such as scaling and you need a quick glimpse of how the resulting layers would look like.
+
+**Also apply to parent folders** (constraints only)
+
+If checked, a layer will satisfy a constraint if all of its parent groups also satisfy the constraint.
+For example, if checking this option for the "Visible" constraint, a visible layer would be ignored if any of its parent layer groups are not visible.
+
+This option is unchecked by default and is only checked for the "Visible" constraint that is displayed when running this plug-in for the first time.
