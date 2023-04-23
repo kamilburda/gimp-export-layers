@@ -434,16 +434,25 @@ This constraint is enabled by default.
 
 Export only layer groups.
 
+**Matching file extension**
+
+Export only layers having a file extension matching the extension typed in the text entry.
+
+**Selected in preview**
+
+Export only layers selected in the preview.
+If you save settings, the selection is saved as well.
+
+**Top-level**
+
+Export only layers at the top of the layer tree (i.e. do not export layers inside any layer group).
+
 **Visible**
 
 If enabled, invisible layers will not be exported.
 
 By default, layers (visible or not) whose parent layer groups are invisible are also ignored.
 To disable this behavior, edit the constraint, click on `More options` and then uncheck `Also apply to parent folders`.
-
-**Top-level**
-
-Export only layers at the top of the layer tree (i.e. do not export layers inside any layer group).
 
 **With tags**
 
@@ -464,15 +473,6 @@ By default, all layers with tags are excluded from export.
 To ignore only specific tags, edit this constraint and add the tags for the `Tags` argument.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
-
-**Matching file extension**
-
-Export only layers having a file extension matching the extension typed in the text entry.
-
-**Selected in preview**
-
-Export only layers selected in the preview.
-If you save settings, the selection is saved as well.
 
 
 Tagging Layers
