@@ -486,6 +486,8 @@ class Batcher(object):
     function = self._get_action_func_with_replaced_placeholders(function)
     
     if 'constraint' in action.tags:
+      function = self._set_apply_constraint_to_folders(function, action)
+      
       function = self._get_constraint_func(
         function, orig_function, action['orig_name'].value, action['subfilter'].value)
     
@@ -569,10 +571,27 @@ class Batcher(object):
     
     return _set_action
   
+  def _set_apply_constraint_to_folders(self, function, action):
+    if action['also_apply_to_parent_folders'].value:
+      def _apply_constraint_to_item_and_folders(*action_args, **action_kwargs):
+        item = action_args[0]
+        result = True
+        for item_or_parent in [item] + item.parents[::-1]:
+          result = result and function(item_or_parent, *action_args[1:], **action_kwargs)
+          if not result:
+            break
+        
+        return result
+      
+      return _apply_constraint_to_item_and_folders
+    else:
+      return function
+  
   def _get_constraint_func(self, func, orig_func=None, name='', subfilter=None):
     def _add_func(*args, **kwargs):
       func_args = self._get_args_for_constraint_func(
-        orig_func if orig_func is not None else func, args)
+        orig_func if orig_func is not None else func,
+        args)
       
       if subfilter is None:
         object_filter = self._item_tree.filter

@@ -416,6 +416,7 @@ def _create_constraint(
       additional_tags=None,
       action_groups=(DEFAULT_CONSTRAINTS_GROUP,),
       subfilter=None,
+      also_apply_to_parent_folders=False,
       **kwargs_and_custom_fields):
   tags = ['action', 'constraint']
   if additional_tags is not None:
@@ -437,6 +438,12 @@ def _create_constraint(
       'name': 'subfilter',
       'default_value': subfilter,
       'gui_type': None,
+    },
+    {
+      'type': pg.SettingTypes.boolean,
+      'name': 'also_apply_to_parent_folders',
+      'default_value': also_apply_to_parent_folders,
+      'display_name': _('Also apply to parent folders'),
     },
   ])
   

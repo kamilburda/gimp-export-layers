@@ -508,6 +508,9 @@ class _ActionEditDialog(gimpui.Dialog):
     self._vbox_more_options.set_border_width(self._MORE_OPTIONS_BORDER_WIDTH)
     self._vbox_more_options.pack_start(
       action['enabled_for_previews'].gui.element, expand=False, fill=False)
+    if 'also_apply_to_parent_folders' in action:
+      self._vbox_more_options.pack_start(
+        action['also_apply_to_parent_folders'].gui.element, expand=False, fill=False)
     
     action['more_options_expanded'].gui.element.add(self._vbox_more_options)
     
@@ -580,7 +583,9 @@ class _ActionEditDialog(gimpui.Dialog):
     for child in list(self._table_action_arguments.get_children()):
       self._table_action_arguments.remove(child)
     
-    self._vbox_more_options.remove(action['enabled_for_previews'].gui.element)
+    for child in list(self._vbox_more_options.get_children()):
+      self._vbox_more_options.remove(child)
+    
     action['more_options_expanded'].gui.element.remove(self._vbox_more_options)
     self._vbox.remove(action['more_options_expanded'].gui.element)
   
