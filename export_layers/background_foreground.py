@@ -103,39 +103,50 @@ def _remove_locks_from_layer(layer):
 
 
 def merge_background(batcher, merge_type=gimpenums.EXPAND_AS_NECESSARY):
-  background_layer = get_background_layer(batcher)
-  
-  if background_layer is not None:
-    name = batcher.current_raw_item.name
-    visible = pdb.gimp_item_get_visible(batcher.current_raw_item)
-    
-    pdb.gimp_item_set_visible(batcher.current_raw_item, True)
-    
-    merged_layer = pdb.gimp_image_merge_down(
-      batcher.current_image, batcher.current_raw_item, merge_type)
-    merged_layer.name = name
-    
-    batcher.current_raw_item = merged_layer
-    
-    pdb.gimp_item_set_visible(batcher.current_raw_item, visible)
+  _merge_tagged_layer(
+    batcher,
+    merge_type,
+    get_background_layer,
+    'current_item')
 
 
 def merge_foreground(batcher, merge_type=gimpenums.EXPAND_AS_NECESSARY):
-  foreground_layer = get_foreground_layer(batcher)
+  _merge_tagged_layer(
+    batcher,
+    merge_type,
+    get_foreground_layer,
+    'tagged_layer')
+
+
+def _merge_tagged_layer(batcher, merge_type, get_tagged_layer_func, layer_to_merge_down_str):
+  tagged_layer = get_tagged_layer_func(batcher)
   
-  if foreground_layer is not None:
+  if tagged_layer is not None:
     name = batcher.current_raw_item.name
     visible = pdb.gimp_item_get_visible(batcher.current_raw_item)
+    orig_tags = _get_tags(batcher.current_raw_item)
+    
+    if layer_to_merge_down_str == 'current_item':
+      layer_to_merge_down = batcher.current_raw_item
+    elif layer_to_merge_down_str == 'tagged_layer':
+      layer_to_merge_down = tagged_layer
+    else:
+      raise ValueError('invalid value for "layer_to_merge_down_str"')
     
     pdb.gimp_item_set_visible(batcher.current_raw_item, True)
     
     merged_layer = pdb.gimp_image_merge_down(
-      batcher.current_image, foreground_layer, merge_type)
+      batcher.current_image, layer_to_merge_down, merge_type)
     merged_layer.name = name
     
     batcher.current_raw_item = merged_layer
     
     pdb.gimp_item_set_visible(batcher.current_raw_item, visible)
+    _set_tags(batcher.current_raw_item, orig_tags)
+    # We do not expect layer groups as folders to be merged since the plug-in
+    # manipulates regular layers only (a layer group is merged into a single
+    # layer during processing). Therefore, folder tags are ignored.
+    _set_tags(batcher.current_raw_item, set(), pg.itemtree.TYPE_FOLDER)
 
 
 def get_background_layer(batcher):
@@ -178,7 +189,7 @@ def _get_adjacent_layer(
         for procedure in _get_previous_enabled_procedures(
           batcher, batcher.current_procedure, insert_tagged_layers_procedure_name)]
       
-      if tags and _has_tag(next_layer, tags):
+      if _has_tag(next_layer, tags, None) or _has_tag(next_layer, tags, pg.itemtree.TYPE_FOLDER):
         adjacent_layer = next_layer
   
   if adjacent_layer is not None:
@@ -207,9 +218,13 @@ def _get_previous_enabled_procedures(batcher, current_action, action_orig_name_t
   return previous_enabled_procedures
 
 
-def _has_tag(layer, tags):
-  layer_tags = pg.itemtree.get_tags_from_raw_item(layer, pg.config.SOURCE_NAME)
-  layer_tags.update(pg.itemtree.get_tags_from_raw_item(
-    layer, pg.config.SOURCE_NAME, pg.itemtree.TYPE_FOLDER))
-  
-  return any(tag in layer_tags for tag in tags)
+def _has_tag(layer, tags, item_type=None):
+  return any(tag in _get_tags(layer, item_type) for tag in tags)
+
+
+def _get_tags(layer, item_type=None):
+  return pg.itemtree.get_tags_from_raw_item(layer, pg.config.SOURCE_NAME, item_type)
+
+
+def _set_tags(layer, tags, item_type=None):
+  return pg.itemtree.set_tags_for_raw_item(layer, tags, pg.config.SOURCE_NAME, item_type)
