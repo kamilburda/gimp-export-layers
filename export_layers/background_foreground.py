@@ -24,7 +24,7 @@ def insert_foreground_layer(batcher, tag):
 
 def _insert_tagged_layer(batcher, tag, insert_mode):
   tagged_items = [
-    item for item in batcher.item_tree.iter(with_folders=False, filtered=False)
+    item for item in batcher.item_tree.iter(with_folders=True, filtered=False)
     if tag in item.tags]
   merged_tagged_layer = None
   orig_merged_tagged_layer = None
@@ -209,4 +209,7 @@ def _get_previous_enabled_procedures(batcher, current_action, action_orig_name_t
 
 def _has_tag(layer, tags):
   layer_tags = pg.itemtree.get_tags_from_raw_item(layer, pg.config.SOURCE_NAME)
+  layer_tags.update(pg.itemtree.get_tags_from_raw_item(
+    layer, pg.config.SOURCE_NAME, pg.itemtree.TYPE_FOLDER))
+  
   return any(tag in layer_tags for tag in tags)

@@ -423,9 +423,8 @@ class Item(object):
     
     self.name = pgutils.safe_decode_gimp(raw_item.name)
     
-    self._tags_source_name = tags_source_name if tags_source_name else 'tags'
-    if self._type == TYPE_FOLDER:
-      self._tags_source_name += '_' + FOLDER_KEY
+    self._tags_source_name = _get_tags_source_name(
+      tags_source_name if tags_source_name else 'tags', self._type)
     
     self._tags = self._load_tags()
     
@@ -570,7 +569,7 @@ class Item(object):
   
   def _save_tags(self):
     """Saves tags persistently to the item."""
-    self._raw_item.parasite_detach(self._tags_source_name)
+    remove_tags_from_raw_item(self._raw_item, self._tags_source_name)
     
     if self._tags:
       self._raw_item.parasite_attach(
@@ -583,13 +582,13 @@ class Item(object):
     return get_tags_from_raw_item(self._raw_item, self._tags_source_name)
 
 
-def get_tags_from_raw_item(raw_item, tags_source_name):
+def get_tags_from_raw_item(raw_item, source_name, item_type=None):
   """Obtains a set of tags from a `gimp.Item` instance, i.e. a raw item.
   
   `tags_source_name` is the name of the persistent source (parasite) to obtain
   tags from.
   """
-  parasite = raw_item.parasite_find(tags_source_name)
+  parasite = raw_item.parasite_find(_get_tags_source_name(source_name, item_type))
   if parasite:
     try:
       tags = pickle.loads(parasite.data)
@@ -599,3 +598,14 @@ def get_tags_from_raw_item(raw_item, tags_source_name):
     return tags
   else:
     return set()
+
+
+def remove_tags_from_raw_item(raw_item, tags_source_name, item_type=None):
+  raw_item.parasite_detach(_get_tags_source_name(tags_source_name, item_type))
+
+
+def _get_tags_source_name(base_name, item_type=None):
+  if item_type == TYPE_FOLDER:
+    return base_name + '_' + FOLDER_KEY
+  else:
+    return base_name
