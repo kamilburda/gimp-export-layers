@@ -412,18 +412,6 @@ If a procedure contains a layer/drawable/item argument, you may select one of th
 * "Foreground Layer" - applies the procedure to layer placed before the current layer (i.e. the foreground), usually created via the "Insert foreground layers" procedure. Careful, if there is no such layer, the export will fail.
 
 
-### More options
-
-When editing a procedure or a constraint, you may expand `More options` for further customization.
-Options under `More options` are described below.
-
-
-**Enable for previews**
-
-If checked, the procedure is applied to previews.
-You may want to uncheck this if a procedure is very slow or e.g. manipulates the file system (reads or saves files).
-
-
 Selecting Layers to Export with Constraints
 -------------------------------------------
 
@@ -512,7 +500,8 @@ When editing procedures or constraints, you may adjust additional options when c
 **Enable for previews**
 
 If checked (the default), apply the procedure or constraint in the preview.
-Unchecking this can be handy if there are procedures taking too long to process such as scaling and you need a quick glimpse of how the resulting layers would look like.
+
+Unchecking this can be handy if a procedure takes too long or manipulates the file system (reads or saves files).
 
 **Also apply to parent folders** (constraints only)
 
