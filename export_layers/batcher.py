@@ -686,7 +686,7 @@ class Batcher(object):
     
     if self._edit_mode:
       self._invoker.add(
-        builtin_procedures.remove_locks_before_action_restore_locks_after_action,
+        builtin_procedures.preserve_locks_between_actions,
         [actions.DEFAULT_PROCEDURES_GROUP],
         foreach=True)
     

@@ -57,7 +57,7 @@ def sync_item_name_and_raw_item_name(batcher):
     batcher.current_item.name = batcher.current_raw_item.name
 
 
-def remove_locks_before_action_restore_locks_after_action(batcher):
+def preserve_locks_between_actions(batcher):
   # We assume `edit_mode` is True, we can therefore safely use `Item.raw`
   # instead of `current_raw_item`. We need to use `Item.raw` for parents as
   # well.
