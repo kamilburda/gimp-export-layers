@@ -16,8 +16,8 @@ Getting Started with Customization
 
 Beyond the basic features, Export Layers allows you to:
 * customize the layer name,
-* apply additional procedures before the export (insert background, scale down, ...),
-* selecting which layers to export by applying constraints (only visible layers, ...),
+* apply additional *procedures* before the export (insert background, scale down, ...),
+* selecting which layers to process by applying *constraints* (only visible layers, ...),
 * customize export to save multi-layer images (e.g. multi-page PDFs).
 
 To enable customization, press the `Settings` button and select `Show More Settings`.
@@ -40,6 +40,12 @@ Uncheck or remove the "Use layer size" procedure.
 **I want to export only visible layers.**
 
 Check the "Visible" constraint (or add one if not already).
+
+
+**I want to export only visible layers, including those that have invisible parent layer groups.**
+
+1. Check the "Visible" constraint (or add one if not already).
+2. Edit the "Visible" constraint (hover over the constraint and click on the pen and paper icon). In the dialog, click on `More options` and then uncheck `Also apply to parent folders`.
 
 
 **I don't want to preserve folder hierarchy when exporting layers.**
@@ -79,7 +85,8 @@ Yes, you may insert any GIMP filter as a procedure:
 1. In the preview to the right, right-click on the layer name you want to be your background.
 2. Check `Background`. A tag icon will be displayed next to the layer name.
 3. To add more layers as background, repeat steps 1 and 2. If you need to achieve a particular order of background layers, you need to reorder the layers in GIMP (i.e. outside the plug-in). The plug-in will sync with the changes done in GIMP.
-4. Add the "Insert background layers" procedure. If needed, you may place this procedure after "Use layer size" by dragging it above/onto "Use layer size".
+4. Add the "Insert background layers" procedure. If needed, you may place this procedure after "Use layer size" by dragging it onto "Use layer size".
+5. If you want to perform [batch editing](Batch-Editing.md) rather than export, you may want to merge the inserted background with each layer. To do so, add the "Merge background" procedure.
 
 
 **I want to save the image as a multi-page PDF file.**
@@ -87,11 +94,12 @@ Yes, you may insert any GIMP filter as a procedure:
 While multi-page PDF export is already possible in GIMP without any third-party plug-ins, Export Layers allows you to apply custom procedures before the export or export each layer group (instead of the entire image).
 
 1. Add the "Export" procedure.
-2. Type `pdf` next to `File extension`.
-3. Select an option in `Perform export:`. To export a single image, select `For the entire image at once`.
-4. If needed and if `For the entire image at once` was selected, adjust `Image filename pattern` as seen fit.
-5. Specifically for the PDF format, you need to check `Layers as pages` when the native PDF export dialog is shown. Otherwise, only a single page will be exported.
-6. You may also want to uncheck the "Use layer size" procedure to use the image size (since PDF pages have the same dimensions), otherwise you might obtain unexpected results.
+2. Adjust the output folder as needed. The folder explorer in the main dialog will be ignored.
+3. Type `pdf` next to `File extension`.
+4. Select an option in `Perform export:`. To export a single image, select `For the entire image at once`.
+5. If needed and if `For the entire image at once` was selected, adjust `Image filename pattern` as seen fit.
+6. Specifically for the PDF format, you need to check `Layers as pages` when the native PDF export dialog is shown. Otherwise, only a single page will be exported.
+7. You may also want to uncheck the "Use layer size" procedure to use the image size (since PDF pages have the same dimensions), otherwise you might obtain unexpected results.
 
 Also note that if you export top-level layer groups and the first layer group contains only a single layer, the `Layers as pages` option in the PDF dialog cannot be checked, even if subsequent layer groups contain multiple layers. This is the current behavior of the PDF export in GIMP (at least in GIMP 2.10).
 
@@ -292,11 +300,11 @@ Examples:
 * `[layer path, [,], [[[%c]]] ]` → `[Body],[Hands],[Left]`
 
 
-Customizing Export with Procedures
-----------------------------------
+Procedures
+----------
 
-Procedures allow you to process layers before they are exported.
-To add procedures before the export of each layer, press the `Add Procedure...` button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
+Procedures allow you to apply image filters to each layer.
+Press the `Add Procedure...` button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
 
 For each added procedure, you may perform any of the following:
 * enable and disable the procedure,
@@ -334,21 +342,21 @@ When exporting each layer separately (the default), the Export procedure usually
 
 **Ignore folder structure**
 
-Export all layers to the output directory on the same level, i.e. do not create subfolders for layer groups.
+Export all layers to the output folder on the same level, i.e. do not create subfolders for layer groups.
 
 **Inherit transparency from layer groups**
 
 Combine opacity from all parent layer groups for each layer.
 This corresponds to how the layer is actually displayed in the image canvas.
 
-For example, if a layer has 50% opacity and its parent group also has 50% opacity, the resulting opacity of the exported layer will be 25%.
+For example, if a layer has 50% opacity and its parent group also has 50% opacity, the resulting opacity of the layer will be 25%.
 
 **Insert background layers**
 
 Insert layers tagged with `Background` as background for each layer.
 To set a layer as a background layer, see [Tagging Layers](#tagging-layers).
 
-Note that even background layers get exported - to prevent this behavior, enable the `Without tags` constraint.
+Note that even background layers are processed and exported - to prevent this behavior, enable the `Without tags` constraint.
 
 You may modify the tag representing the background layers by editing the procedure argument `Tag`.
 
@@ -361,13 +369,23 @@ If this is your intention, you can always move this procedure below `Use layer s
 Insert layers tagged with `Foreground` as foreground for each layer.
 To set a layer as a foreground layer, see [Tagging Layers](#tagging-layers).
 
-Note that even foreground layers get exported - to prevent this behavior, enable the `Without tags` constraint.
+For more information, see "Insert background layers" above.
 
-You may modify the tag representing the foreground layers by editing the procedure argument `Tag`.
+**Merge background**
 
-In the dialog, this procedure is always inserted in the first position.
-This prevents potential confusion when `Use layer size` is unchecked and the foreground is offset relative to the layer rather than the image canvas.
-If this is your intention, you can always move this procedure below `Use layer size`.
+Merges an already inserted background layer (via "Insert background layers", see above) with the current layer.
+
+This is useful if you wish to have a single merged layer rather than the background as a separate layer.
+
+When exporting layers, the background is merged automatically before the export, hence this procedure is only useful when batch editing layers.
+
+If there is no background layer inserted, this procedure has no effect.
+
+**Merge foreground**
+
+Merges an already inserted foreground layer (via "Insert foreground layers", see above) with the current layer.
+
+For more information, see "Merge background" above.
 
 **Rename layer**
 
@@ -386,6 +404,8 @@ To keep the size of the image canvas and the layer position within the image, di
 Note that in that case the layers will be cut off if they are partially outside the image canvas.
 To export the entire layer, leave this setting enabled.
 
+When batch editing, you may want to disable this procedure as the image will be resized to the last processed layer's dimensions.
+
 
 ### Adding Custom Procedures <a name="Adding-Custom-Procedures"></a>
 
@@ -403,26 +423,14 @@ The description for an argument often indicates the range of valid values.
 
 If a procedure contains a layer/drawable/item argument, you may select one of the following:
 * (default) "Current Layer" - applies the procedure to the currently processed layer.
-* "Background" - applies the procedure to layer placed after the current layer (i.e. the background), usually created via the "Insert background layers" procedure. Careful, if there is no such layer, the export will fail.
-* "Foreground" - applies the procedure to layer placed before the current layer (i.e. the foreground), usually created via the "Insert foreground layers" procedure. Careful, if there is no such layer, the export will fail.
+* "Background Layer" - applies the procedure to the layer representing background, inserted via the "Insert background layers" procedure. If there is no such layer, the procedure will have no effect.
+* "Foreground Layer" - applies the procedure to the layer representing foreground, inserted via the "Insert foreground layers" procedure. If there is no such layer, the procedure will have no effect.
 
 
-### More options
+Constraints
+-----------
 
-When editing a procedure or a constraint, you may expand `More options` for further customization.
-Options under `More options` are described below.
-
-
-**Enable for previews**
-
-If checked, the procedure is applied to previews.
-You may want to uncheck this if a procedure is very slow or e.g. manipulates the file system (reads or saves files).
-
-
-Selecting Layers to Export with Constraints
--------------------------------------------
-
-To include or exclude layers from the export according to specific criteria, press the `Add Constraint...` button and select one of the available constraints.
+To exclude certain layers from processing and export, press the `Add Constraint...` button and select one of the available constraints.
 As with procedures, you can enable, disable, reorder, edit or remove constraints as needed.
 Adding the same constraint multiple times is also possible.
 
@@ -434,50 +442,52 @@ Future versions will allow specifying custom constraints.
 
 **Layers**
 
-Export only layers (i.e. not layer groups).
+Process only layers (i.e. ignore layer groups).
 This constraint is enabled by default.
 
 **Layer groups**
 
-Export only layer groups.
+Process only layer groups.
 
-**Visible**
+**Matching file extension**
 
-If enabled, invisible layers will not be exported.
-Visible layers within invisible layer groups will also not be exported.
+Process only layers having a file extension matching the extension typed in the text entry.
+
+**Selected in preview**
+
+Process only layers selected in the preview.
+If you save settings, the selection is saved as well.
 
 **Top-level**
 
-Export only layers at the top of the layer tree (i.e. do not export layers inside any layer group).
+Process only layers at the top of the layer tree (i.e. do not process layers inside any layer group).
+
+**Visible**
+
+Process only visible layers.
+
+By default, layers (visible or not) whose parent layer groups are invisible are also ignored.
+To disable this behavior, edit the constraint, click on `More options` and then uncheck `Also apply to parent folders`.
 
 **With tags**
 
-Export only layers with tags.
+Process only layers with tags.
 
-By default, all layers without tags are excluded from export.
-To export only layers with specific tags, edit this constraint and add the tags for the `Tags` argument.
-For example, adding `background` will export only layers containing the `background` tag.
+By default, all layers without tags are excluded.
+To process only layers with specific tags, edit this constraint and add the tags for the `Tags` argument.
+For example, by adding `background`, only layers containing the `background` tag will be processed.
 Other tagged layers will be excluded.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
 
 **Without tags**
 
-Export only layers with no tags.
+Process only layers with no tags.
 
-By default, all layers with tags are excluded from export.
+By default, all layers with tags are excluded.
 To ignore only specific tags, edit this constraint and add the tags for the `Tags` argument.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
-
-**Matching file extension**
-
-Export only layers having a file extension matching the extension typed in the text entry.
-
-**Selected in preview**
-
-Export only layers selected in the preview.
-If you save settings, the selection is saved as well.
 
 
 Tagging Layers
@@ -490,8 +500,27 @@ Tagged layers are indicated with a tag icon in the preview.
 Adding or removing tags modifies the current image.
 Save the image to keep the tags permanently.
 
-By default, Export Layers defines `Background` and `Foreground` tags.
+By default, Export Layers provides `Background` and `Foreground` tags.
 To add custom tags, right-click anywhere on the preview, select `Add New Tag...` and name your new tag.
 The new tag will be immediately added to the currently selected layer(s).
 
 To remove custom tags, remove them first from all layers, then right-click anywhere on the preview, select `Remove Tag...` and select the tag you wish to remove.
+
+
+More Options
+------------
+
+When editing procedures or constraints, you may adjust additional options when clicking on `More options`.
+
+**Enable for previews**
+
+If checked (the default), apply the procedure or constraint in the preview.
+
+Unchecking this can be handy if a procedure takes too long or manipulates the file system (reads or saves files).
+
+**Also apply to parent folders** (constraints only)
+
+If checked, a layer will satisfy a constraint if all of its parent groups also satisfy the constraint.
+For example, if checking this option for the "Visible" constraint, a visible layer would be ignored if any of its parent layer groups are not visible.
+
+This option is unchecked by default and is only checked for the "Visible" constraint that is displayed when running this plug-in for the first time.

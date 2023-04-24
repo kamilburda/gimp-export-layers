@@ -13,13 +13,16 @@ New features:
   * export images with additional custom procedures applied before the export,
   * export each top-level group as separate multi-layer images.
 * Added a new procedure named "Export" to allow multi-layer export as described above.
-* Procedures can now be applied to background or foreground layers instead of always the layer being exported. If a procedure provides a layer/drawable/item argument, you may now select "Background" or "Foreground" (beside "Current Layer").
+* Procedures can now be applied to background or foreground layers instead of always the layer being exported. If a procedure provides a layer/drawable/item argument, you may now select "Background Layer" or "Foreground Layer" (beside "Current Layer").
+* Added "Merge background" and "Merge foreground" procedures to explicitly merge back- and foreground layers, respectively. These procedures are useful for batch editing if you wish to merge background and foreground layers into each layer rather than keeping them as separate layers.
+* Added the option to apply constraints to parent layer groups as well (when editing a constraint, check `More options` → `Also apply to parent folders`).
 * The "Rename" procedure can now optionally rename only folders (previously allowed only layers or both layers and folders, but not folders alone).
 
 Changes to procedures:
 * Removed the "Use file extension in layer name" procedure. The same functionality is now available in the "Export" procedure.
 * Removed the "Autocrop background" and "Autocrop foreground" procedures as the same effect can be achieved by inserting the `gimp-plugin-autocrop-layer` procedure and setting the drawable argument to "Background" or "Foreground", respectively.
 * Renamed the "Rename layer" procedure to just "Rename" for brevity.
+* The edit dialog for the "Rename" procedure is now displayed when added.
 
 Changes to constraints:
 * Removed the "Include layers" constraint and instead added a constraint to export only layers.
@@ -32,6 +35,10 @@ Other changes:
 * Layer groups as images and as folders are now displayed separately in the preview.
 * Built-in procedures and constraints are now listed alphabetically.
 * Shortened the name of the DICOM file format. As a result, the file format popup is now much shorter and thus more compact.
+* Reworked warning messages displayed when a procedure or constraint fails during processing or preview.
+* A procedure or constraint causing an error during processing is now also indicated in the dialog with a warning icon. Clicking on the icon displays details about the error.
+* When editing a procedure or constraint, clicking on the edit button again will bring the edit dialog to front.
+* Edit dialogs for procedures and constraints are now closed before the start of processing.
 * Updated documentation with examples on how to customize the export.
 
 Bug fixes:

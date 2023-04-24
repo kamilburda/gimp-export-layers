@@ -23,4 +23,6 @@ Export-related settings such as filename pattern, file extension and output fold
 
 It is highly recommended to uncheck `Use layer size` as the entire image would be resized to the last layer processed.
 
+If the `Layers` constraint is unchecked - meaning that layer groups are also processed - the layer groups will be copied and inserted as regular layers to work around the fact that some procedures cannot be applied on layer groups (e.g. `gimp-drawable-brightness-contrast`).
+
 Note that if both `Batch Editing` and `Show More Settings` are checked and you uncheck `Show More Settings`, then `Batch Editing` is also unchecked since the left side of the dialog would be completely empty.
