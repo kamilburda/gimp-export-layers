@@ -33,6 +33,7 @@ Other changes:
 * A procedure or constraint causing an error during processing is now also indicated in the dialog with a warning icon. Clicking on the icon displays details about the error.
 * When editing a procedure or constraint, clicking on the edit button again will bring the edit dialog to front.
 * Edit dialogs for procedures and constraints are now closed before the start of processing.
+* Removed restrictions on the maximum width and height for the image preview.
 * Updated documentation with examples on how to customize the export.
 
 Bug fixes:

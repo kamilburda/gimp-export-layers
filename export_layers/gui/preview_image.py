@@ -55,7 +55,6 @@ class ImagePreview(preview_base_.Preview):
   
   _WIDGET_SPACING = 5
   _BORDER_WIDTH = 6
-  _MAX_PREVIEW_SIZE_PIXELS = 1024
   _PREVIEW_ALPHA_CHECK_SIZE = 4
   
   def __init__(self, batcher, settings):
@@ -462,14 +461,14 @@ class ImagePreview(preview_base_.Preview):
     preview_widget_height = preview_widget_allocation.height
     
     if preview_widget_width > preview_widget_height:
-      preview_height = min(preview_widget_height, height, self._MAX_PREVIEW_SIZE_PIXELS)
+      preview_height = min(preview_widget_height, height)
       preview_width = int(round((preview_height / height) * width))
       
       if preview_width > preview_widget_width:
         preview_width = preview_widget_width
         preview_height = int(round((preview_width / width) * height))
     else:
-      preview_width = min(preview_widget_width, width, self._MAX_PREVIEW_SIZE_PIXELS)
+      preview_width = min(preview_widget_width, width)
       preview_height = int(round((preview_width / width) * height))
       
       if preview_height > preview_widget_height:
