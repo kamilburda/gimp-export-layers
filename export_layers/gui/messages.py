@@ -74,12 +74,20 @@ def get_failing_action_message(action_and_item_or_action_error):
   else:
     action, item = action_and_item_or_action_error
   
-  if 'procedure' in action.tags:
-    message_template = _('Failed to apply procedure "{}" on "{}" because:')
-  elif 'constraint' in action.tags:
-    message_template = _('Failed to apply constraint "{}" on "{}" because:')
-  else:
+  if 'procedure' not in action.tags and 'constraint' not in action.tags:
     raise ValueError('an action must have the "procedure" or "constraint" tag')
   
-  return message_template.format(
-    action['display_name'].value, item.orig_name)
+  if item is not None:
+    if 'procedure' in action.tags:
+      message_template = _('Failed to apply procedure "{}" on "{}" because:')
+    elif 'constraint' in action.tags:
+      message_template = _('Failed to apply constraint "{}" on "{}" because:')
+  
+    return message_template.format(action['display_name'].value, item.orig_name)
+  else:
+    if 'procedure' in action.tags:
+      message_template = _('Failed to apply procedure "{}" because:')
+    elif 'constraint' in action.tags:
+      message_template = _('Failed to apply constraint "{}" because:')
+    
+    return message_template.format(action['display_name'].value)

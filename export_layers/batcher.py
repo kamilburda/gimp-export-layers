@@ -485,6 +485,8 @@ class Batcher(object):
     
     function = self._get_action_func_with_replaced_placeholders(function)
     
+    function = self._handle_exceptions_from_action(function, action)
+    
     if 'constraint' in action.tags:
       function = self._set_apply_constraint_to_folders(function, action)
       
@@ -492,8 +494,6 @@ class Batcher(object):
         function, orig_function, action['orig_name'].value, action['subfilter'].value)
     
     function = self._apply_action_only_if_enabled(function, action)
-    
-    function = self._handle_exceptions_from_action(function, action)
     
     function = self._set_current_action(function, action)
     
@@ -687,7 +687,6 @@ class Batcher(object):
     self._set_constraints()
     
     self._progress_updater.reset()
-    self._progress_updater.num_total_tasks = len(self._item_tree)
   
   def _add_actions(self):
     self._invoker.add(
@@ -819,6 +818,8 @@ class Batcher(object):
           dest_image.parasite_attach(parasite)
   
   def _process_items(self):
+    self._progress_updater.num_total_tasks = len(self._item_tree)
+    
     self._invoker.invoke(
       ['before_process_items'],
       [self],
