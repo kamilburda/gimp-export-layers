@@ -804,6 +804,8 @@ class Batcher(object):
     
     self._current_item = None
     self._current_raw_item = None
+    self._current_procedure = None
+    self._current_constraint = None
     self._current_image = None
   
   @staticmethod
