@@ -228,3 +228,30 @@ class PersistentSource(Source):
     data = pickle.dumps(setting_names_and_values)
     gimp.parasite_attach(
       gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, data))
+
+
+class PickleFileSource(Source):
+  """Class reading and writing settings permanently to a filename, formatted
+  with the Python `pickle` module.
+  """
+  
+  def __init__(self, source_name, filepath):
+    super().__init__(source_name)
+    
+    self._filepath = filepath
+  
+  @property
+  def filepath(self):
+    return self._filepath
+  
+  def clear(self):
+    raise NotImplementedError
+  
+  def has_data(self):
+    raise NotImplementedError
+  
+  def read_dict(self):
+    raise NotImplementedError
+  
+  def write_dict(self):
+    raise NotImplementedError
