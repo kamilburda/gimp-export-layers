@@ -390,8 +390,7 @@ class ExportLayersDialog(object):
     self._file_extension_entry.set_activates_default(True)
     
     self._save_as_label = gtk.Label()
-    self._save_as_label.set_markup(
-      '<b>{}:</b>'.format(gobject.markup_escape_text(_('Save as'))))
+    self._save_as_label.set_markup('<b>{}:</b>'.format(gobject.markup_escape_text(_('Save as'))))
     self._save_as_label.set_alignment(0.0, 0.5)
     
     self._dot_label = gtk.Label('.')
@@ -407,36 +406,28 @@ class ExportLayersDialog(object):
     self._label_message = message_label_.MessageLabel()
     
     self._hbox_export_name_labels = gtk.HBox(homogeneous=False)
-    self._hbox_export_name_labels.pack_start(
-      self._file_extension_label, expand=False, fill=False)
-    self._hbox_export_name_labels.pack_start(
-      self._save_as_label, expand=False, fill=False)
+    self._hbox_export_name_labels.pack_start(self._file_extension_label, expand=False, fill=False)
+    self._hbox_export_name_labels.pack_start(self._save_as_label, expand=False, fill=False)
     
     self._hbox_export_name_entries = gtk.HBox(homogeneous=False)
     self._hbox_export_name_entries.set_spacing(self._HBOX_EXPORT_NAME_ENTRIES_SPACING)
     self._hbox_export_name_entries.pack_start(
       self._filename_pattern_entry, expand=False, fill=False)
-    self._hbox_export_name_entries.pack_start(
-      self._dot_label, expand=False, fill=False)
-    self._hbox_export_name_entries.pack_start(
-      self._file_extension_entry, expand=False, fill=False)
+    self._hbox_export_name_entries.pack_start(self._dot_label, expand=False, fill=False)
+    self._hbox_export_name_entries.pack_start(self._file_extension_entry, expand=False, fill=False)
     
     self._hbox_export_name = gtk.HBox(homogeneous=False)
     self._hbox_export_name.set_spacing(self._HBOX_EXPORT_LABELS_NAME_SPACING)
-    self._hbox_export_name.pack_start(
-      self._hbox_export_name_labels, expand=False, fill=False)
-    self._hbox_export_name.pack_start(
-      self._hbox_export_name_entries, expand=False, fill=False)
+    self._hbox_export_name.pack_start(self._hbox_export_name_labels, expand=False, fill=False)
+    self._hbox_export_name.pack_start(self._hbox_export_name_entries, expand=False, fill=False)
     
     self._hbox_export_name_and_message = gtk.HBox(homogeneous=False)
     self._hbox_export_name_and_message.set_spacing(
       self._HBOX_EXPORT_NAME_AND_MESSAGE_HORIZONTAL_SPACING)
     self._hbox_export_name_and_message.set_border_width(
       self._HBOX_EXPORT_NAME_AND_MESSAGE_BORDER_WIDTH)
-    self._hbox_export_name_and_message.pack_start(
-      self._hbox_export_name, expand=False, fill=False)
-    self._hbox_export_name_and_message.pack_start(
-      self._label_message, expand=True, fill=True)
+    self._hbox_export_name_and_message.pack_start(self._hbox_export_name, expand=False, fill=False)
+    self._hbox_export_name_and_message.pack_start(self._label_message, expand=True, fill=True)
     
     self._box_procedures = actions_.ActionBox(
       self._settings['main/procedures'],
@@ -468,8 +459,7 @@ class ExportLayersDialog(object):
     
     self._vbox_chooser_and_settings = gtk.VBox()
     self._vbox_chooser_and_settings.set_spacing(self._DIALOG_VBOX_SPACING)
-    self._vbox_chooser_and_settings.pack_start(
-      self._vbox_folder_chooser, expand=True, fill=True)
+    self._vbox_chooser_and_settings.pack_start(self._vbox_folder_chooser, expand=True, fill=True)
     self._vbox_chooser_and_settings.pack_start(
       self._hbox_export_name_and_message, expand=False, fill=False)
     
@@ -502,8 +492,7 @@ class ExportLayersDialog(object):
     self._label_button_settings.set_use_underline(True)
     
     self._hbox_button_settings = gtk.HBox()
-    self._hbox_button_settings.pack_start(
-      self._label_button_settings, expand=True, fill=True)
+    self._hbox_button_settings.pack_start(self._label_button_settings, expand=True, fill=True)
     self._hbox_button_settings.pack_start(
       gtk.Arrow(gtk.ARROW_DOWN, gtk.SHADOW_IN), expand=False, fill=False)
     
@@ -541,8 +530,7 @@ class ExportLayersDialog(object):
     self._progress_bar.set_no_show_all(True)
     
     self._hbox_contents = gtk.HBox()
-    self._hbox_contents.pack_start(
-      self._hpaned_settings_and_previews, expand=True, fill=True)
+    self._hbox_contents.pack_start(self._hpaned_settings_and_previews, expand=True, fill=True)
     self._hbox_contents.set_border_width(self._DIALOG_CONTENTS_BORDER_WIDTH)
     
     self._dialog.vbox.set_spacing(self._DIALOG_VBOX_SPACING)
@@ -566,8 +554,7 @@ class ExportLayersDialog(object):
     self._button_settings.connect('clicked', self._on_button_settings_clicked)
     self._menu_item_show_more_settings.connect(
       'toggled', self._on_menu_item_show_more_settings_toggled)
-    self._menu_item_edit_mode.connect(
-      'toggled', self._on_menu_item_edit_mode_toggled)
+    self._menu_item_edit_mode.connect('toggled', self._on_menu_item_edit_mode_toggled)
     self._menu_item_save_settings.connect('activate', self._on_save_settings_activate)
     self._menu_item_load_settings.connect('activate', self._on_load_settings_activate)
     self._menu_item_save_settings_to.connect('activate', self._on_save_settings_to_activate)
