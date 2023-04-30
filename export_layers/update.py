@@ -63,14 +63,12 @@ def update(settings, prompt_on_clear=False):
   
   current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
   
-  status, unused_ = pg.setting.Persistor.load(
-    [settings['main/plugin_version']], {'persistent': pg.config.PERSISTENT_SOURCE})
+  status, unused_ = pg.setting.Persistor.load([settings['main/plugin_version']], ['persistent'])
   
   if status == pg.setting.Persistor.READ_FAIL:
     _fix_parasites(_FIX_PARASITE_HANDLERS, current_version)
     
-    status, unused_ = pg.setting.Persistor.load(
-      [settings['main/plugin_version']], {'persistent': pg.config.PERSISTENT_SOURCE})
+    status, unused_ = pg.setting.Persistor.load([settings['main/plugin_version']], ['persistent'])
   
   previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
   
@@ -269,7 +267,7 @@ def _is_fresh_start():
 def _save_plugin_version(settings):
   settings['main/plugin_version'].reset()
   pg.setting.Persistor.save(
-    [settings['main/plugin_version']], {'persistent': pg.config.PERSISTENT_SOURCE})
+    [settings['main/plugin_version']], ['persistent'])
 
 
 def _try_remove_file(filepath):

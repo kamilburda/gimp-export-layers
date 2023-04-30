@@ -933,9 +933,9 @@ class ExportLayersDialog(object):
     if overwrite_chooser.overwrite_mode in self._settings['main/overwrite_mode'].items.values():
       self._settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
     
-    self._settings['main'].save({'session': pg.config.SESSION_SOURCE})
-    self._settings['gui'].save({'session': pg.config.SESSION_SOURCE})
-    self._settings['gui_session'].save({'session': pg.config.SESSION_SOURCE})
+    self._settings['main'].save(['session'])
+    self._settings['gui'].save(['session'])
+    self._settings['gui_session'].save(['session'])
     
     if should_quit:
       gtk.main_quit()
@@ -1097,7 +1097,7 @@ class ExportLayersRepeatDialog(object):
     self._image = self._layer_tree.image
     self._batcher = None
     
-    self._settings.load({'session': pg.config.SESSION_SOURCE})
+    self._settings.load(['session'])
     
     self._init_gui()
     
