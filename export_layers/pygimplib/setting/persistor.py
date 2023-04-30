@@ -23,31 +23,45 @@ class Persistor(object):
   
   _STATUSES = SUCCESS, READ_FAIL, WRITE_FAIL, NOT_ALL_SETTINGS_FOUND, NO_SOURCE = (0, 1, 2, 3, 4)
   
-  DEFAULT_SETTING_SOURCES = collections.OrderedDict()
-  """Dictionary of setting sources to use in methods of this class if no other
-  setting sources in these methods are specified.
+  _DEFAULT_SETTING_SOURCES = collections.OrderedDict()
   
-  The dictionary must contain pairs of (key, `setting.sources.Source` instance
-  or list of `setting.sources.Source` instances).
+  @classmethod
+  def get_default_setting_sources(cls):
+    """Returns a copy of a dictionary containing default setting sources.
+    
+    See `set_default_setting_sources()` for more information.
+    """
+    return collections.OrderedDict(cls._DEFAULT_SETTING_SOURCES.items())
   
-  The key is a string that identifies a group of sources. The key can be
-  specified in `setting.settings.Setting` instances within `setting_sources`
-  to indicate which groups of sources the setting can be read from or written
-  to. For example, if the `setting_sources` attribute of a setting contains
-  [`'persistent'`], then only setting sources under the key `'persistent'`
-  will be considered and other sources will be ignored. This is useful if you
-  need to e.g. save settings to a different file while still ignoring settings
-  not containing `'persistent'`.
-  """
+  @classmethod
+  def set_default_setting_sources(cls, sources):
+    """Sets the dictionary of setting sources to use in methods of this class if
+    no other setting sources in these methods are specified.
+    
+    The dictionary must contain pairs of (key, `setting.sources.Source` instance
+    or list of `setting.sources.Source` instances).
+    
+    The key is a string that identifies a group of sources. The key can be
+    specified in `setting.settings.Setting` instances within `setting_sources`
+    to indicate which groups of sources the setting can be read from or written
+    to. For example, if the `setting_sources` attribute of a setting contains
+    [`'persistent'`], then only setting sources under the key `'persistent'`
+    will be considered and other sources will be ignored. This is useful if you
+    need to e.g. save settings to a different file while still ignoring settings
+    not containing `'persistent'`.
+    """
+    if sources is None:
+      sources = collections.OrderedDict()
+    
+    if not isinstance(sources, dict):
+      raise TypeError('"sources" must be a dictionary')
+    
+    cls._DEFAULT_SETTING_SOURCES = sources
   
   @classmethod
   def load(cls, settings_or_groups, setting_sources=None):
     """Loads setting values from the specified dictionary of setting sources
     to the specified list of settings or setting groups (`settings_or_groups`).
-    
-    If `setting_sources` is `None`, `DEFAULT_SETTING_SOURCES` will be used. If
-    `DEFAULT_SETTING_SOURCES` is None or an empty dictionary, `READ_FAIL` is
-    returned.
     
     The order of sources in the `setting_sources` list indicates the preference
     of the sources, beginning with the first source in the list. If not all
@@ -67,10 +81,10 @@ class Persistor(object):
     
     * `setting_sources` - Dictionary or list of setting sources or `None`. If a
       dictionary, it must contain (key, setting source) pairs. If a list, it
-      must contain keys and all keys must have a mapping to a source in
-      `DEFAULT_SETTING_SOURCES`. See `DEFAULT_SETTING_SOURCES` for more
-      information on the key. If `setting_sources` is `None`,
-      `DEFAULT_SETTING_SOURCES` will be used.
+      must contain keys and all keys must have a mapping to one of the default
+      sources as returned by `get_default_setting_sources()`.
+      See `set_default_setting_sources()` for more information on the key.
+      If `setting_sources` is `None`, the default sources will be used.
     
     Returns:
     
@@ -86,10 +100,11 @@ class Persistor(object):
           error occurred. May occur for file sources with e.g. denied read
           permission.
         
-        * `NO_SOURCE` - There is no source to load settings from. This occurs if
-          `setting_sources` is `None` and `DEFAULT_SETTING_SOURCES` is empty, or
-          if `setting_sources` is a list of source names and there is at least
-          one source name not present in `DEFAULT_SETTING_SOURCES`.
+        * `NO_SOURCE` - One or more setting sources are unspecified. This occurs
+          if `setting_sources` is `None` and the default sources returned by
+          `get_default_setting_sources()` is empty,
+          or if `setting_sources` is a list of keys (source names) and there is
+          at least one key not present in the default sources.
       
       * `status_message` - Message describing `status` in more detail.
     """
@@ -97,7 +112,7 @@ class Persistor(object):
       return cls._status(cls.SUCCESS)
     
     if setting_sources is None:
-      setting_sources = cls.DEFAULT_SETTING_SOURCES
+      setting_sources = cls._DEFAULT_SETTING_SOURCES
     
     if not setting_sources:
       return cls._status(cls.NO_SOURCE)
@@ -168,10 +183,7 @@ class Persistor(object):
           error occurred. May occur for file sources with e.g. denied write
           permission.
         
-        * `NO_SOURCE` - There is no source to save settings to. This occurs if
-          `setting_sources` is `None` and `DEFAULT_SETTING_SOURCES` is empty, or
-          if `setting_sources` is a list of source names and there is at least
-          one source name not present in `DEFAULT_SETTING_SOURCES`.
+        * `NO_SOURCE` - See `load()` for more information.
       
       * `status_message` - Message describing `status` in more detail.
     """
@@ -179,7 +191,7 @@ class Persistor(object):
       return cls._status(cls.SUCCESS)
     
     if setting_sources is None:
-      setting_sources = cls.DEFAULT_SETTING_SOURCES
+      setting_sources = cls._DEFAULT_SETTING_SOURCES
     
     if not setting_sources:
       return cls._status(cls.NO_SOURCE)
@@ -212,10 +224,11 @@ class Persistor(object):
     Parameters:
     
     * `setting_sources` - Dictionary or list of setting sources or `None`. See
-      `load()` for more information.
+      `load()` for more information. If there are no sources to clear, this
+      method has no effect.
     """
     if setting_sources is None:
-      setting_sources = cls.DEFAULT_SETTING_SOURCES
+      setting_sources = cls._DEFAULT_SETTING_SOURCES
     
     setting_sources_list = cls._get_source_list(setting_sources)
     
@@ -234,7 +247,7 @@ class Persistor(object):
       
       for key in setting_sources:
         try:
-          setting_sources_list.append(cls.DEFAULT_SETTING_SOURCES[key])
+          setting_sources_list.append(cls._DEFAULT_SETTING_SOURCES[key])
         except KeyError:
           return []
     else:

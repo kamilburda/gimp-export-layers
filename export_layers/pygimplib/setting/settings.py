@@ -214,8 +214,9 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     a PDB parameter name.
   
   * `setting_sources` (read-only) - Groups of setting sources to use
-    when loading or saving the setting. If `None`, settings sources specified in
-    `setting.persistor.Persistor.DEFAULT_SETTING_SOURCES` are used.
+    when loading or saving the setting. If `None`, default settings sources as
+    returned by `setting.persistor.Persistor.get_default_setting_sources()` are
+    used.
   
   * `error_messages` (read-only) - A dictionary of error messages containing
     (message name, message contents) pairs, which can be used e.g. if a value
@@ -537,10 +538,10 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     `setting.persistor.Persistor.load()` for more information about setting
     sources.
     
-    If `setting_sources` is `None`, use the sources in
-    `setting.persistor.Persistor.DEFAULT_SETTING_SOURCES`. If
+    If `setting_sources` is `None`, use the default sources returned by
+    `setting.persistor.Persistor.get_default_setting_sources()`. If
     specified, use a subset of sources matching the default sources. For
-    example, if `DEFAULT_SETTING_SOURCES` contains a persistent and a
+    example, if the default sources contain a persistent and a
     session-persistent source and `setting_sources` contains a
     session-persistent source, the setting value is loaded from the
     session-persistent source only.
@@ -556,10 +557,10 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     `setting.persistor.Persistor.save()` for more information about setting
     sources.
     
-    If `setting_sources` is `None`, use the sources in
-    `setting.persistor.Persistor.DEFAULT_SETTING_SOURCES`. If
+    If `setting_sources` is `None`, use the sources returned by
+    `setting.persistor.Persistor.get_default_setting_sources()`. If
     specified, use a subset of sources matching the default sources. For
-    example, if `DEFAULT_SETTING_SOURCES` contains a persistent and a
+    example, if default sources contain a persistent and a
     session-persistent source and `setting_sources` contains a
     session-persistent source, the setting value is saved to the
     session-persistent source only.

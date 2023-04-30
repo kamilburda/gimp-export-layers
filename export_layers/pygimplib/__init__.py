@@ -244,9 +244,9 @@ def _init_config_builtin_delayed(config):
     config.SESSION_SOURCE = setting.SessionSource(config.SOURCE_NAME)
     config.PERSISTENT_SOURCE = setting.PersistentSource(config.SOURCE_NAME)
     
-    setting.persistor.Persistor.DEFAULT_SETTING_SOURCES = collections.OrderedDict([
+    setting.persistor.Persistor.set_default_setting_sources(collections.OrderedDict([
       ('session', config.SESSION_SOURCE),
-      ('persistent', config.PERSISTENT_SOURCE)])
+      ('persistent', config.PERSISTENT_SOURCE)]))
   
   gettext.install(config.DOMAIN_NAME, config.LOCALE_DIRPATH, unicode=True)
   
