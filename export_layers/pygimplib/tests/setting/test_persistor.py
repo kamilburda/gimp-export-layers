@@ -78,7 +78,9 @@ class TestPersistor(unittest.TestCase):
   
   def test_load_save_with_default_sources_and_dict(self, mock_gimp_module, mock_gimp_shelf):
     mock_persistent_source = mock.Mock(wraps=self.persistent_source)
-    mock_session_source = mock.Mock(wraps=self.session_source)
+    mock_default_session_source = mock.Mock(wraps=self.session_source)
+    mock_session_source = mock.Mock(wraps=sources_.SessionSource(''))
+    
     session_source_for_persistor = {'session': mock_session_source}
     
     persistor_.Persistor.set_default_setting_sources(self.sources_for_persistor)
@@ -87,6 +89,8 @@ class TestPersistor(unittest.TestCase):
     
     self.assertEqual(mock_session_source.read.call_count, 1)
     self.assertEqual(mock_session_source.write.call_count, 1)
+    self.assertEqual(mock_default_session_source.read.call_count, 0)
+    self.assertEqual(mock_default_session_source.write.call_count, 0)
     self.assertEqual(mock_persistent_source.read.call_count, 0)
     self.assertEqual(mock_persistent_source.write.call_count, 0)
   
