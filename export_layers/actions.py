@@ -178,13 +178,13 @@ def create(name, initial_actions=None):
       'type': pg.SettingTypes.generic,
       'name': '_added_data',
       'default_value': _get_initial_added_data(initial_actions),
-      'setting_sources': [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]
+      'setting_sources': ['session', 'persistent']
     },
     {
       'type': pg.SettingTypes.generic,
       'name': '_added_data_values',
       'default_value': {},
-      'setting_sources': [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]
+      'setting_sources': ['session', 'persistent']
     },
   ])
   

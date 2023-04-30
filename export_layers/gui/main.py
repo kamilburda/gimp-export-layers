@@ -513,12 +513,16 @@ class ExportLayersDialog(object):
     self._menu_item_show_more_settings = gtk.CheckMenuItem(_('Show More Settings'))
     self._menu_item_edit_mode = gtk.CheckMenuItem(_('Batch Editing'))
     self._menu_item_save_settings = gtk.MenuItem(_('Save Settings'))
+    self._menu_item_load_settings = gtk.MenuItem(_('Load Settings...'))
+    self._menu_item_save_settings_to = gtk.MenuItem(_('Save Settings to...'))
     self._menu_item_reset_settings = gtk.MenuItem(_('Reset settings'))
     
     self._menu_settings = gtk.Menu()
     self._menu_settings.append(self._menu_item_show_more_settings)
     self._menu_settings.append(self._menu_item_edit_mode)
     self._menu_settings.append(self._menu_item_save_settings)
+    self._menu_settings.append(self._menu_item_load_settings)
+    self._menu_settings.append(self._menu_item_save_settings_to)
     self._menu_settings.append(self._menu_item_reset_settings)
     self._menu_settings.show_all()
     
@@ -565,6 +569,8 @@ class ExportLayersDialog(object):
     self._menu_item_edit_mode.connect(
       'toggled', self._on_menu_item_edit_mode_toggled)
     self._menu_item_save_settings.connect('activate', self._on_save_settings_activate)
+    self._menu_item_load_settings.connect('activate', self._on_load_settings_activate)
+    self._menu_item_save_settings_to.connect('activate', self._on_save_settings_to_activate)
     self._menu_item_reset_settings.connect('activate', self._on_reset_settings_activate)
     
     self._file_extension_entry.connect(
@@ -659,8 +665,13 @@ class ExportLayersDialog(object):
     self._previews_controller = previews_controller_.PreviewsController(
       self._name_preview, self._image_preview, self._settings, self._image)
   
-  def _save_settings(self):
-    status, status_message = self._settings.save()
+  def _save_settings(self, filepath=None):
+    if filepath is None:
+      status, status_message = self._settings.save()
+    else:
+      source = pg.setting.sources.PickleFileSource(pg.config.SOURCE_NAME, filepath)
+      status, status_message = self._settings.save({'persistent': source})
+    
     if status == pg.setting.Persistor.WRITE_FAIL:
       messages_.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
       return False
@@ -669,6 +680,50 @@ class ExportLayersDialog(object):
   
   def _reset_settings(self):
     self._settings.reset()
+  
+  def _get_setting_config_filepath(self, action):
+    if action == 'load':
+      dialog_action = gtk.FILE_CHOOSER_ACTION_OPEN
+      button_ok = gtk.STOCK_OPEN
+      title = _('Load Settings')
+    elif action == 'save':
+      dialog_action = gtk.FILE_CHOOSER_ACTION_SAVE
+      button_ok = gtk.STOCK_SAVE
+      title = _('Save Settings')
+    else:
+      raise ValueError('invalid action; valid values: "load", "save"')
+    
+    file_dialog = gtk.FileChooserDialog(
+      title=title,
+      parent=self._dialog,
+      action=dialog_action)
+    
+    file_dialog.add_buttons(
+      button_ok, gtk.RESPONSE_OK,
+      gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+    
+    file_dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
+    
+    filter_pickle = gtk.FileFilter()
+    filter_pickle.set_name(_('Pickle file (.pkl)'))
+    filter_pickle.add_pattern('*.pkl')
+    file_dialog.add_filter(filter_pickle)
+    
+    filter_any = gtk.FileFilter()
+    filter_any.set_name(_('Any file'))
+    filter_any.add_pattern('*')
+    file_dialog.add_filter(filter_any)
+    
+    response_id = file_dialog.run()
+    
+    if response_id == gtk.RESPONSE_OK:
+      filepath = file_dialog.get_filename()
+    else:
+      filepath = None
+    
+    file_dialog.destroy()
+    
+    return filepath
   
   def _on_text_entry_changed(self, entry, setting, name_preview_lock_update_key=None):
     try:
@@ -791,6 +846,23 @@ class ExportLayersDialog(object):
     if save_successful:
       self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
   
+  def _on_load_settings_activate(self, menu_item):
+    filepath = self._get_setting_config_filepath(action='load')
+    
+    if filepath is not None:
+      load_successful = self._load_settings(filepath)
+      if load_successful:
+        self._display_inline_message(_('Settings successfully loaded.'), gtk.MESSAGE_INFO)
+  
+  @_set_settings
+  def _on_save_settings_to_activate(self, menu_item):
+    filepath = self._get_setting_config_filepath(action='save')
+    
+    if filepath is not None:
+      save_successful = self._save_settings(filepath)
+      if save_successful:
+        self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
+  
   def _on_reset_settings_activate(self, menu_item):
     response_id, clear_actions = display_reset_prompt(
       parent=self._dialog,
@@ -874,9 +946,9 @@ class ExportLayersDialog(object):
     if overwrite_chooser.overwrite_mode in self._settings['main/overwrite_mode'].items.values():
       self._settings['main/overwrite_mode'].set_value(overwrite_chooser.overwrite_mode)
     
-    self._settings['main'].save([pg.config.SESSION_SOURCE])
-    self._settings['gui'].save([pg.config.SESSION_SOURCE])
-    self._settings['gui_session'].save([pg.config.SESSION_SOURCE])
+    self._settings['main'].save({'session': pg.config.SESSION_SOURCE})
+    self._settings['gui'].save({'session': pg.config.SESSION_SOURCE})
+    self._settings['gui_session'].save({'session': pg.config.SESSION_SOURCE})
     
     if should_quit:
       gtk.main_quit()
@@ -1038,7 +1110,7 @@ class ExportLayersRepeatDialog(object):
     self._image = self._layer_tree.image
     self._batcher = None
     
-    self._settings.load([pg.config.SESSION_SOURCE])
+    self._settings.load({'session': pg.config.SESSION_SOURCE})
     
     self._init_gui()
     

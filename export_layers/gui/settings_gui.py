@@ -13,9 +13,7 @@ from export_layers import pygimplib as pg
 def create_gui_settings():
   gui_settings = pg.setting.Group(
     name='gui',
-    setting_attributes={
-      'setting_sources': [
-        pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]})
+    setting_attributes={'setting_sources': ['session', 'persistent']})
   
   gui_settings.add([
     {
@@ -76,7 +74,7 @@ def create_gui_settings():
   
   session_only_gui_settings = pg.setting.Group(
     name='gui_session',
-    setting_attributes={'setting_sources': [pg.config.SESSION_SOURCE]})
+    setting_attributes={'setting_sources': ['session']})
   
   session_only_gui_settings.add([
     {
@@ -102,7 +100,7 @@ def create_gui_settings():
   
   persistent_only_gui_settings = pg.setting.Group(
     name='gui_persistent',
-    setting_attributes={'setting_sources': [pg.config.PERSISTENT_SOURCE]})
+    setting_attributes={'setting_sources': ['persistent']})
   
   persistent_only_gui_settings.add([
     {

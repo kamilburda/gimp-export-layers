@@ -37,8 +37,7 @@ class TestUpdate(unittest.TestCase):
       'groups': [
         {
           'name': 'main',
-          'setting_attributes': {
-            'setting_sources': [pg.config.PERSISTENT_SOURCE]},
+          'setting_attributes': {'setting_sources': ['persistent']},
         }
       ]
     })
