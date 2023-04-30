@@ -80,9 +80,10 @@ class Persistor(object):
       instances whose values are loaded from `setting_sources`.
     
     * `setting_sources` - Dictionary or list of setting sources or `None`. If a
-      dictionary, it must contain (key, setting source) pairs. If a list, it
-      must contain keys and all keys must have a mapping to one of the default
-      sources as returned by `get_default_setting_sources()`.
+      dictionary, it must contain (key, setting source) pairs or
+      (key, list of setting sources) pairs. If a list, it must contain keys and
+      all keys must have a mapping to one of the default sources as returned by
+      `get_default_setting_sources()`.
       See `set_default_setting_sources()` for more information on the key.
       If `setting_sources` is `None`, the default sources will be used.
     
@@ -247,11 +248,21 @@ class Persistor(object):
       
       for key in setting_sources:
         try:
-          setting_sources_list.append(cls._DEFAULT_SETTING_SOURCES[key])
+          source = cls._DEFAULT_SETTING_SOURCES[key]
         except KeyError:
           return []
+        else:
+          if isinstance(source, collections.Iterable):
+            setting_sources_list.extend(source)
+          else:
+            setting_sources_list.append(source)
     else:
-      setting_sources_list = list(setting_sources.values())
+      setting_sources_list = []
+      for source in setting_sources.values():
+        if isinstance(source, collections.Iterable):
+          setting_sources_list.extend(source)
+        else:
+          setting_sources_list.append(source)
     
     return setting_sources_list
   
