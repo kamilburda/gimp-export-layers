@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import collections
 import unittest
 
 import mock
@@ -24,6 +25,14 @@ from . import stubs_group
   new_callable=stubs_gimp.GimpModuleStub)
 class TestPersistor(unittest.TestCase):
   
+  @classmethod
+  def setUpClass(cls):
+    cls.orig_default_setting_sources = persistor_.Persistor.DEFAULT_SETTING_SOURCES
+  
+  @classmethod
+  def tearDownClass(cls):
+    persistor_.Persistor.DEFAULT_SETTING_SOURCES = cls.orig_default_setting_sources
+  
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
     new=stubs_gimp.ShelfStub())
@@ -34,26 +43,72 @@ class TestPersistor(unittest.TestCase):
     self.settings = stubs_group.create_test_settings()
     self.session_source = sources_.SessionSource('')
     self.persistent_source = sources_.PersistentSource('')
+    
+    self.sources_for_persistor = collections.OrderedDict([
+      ('session', self.session_source),
+      ('persistent', self.persistent_source)])
+    self.session_source_for_persistor = {'session': self.session_source}
+    
+    persistor_.Persistor.DEFAULT_SETTING_SOURCES = collections.OrderedDict()
   
-  def test_load_save(self, mock_persistent_source, mock_session_source):
+  def test_load_save(self, mock_gimp_module, mock_gimpshelf):
+    self._test_load_save(self.sources_for_persistor)
+  
+  def test_load_save_with_default_sources(self, mock_gimp_module, mock_gimpshelf):
+    persistor_.Persistor.DEFAULT_SETTING_SOURCES = self.sources_for_persistor
+    
+    self._test_load_save(None)
+  
+  def test_load_save_with_default_sources_and_dict(self, mock_gimp_module, mock_gimpshelf):
+    mock_persistent_source = mock.Mock(wraps=self.persistent_source)
+    mock_session_source = mock.Mock(wraps=self.session_source)
+    session_source_for_persistor = {'session': mock_session_source}
+    
+    persistor_.Persistor.DEFAULT_SETTING_SOURCES = self.sources_for_persistor
+    
+    self._test_load_save(session_source_for_persistor)
+    
+    self.assertEqual(mock_session_source.read.call_count, 1)
+    self.assertEqual(mock_session_source.write.call_count, 1)
+    self.assertEqual(mock_persistent_source.read.call_count, 0)
+    self.assertEqual(mock_persistent_source.write.call_count, 0)
+  
+  def test_load_save_with_default_sources_and_list(self, mock_gimp_module, mock_gimpshelf):
+    mock_persistent_source = mock.Mock(wraps=self.persistent_source)
+    mock_session_source = mock.Mock(wraps=self.session_source)
+    sources_for_persistor = ['session', 'persistent']
+    default_sources = collections.OrderedDict([
+      ('session', mock_session_source),
+      ('persistent', mock_persistent_source)])
+    
+    persistor_.Persistor.DEFAULT_SETTING_SOURCES = default_sources
+    
+    self._test_load_save(sources_for_persistor)
+    
+    self.assertEqual(mock_session_source.read.call_count, 1)
+    self.assertEqual(mock_session_source.write.call_count, 1)
+    # `read` should not be called as all settings have been found in `mock_session_source`.
+    self.assertEqual(mock_persistent_source.read.call_count, 0)
+    self.assertEqual(mock_persistent_source.write.call_count, 1)
+  
+  def _test_load_save(self, sources_for_persistor):
     self.settings['file_extension'].set_value('png')
     self.settings['flatten'].set_value(True)
     
-    status, unused_ = persistor_.Persistor.save(
-      [self.settings], [self.session_source, self.persistent_source])
+    status, unused_ = persistor_.Persistor.save([self.settings], sources_for_persistor)
+    
     self.assertEqual(status, persistor_.Persistor.SUCCESS)
     
     self.settings['file_extension'].set_value('jpg')
     self.settings['flatten'].set_value(False)
     
-    status, unused_ = persistor_.Persistor.load(
-      [self.settings], [self.session_source, self.persistent_source])
+    status, unused_ = persistor_.Persistor.load([self.settings], sources_for_persistor)
+    
     self.assertEqual(status, persistor_.Persistor.SUCCESS)
     self.assertEqual(self.settings['file_extension'].value, 'png')
     self.assertEqual(self.settings['flatten'].value, True)
   
-  def test_load_combine_settings_from_multiple_sources(
-        self, mock_persistent_source, mock_session_source):
+  def test_load_combine_settings_from_multiple_sources(self, mock_gimp_module, mock_gimpshelf):
     self.settings['file_extension'].set_value('png')
     self.settings['flatten'].set_value(True)
     self.session_source.write([self.settings['file_extension']])
@@ -62,7 +117,7 @@ class TestPersistor(unittest.TestCase):
     self.settings['file_extension'].set_value('gif')
     self.settings['flatten'].set_value(False)
     
-    persistor_.Persistor.load([self.settings], [self.session_source, self.persistent_source])
+    persistor_.Persistor.load([self.settings], self.sources_for_persistor)
     
     self.assertEqual(self.settings['file_extension'].value, 'png')
     self.assertEqual(self.settings['flatten'].value, True)
@@ -71,7 +126,7 @@ class TestPersistor(unittest.TestCase):
       if setting not in [self.settings['file_extension'], self.settings['flatten']]:
         self.assertEqual(setting.value, setting.default_value)
   
-  def test_load_groups(self, mock_persistent_source, mock_session_source):
+  def test_load_multiple_setting_groups(self, mock_gimp_module, mock_gimpshelf):
     settings = stubs_group.create_test_settings_hierarchical()
     
     settings['main/file_extension'].set_value('png')
@@ -80,26 +135,39 @@ class TestPersistor(unittest.TestCase):
     settings['main/file_extension'].set_value('gif')
     settings['advanced/flatten'].set_value(False)
     
-    persistor_.Persistor.load([settings], [self.session_source])
+    persistor_.Persistor.load([settings], self.session_source_for_persistor)
     
     self.assertEqual(settings['main/file_extension'].value, 'png')
     self.assertEqual(settings['advanced/flatten'].value, True)
   
-  def test_load_settings_source_not_found(
-        self, mock_persistent_source, mock_session_source):
-    status, unused_ = persistor_.Persistor.load(
-      [self.settings], [self.session_source, self.persistent_source])
+  def test_load_empty_settings(self, mock_gimp_module, mock_gimpshelf):
+    status, unused_ = persistor_.Persistor.load([], self.session_source_for_persistor)
+    self.assertEqual(status, persistor_.Persistor.SUCCESS)
+  
+  def test_load_no_default_source(self, mock_gimp_module, mock_gimpshelf):
+    status, unused_ = persistor_.Persistor.load([self.settings], None)
+    self.assertEqual(status, persistor_.Persistor.NO_SOURCE)
+  
+  def test_load_missing_default_source_from_list(self, mock_gimp_module, mock_gimpshelf):
+    persistor_.Persistor.DEFAULT_SETTING_SOURCES = self.session_source_for_persistor
+    
+    status, unused_ = persistor_.Persistor.load([self.settings], ['persistent'])
+    
+    self.assertEqual(status, persistor_.Persistor.NO_SOURCE)
+  
+  def test_load_settings_source_not_found(self, mock_gimp_module, mock_gimpshelf):
+    status, unused_ = persistor_.Persistor.load([self.settings], self.sources_for_persistor)
     self.assertEqual(status, persistor_.Persistor.NOT_ALL_SETTINGS_FOUND)
   
-  def test_load_settings_not_found(self, mock_persistent_source, mock_session_source):
+  def test_load_settings_not_found(self, mock_gimp_module, mock_gimpshelf):
     self.session_source.write([self.settings['flatten']])
     self.persistent_source.write([self.settings['file_extension'], self.settings['flatten']])
     
     status, unused_ = persistor_.Persistor.load(
-      [self.settings['overwrite_mode']], [self.session_source, self.persistent_source])
+      [self.settings['overwrite_mode']], self.sources_for_persistor)
     self.assertEqual(status, persistor_.Persistor.NOT_ALL_SETTINGS_FOUND)
   
-  def test_load_read_fail(self, mock_persistent_source, mock_session_source):
+  def test_load_read_fail(self, mock_gimp_module, mock_gimpshelf):
     self.persistent_source.write(self.settings)
     
     # Simulate formatting error
@@ -107,16 +175,28 @@ class TestPersistor(unittest.TestCase):
     parasite.data = parasite.data[:-1]
     sources_.gimp.parasite_attach(parasite)
     
-    status, unused_ = persistor_.Persistor.load(
-      [self.settings], [self.session_source, self.persistent_source])
+    status, unused_ = persistor_.Persistor.load([self.settings], self.sources_for_persistor)
     self.assertEqual(status, persistor_.Persistor.READ_FAIL)
   
-  def test_load_write_fail(self, mock_persistent_source, mock_session_source):
+  def test_save_empty_settings(self, mock_gimp_module, mock_gimpshelf):
+    status, unused_ = persistor_.Persistor.save([], self.session_source_for_persistor)
+    self.assertEqual(status, persistor_.Persistor.SUCCESS)
+  
+  def test_save_no_default_source(self, mock_gimp_module, mock_gimpshelf):
+    status, unused_ = persistor_.Persistor.save([self.settings], None)
+    self.assertEqual(status, persistor_.Persistor.NO_SOURCE)
+  
+  def test_save_missing_default_source_from_list(self, mock_gimp_module, mock_gimpshelf):
+    persistor_.Persistor.DEFAULT_SETTING_SOURCES = self.session_source_for_persistor
+    
+    status, unused_ = persistor_.Persistor.save([self.settings], ['persistent'])
+    
+    self.assertEqual(status, persistor_.Persistor.NO_SOURCE)
+  
+  def test_save_write_fail(self, mock_gimp_module, mock_gimpshelf):
     with mock.patch(
-           pgutils.get_pygimplib_module_path()
-           + '.setting.sources.gimp') as temp_mock_persistent_source:
-      temp_mock_persistent_source.parasite_find.side_effect = sources_.SourceWriteError
-      status, unused_ = persistor_.Persistor.save(
-        [self.settings], [self.session_source, self.persistent_source])
+           pgutils.get_pygimplib_module_path() + '.setting.sources.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.parasite_find.side_effect = sources_.SourceWriteError
+      status, unused_ = persistor_.Persistor.save([self.settings], self.sources_for_persistor)
     
     self.assertEqual(status, persistor_.Persistor.WRITE_FAIL)

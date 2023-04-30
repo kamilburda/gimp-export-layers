@@ -652,21 +652,21 @@ class TestGroupLoadSave(unittest.TestCase):
      [['main/file_extension'],
       ['advanced/flatten'],
       ['advanced/use_layer_size']],
-     [('session_source', 'persistent_source'),
-      ('persistent_source', 'session_source'),
-      ('session_source',)]),
+     [('session', 'persistent'),
+      ('persistent', 'session'),
+      ('session',)]),
     
     ('session_source_only',
-     ['session_source'],
+     ['session'],
      1,
      [['main/file_extension', 'advanced/flatten', 'advanced/use_layer_size']],
-     [('session_source',)]),
+     [('session',)]),
     
     ('persistent_source_only',
-     ['persistent_source'],
+     ['persistent'],
      1,
      [['main/file_extension', 'advanced/flatten']],
-     [('persistent_source',)]),
+     [('persistent',)]),
   ])
   def test_load_save_setting_sources_in_group_and_in_settings(
         self,
@@ -709,20 +709,17 @@ class TestGroupLoadSave(unittest.TestCase):
     status, unused_ = self.settings.save()
     self.assertEqual(status, persistor_.Persistor.SUCCESS)
     
-    load_save_calls_return_values[1] = (
-      persistor_.Persistor.NOT_ALL_SETTINGS_FOUND, '')
+    load_save_calls_return_values[1] = persistor_.Persistor.NOT_ALL_SETTINGS_FOUND, ''
     mock_load.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.load()
     self.assertEqual(status, persistor_.Persistor.NOT_ALL_SETTINGS_FOUND)
     
-    load_save_calls_return_values[1] = (
-      persistor_.Persistor.NOT_ALL_SETTINGS_FOUND, '')
+    load_save_calls_return_values[1] = persistor_.Persistor.NOT_ALL_SETTINGS_FOUND, ''
     mock_save.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.save()
     self.assertEqual(status, persistor_.Persistor.NOT_ALL_SETTINGS_FOUND)
     
-    load_save_calls_return_values[2] = (
-      persistor_.Persistor.READ_FAIL, '')
+    load_save_calls_return_values[2] = persistor_.Persistor.READ_FAIL, ''
     mock_load.side_effect = load_save_calls_return_values
     status, unused_ = self.settings.load()
     self.assertEqual(status, persistor_.Persistor.READ_FAIL)

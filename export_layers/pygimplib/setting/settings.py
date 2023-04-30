@@ -213,8 +213,9 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as
     a PDB parameter name.
   
-  * `setting_sources` (read-only) - Default setting sources to use when loading
-    or saving the setting. If `None`, no default sources are specified.
+  * `setting_sources` (read-only) - Groups of setting sources to use
+    when loading or saving the setting. If `None`, settings sources specified in
+    `setting.persistor.Persistor.DEFAULT_SETTING_SOURCES` are used.
   
   * `error_messages` (read-only) - A dictionary of error messages containing
     (message name, message contents) pairs, which can be used e.g. if a value
@@ -536,9 +537,10 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     `setting.persistor.Persistor.load()` for more information about setting
     sources.
     
-    If `setting_sources` is `None`, use the default setting sources. If
+    If `setting_sources` is `None`, use the sources in
+    `setting.persistor.Persistor.DEFAULT_SETTING_SOURCES`. If
     specified, use a subset of sources matching the default sources. For
-    example, if the default sources contain a persistent and a
+    example, if `DEFAULT_SETTING_SOURCES` contains a persistent and a
     session-persistent source and `setting_sources` contains a
     session-persistent source, the setting value is loaded from the
     session-persistent source only.
@@ -554,11 +556,12 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     `setting.persistor.Persistor.save()` for more information about setting
     sources.
     
-    If `setting_sources` is `None`, use the default setting sources. If
+    If `setting_sources` is `None`, use the sources in
+    `setting.persistor.Persistor.DEFAULT_SETTING_SOURCES`. If
     specified, use a subset of sources matching the default sources. For
-    example, if the default sources contain a persistent and a
+    example, if `DEFAULT_SETTING_SOURCES` contains a persistent and a
     session-persistent source and `setting_sources` contains a
-    session-persistent source, the setting value is loaded from the
+    session-persistent source, the setting value is saved to the
     session-persistent source only.
     
     If there are no default setting sources or `setting_sources` does not match
@@ -725,8 +728,12 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       setting_sources = self._setting_sources
     else:
       if self._setting_sources is not None:
-        setting_sources = [
-          source for source in setting_sources if source in self._setting_sources]
+        if isinstance(setting_sources, dict):
+          setting_sources = collections.OrderedDict(
+            [(key, setting_source) for key, setting_source in setting_sources.items()
+             if key in self._setting_sources])
+        else:
+          setting_sources = [key for key in setting_sources if key in self._setting_sources]
       else:
         setting_sources = None
     

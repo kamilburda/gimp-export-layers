@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Classes allowing loading and saving settings."""
+"""Loading and saving settings."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -33,24 +33,20 @@ __all__ = [
 
 
 class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
-  """
-  This class provides an interface for reading and writing settings to setting
-  sources. For easier usage, is is highly recommended to use the
-  `setting.persistor.Persistor` class instead.
+  """Abstract class for reading and writing settings to a source.
   
   Attributes:
   
   * `source_name` - A unique identifier to distinguish entries from different
-    plug-ins in this source.
+    GIMP plug-ins or procedures.
   """
   
   def __init__(self, source_name):
     self.source_name = source_name
   
   def read(self, settings):
-    """
-    Read setting values from the source and assign them to the settings
-    specified in the `settings` iterable.
+    """Reads setting values and assigns them to the settings specified in the
+    `settings` iterable.
     
     If a setting value from the source is invalid, the setting will be reset to
     its default value.
@@ -91,10 +87,9 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         settings_not_found)
   
   def write(self, settings):
-    """
-    Write setting values from settings specified in the `settings` iterable
-    to the source. Settings in the source but not specified in `settings` are
-    kept intact.
+    """Writes setting values from settings specified in the `settings` iterable.
+    
+    Settings in the source but not specified in `settings` are kept intact.
     """
     settings_from_source = self.read_dict()
     if settings_from_source is not None:
@@ -107,8 +102,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   @abc.abstractmethod
   def clear(self):
-    """
-    Remove all settings from the source.
+    """Removes all settings from the source.
     
     This method is useful if settings are renamed, since the old settings would
     not be removed and would thus lead to bloating the source.
@@ -117,18 +111,15 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   @abc.abstractmethod
   def has_data(self):
-    """
-    Return `True` if the setting source contains data, `False` otherwise.
-    """
+    """Returns `True` if the source contains data, `False` otherwise."""
     pass
   
   @abc.abstractmethod
   def read_dict(self):
-    """
-    Read all setting values from the source to a dictionary of
-    `(setting name, setting value)` pairs. Return the dictionary.
+    """Reads all setting values from the source to a dictionary of
+    `(setting name, setting value)` pairs and returns the dictionary.
     
-    If the source does not exist, return `None`.
+    If the source does not exist, `None` is returned.
     
     This method is useful in the unlikely case it is more convenient to directly
     modify or remove settings from the source.
@@ -142,8 +133,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   @abc.abstractmethod
   def write_dict(self, setting_names_and_values):
-    """
-    Write setting names and values to the source specified in the
+    """Writes setting names and values to the source specified in the
     `setting_names_and_values` dictionary containing
     `(setting name, setting value)` pairs.
     
@@ -164,9 +154,8 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
 
 
 class SessionSource(Source):
-  """
-  This class reads settings from/writes settings to a source that persists
-  during one GIMP session.
+  """Class reading and writing settings to a source that persists within a
+  single GIMP session.
   
   Internally, the GIMP shelf is used as the session-wide source and contains the
   name and the last used value of each setting.
@@ -198,12 +187,11 @@ class SessionSource(Source):
 
 
 class PersistentSource(Source):
-  """
-  This class reads settings from/writes settings to a persistent source.
+  """Class reading and writing settings to a persistent source (i.e. permanent
+  storage) maintained by GIMP.
   
   The persistent source in this case is the the `parasiterc` file maintained by
-  GIMP store data that persist between GIMP sessions. The file contains the name
-  and the last used value of each setting.
+  GIMP. The file contains the name and the last used value of each setting.
   """
   
   def __init__(self, source_name):

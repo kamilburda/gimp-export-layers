@@ -290,25 +290,27 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     self.setting = stubs_setting.SettingWithGuiStub('file_extension', 'png')
     self.flatten = settings_.BoolSetting('flatten', False)
     self.session_source = sources_.SessionSource('')
+    
+    self.session_source_dict = {'session': self.session_source}
   
   def test_before_load_event(self, mock_session_source):
-    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
+    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
     self.setting.set_value('gif')
     
     self.setting.connect_event(
       'before-load', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.load([self.setting], [self.session_source])
+    persistor_.Persistor.load([self.setting], self.session_source_dict)
     
     self.assertEqual(self.setting.value, 'png')
     self.assertEqual(self.flatten.value, True)
   
   def test_after_load_event(self, mock_session_source):
     self.flatten.set_value(True)
-    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
+    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
     
     self.setting.connect_event(
       'after-load', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.load([self.setting], [self.session_source])
+    persistor_.Persistor.load([self.setting], self.session_source_dict)
     
     self.assertEqual(self.setting.value, 'png')
     self.assertEqual(self.flatten.value, False)
@@ -316,18 +318,18 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   def test_after_load_event_not_all_settings_found_invoke_for_all_settings(
         self, mock_session_source):
     self.setting.set_value('gif')
-    persistor_.Persistor.save([self.setting], [self.session_source])
+    persistor_.Persistor.save([self.setting], self.session_source_dict)
     
     self.setting.connect_event(
       'after-load', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.load([self.setting, self.flatten], [self.session_source])
+    persistor_.Persistor.load([self.setting, self.flatten], self.session_source_dict)
     
     self.assertEqual(self.setting.value, 'gif')
     self.assertEqual(self.flatten.value, True)
   
   def test_after_load_event_read_fail(self, mock_session_source):
     self.flatten.set_value(True)
-    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
+    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
     
     self.setting.connect_event(
       'after-load', stubs_setting.on_file_extension_changed, self.flatten)
@@ -336,7 +338,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
            pgutils.get_pygimplib_module_path()
            + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
       temp_mock_session_source.__getitem__.side_effect = sources_.SourceReadError
-      persistor_.Persistor.load([self.setting], [self.session_source])
+      persistor_.Persistor.load([self.setting], self.session_source_dict)
     
     self.assertEqual(self.setting.value, 'png')
     self.assertEqual(self.flatten.value, True)
@@ -346,12 +348,12 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     
     self.setting.connect_event(
       'before-save', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
+    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
     
     self.assertEqual(self.setting.value, 'gif')
     self.assertEqual(self.flatten.value, True)
     
-    persistor_.Persistor.load([self.setting, self.flatten], [self.session_source])
+    persistor_.Persistor.load([self.setting, self.flatten], self.session_source_dict)
     
     self.assertEqual(self.setting.value, 'gif')
     self.assertEqual(self.flatten.value, True)
@@ -361,12 +363,12 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
     
     self.setting.connect_event(
       'after-save', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.save([self.setting, self.flatten], [self.session_source])
+    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
     
     self.assertEqual(self.setting.value, 'gif')
     self.assertEqual(self.flatten.value, True)
     
-    persistor_.Persistor.load([self.setting, self.flatten], [self.session_source])
+    persistor_.Persistor.load([self.setting, self.flatten], self.session_source_dict)
     
     self.assertEqual(self.setting.value, 'gif')
     self.assertEqual(self.flatten.value, False)
@@ -380,7 +382,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
            pgutils.get_pygimplib_module_path()
            + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
       temp_mock_session_source.__setitem__.side_effect = sources_.SourceWriteError
-      persistor_.Persistor.save([self.setting], [self.session_source])
+      persistor_.Persistor.save([self.setting], self.session_source_dict)
     
     self.assertEqual(self.flatten.value, False)
 

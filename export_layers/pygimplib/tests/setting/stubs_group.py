@@ -23,7 +23,7 @@ def create_test_settings():
       'name': 'flatten',
       'default_value': False,
       'display_name': 'Flatten',
-      'setting_sources': [object()]
+      'setting_sources': ['persistent']
     },
     {
       'type': settings_.SettingTypes.enumerated,
@@ -79,12 +79,9 @@ def create_test_settings_hierarchical():
 
 
 def create_test_settings_load_save():
-  dummy_session_source, dummy_persistent_source = 'session_source', 'persistent_source'
-  
   main_settings = group_.Group(
     name='main',
-    setting_attributes={
-      'setting_sources': [dummy_session_source, dummy_persistent_source]})
+    setting_attributes={'setting_sources': ['session', 'persistent']})
   
   main_settings.add([
     {
@@ -95,14 +92,14 @@ def create_test_settings_load_save():
   ])
   
   advanced_settings = group_.Group(
-    name='advanced', setting_attributes={'setting_sources': [dummy_session_source]})
+    name='advanced', setting_attributes={'setting_sources': ['session']})
   
   advanced_settings.add([
     {
       'type': settings_.SettingTypes.boolean,
       'name': 'flatten',
       'default_value': False,
-      'setting_sources': [dummy_persistent_source, dummy_session_source]
+      'setting_sources': ['persistent', 'session']
     },
     {
       'type': settings_.SettingTypes.boolean,

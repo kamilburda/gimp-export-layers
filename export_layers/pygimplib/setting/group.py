@@ -604,20 +604,24 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     
     for setting in settings:
       if setting_sources is None:
-        sources = tuple(setting.setting_sources)
+        keys = tuple(setting.setting_sources)
       else:
-        sources = tuple(
-          source for source in setting.setting_sources if source in setting_sources)
+        keys = tuple(key for key in setting.setting_sources if key in setting_sources)
       
-      if sources:
-        if sources not in settings_per_sources:
-          settings_per_sources[sources] = []
+      if keys:
+        if keys not in settings_per_sources:
+          settings_per_sources[keys] = []
         
-        settings_per_sources[sources].append(setting)
+        settings_per_sources[keys].append(setting)
     
     status_and_messages = collections.OrderedDict()
     
-    for sources, settings in settings_per_sources.items():
+    for keys, settings in settings_per_sources.items():
+      if setting_sources is not None and isinstance(setting_sources, dict):
+        sources = collections.OrderedDict([(key, setting_sources[key]) for key in keys])
+      else:
+        sources = keys
+      
       status, message = load_save_func(settings, sources)
       status_and_messages[status] = message
     
