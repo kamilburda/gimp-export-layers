@@ -36,7 +36,11 @@ class SourceReadError(SourceError):
 
 
 class SourceInvalidFormatError(SourceError):
-  pass
+  
+  def __init__(self, message, filepath=None):
+    super().__init__(message)
+    
+    self.filepath = filepath
 
 
 class SourceWriteError(SourceError):

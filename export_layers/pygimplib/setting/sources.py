@@ -8,6 +8,7 @@ import future.utils
 
 import abc
 import collections
+import io
 import os
 
 try:
@@ -245,13 +246,57 @@ class PickleFileSource(Source):
     return self._filepath
   
   def clear(self):
-    raise NotImplementedError
+    data_dict = self._read_all_data()
+    if data_dict is not None and self.source_name in data_dict:
+      del data_dict[self.source_name]
+      
+      self.write_dict(data_dict)
   
   def has_data(self):
-    raise NotImplementedError
+    return self.read_dict() is not None
+  
+  def write(self, settings):
+    data_dict = self._read_all_data()
+    
+    if data_dict is not None and self.source_name in data_dict:
+      setting_names_and_values = data_dict[self.source_name]
+      setting_names_and_values.update(self._settings_to_dict(settings))
+      
+      data_dict[self.source_name] = setting_names_and_values
+      
+      self.write_dict(data_dict)
+    else:
+      setting_names_and_values = self._settings_to_dict(settings)
+      
+      if data_dict is None:
+        data_dict = {self.source_name: setting_names_and_values}
+      else:
+        data_dict[self.source_name] = setting_names_and_values
+        
+      self.write_dict(data_dict)
   
   def read_dict(self):
-    raise NotImplementedError
+    data_dict = self._read_all_data()
+    if data_dict is not None and self.source_name in data_dict:
+      return data_dict[self.source_name]
+    else:
+      return None
   
-  def write_dict(self):
-    raise NotImplementedError
+  def write_dict(self, setting_names_and_values):
+    try:
+      with io.open(self._filepath, 'wb') as f:
+        pickle.dump(setting_names_and_values, f)
+    except Exception as e:
+      raise SourceInvalidFormatError(str(e), self._filepath)
+  
+  def _read_all_data(self):
+    if not os.path.isfile(self._filepath):
+      return None
+    
+    try:
+      with io.open(self._filepath, 'rb') as f:
+        data_dict = pickle.load(f)
+    except Exception as e:
+      raise SourceInvalidFormatError(str(e), self._filepath)
+    else:
+      return data_dict

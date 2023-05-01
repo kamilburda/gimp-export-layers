@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import io
 import unittest
 
 import mock
@@ -195,6 +196,105 @@ class TestPersistentSource(unittest.TestCase):
   def test_has_data_with_data(self, mock_persistent_source):
     self.source.write([self.settings['file_extension']])
     self.assertTrue(self.source.has_data())
+
+
+@mock.patch(pgutils.get_pygimplib_module_path() + '.setting.sources.io.open')
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.setting.sources.os.path.isfile',
+  return_value=False)
+class TestPickleFileSource(unittest.TestCase):
+  
+  def setUp(self):
+    self.source_name = 'test_settings'
+    self.filepath = 'test_filepath.pkl'
+    self.source = sources_.PickleFileSource(self.source_name, self.filepath)
+    self.settings = stubs_group.create_test_settings()
+  
+  def test_write_read(self, mock_os_path_isfile, mock_io_open):
+    self._set_up_mock_open(mock_io_open)
+    
+    self.settings['file_extension'].set_value('jpg')
+    self.settings['flatten'].set_value(True)
+    
+    self.source.write(self.settings)
+    
+    mock_os_path_isfile.return_value = True
+    self.source.read(self.settings)
+    
+    self.assertEqual(self.settings['file_extension'].value, 'jpg')
+    self.assertEqual(self.settings['flatten'].value, True)
+  
+  def test_write_multiple_settings_separately(self, mock_os_path_isfile, mock_io_open):
+    self._set_up_mock_open(mock_io_open)
+    
+    self.settings['file_extension'].set_value('jpg')
+    
+    self.source.write([self.settings['file_extension']])
+    
+    self.settings['flatten'].set_value(True)
+    
+    mock_os_path_isfile.return_value = True
+    self.source.write([self.settings['flatten']])
+    
+    self.source.read([self.settings['file_extension']])
+    self.source.read([self.settings['flatten']])
+    
+    self.assertEqual(self.settings['file_extension'].value, 'jpg')
+    self.assertEqual(self.settings['flatten'].value, True)
+    
+    self.settings['file_extension'].set_value('gif')
+    
+    self.source.write([self.settings['file_extension']])
+    self.source.read([self.settings['file_extension']])
+    
+    self.assertEqual(self.settings['file_extension'].value, 'gif')
+    self.assertEqual(self.settings['flatten'].value, True)
+  
+  def test_has_data(self, mock_os_path_isfile, mock_io_open):
+    self._set_up_mock_open(mock_io_open)
+    self.assertFalse(self.source.has_data())
+    
+    self.settings['file_extension'].set_value('jpg')
+    
+    self.source.write([self.settings['file_extension']])
+    
+    mock_os_path_isfile.return_value = True
+    
+    self.assertTrue(self.source.has_data())
+  
+  def test_clear_no_data(self, mock_os_path_isfile, mock_io_open):
+    self._set_up_mock_open(mock_io_open)
+    self.source.write_dict = mock.Mock(wraps=self.source.write_dict)
+    
+    self.source.clear()
+    
+    self.assertFalse(self.source.has_data())
+    self.assertEqual(self.source.write_dict.call_count, 0)
+  
+  def test_clear_data_in_different_source(self, mock_os_path_isfile, mock_io_open):
+    self._set_up_mock_open(mock_io_open)
+    
+    source_2 = sources_.PickleFileSource('test_settings_2', self.filepath)
+    self.source.write_dict = mock.Mock(wraps=self.source.write_dict)
+    source_2.write_dict = mock.Mock(wraps=source_2.write_dict)
+    
+    self.source.write([self.settings['file_extension']])
+    mock_os_path_isfile.return_value = True
+    
+    source_2.write([self.settings['flatten']])
+    
+    self.source.clear()
+    
+    self.assertFalse(self.source.has_data())
+    self.assertTrue(source_2.has_data())
+    
+    self.assertEqual(self.source.write_dict.call_count, 2)
+    self.assertEqual(source_2.write_dict.call_count, 1)
+  
+  def _set_up_mock_open(self, mock_io_open):
+    mock_io_open.return_value.__enter__.return_value = io.BytesIO()
+    mock_io_open.return_value.__exit__.side_effect = (
+      lambda *args, **kwargs: mock_io_open.return_value.__enter__.return_value.seek(0))
 
 
 @mock.patch(
