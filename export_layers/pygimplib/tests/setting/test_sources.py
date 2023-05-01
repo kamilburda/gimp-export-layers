@@ -250,9 +250,37 @@ class TestPickleFileSource(unittest.TestCase):
     self.assertEqual(self.settings['file_extension'].value, 'gif')
     self.assertEqual(self.settings['flatten'].value, True)
   
-  def test_has_data(self, mock_os_path_isfile, mock_io_open):
+  def test_write_retains_other_source_names(self, mock_os_path_isfile, mock_io_open):
     self._set_up_mock_open(mock_io_open)
+    
+    source_2 = sources_.PickleFileSource('test_settings_2', self.filepath)
+    self.source.write_dict = mock.Mock(wraps=self.source.write_dict)
+    source_2.write_dict = mock.Mock(wraps=source_2.write_dict)
+    
+    self.settings['file_extension'].set_value('jpg')
+    self.settings['flatten'].set_value(True)
+    
+    self.source.write([self.settings['file_extension']])
+    mock_os_path_isfile.return_value = True
+    
+    source_2.write([self.settings['flatten']])
+    
+    self.source.read([self.settings['file_extension']])
+    source_2.read([self.settings['flatten']])
+    
+    self.assertEqual(self.settings['file_extension'].value, 'jpg')
+    self.assertEqual(self.settings['flatten'].value, True)
+    
+    self.assertEqual(self.source.write_dict.call_count, 1)
+    self.assertEqual(source_2.write_dict.call_count, 1)
+  
+  def test_has_data_no_data(self, mock_os_path_isfile, mock_io_open):
+    self._set_up_mock_open(mock_io_open)
+    
     self.assertFalse(self.source.has_data())
+  
+  def test_has_data_contains_data(self, mock_os_path_isfile, mock_io_open):
+    self._set_up_mock_open(mock_io_open)
     
     self.settings['file_extension'].set_value('jpg')
     
