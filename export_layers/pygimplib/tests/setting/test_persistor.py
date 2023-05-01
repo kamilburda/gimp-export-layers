@@ -78,78 +78,78 @@ class TestPersistor(unittest.TestCase):
   
   def test_load_save_with_default_sources_as_dict_of_lists(
         self, mock_gimp_module, mock_gimp_shelf):
-    mock_persistent_source = mock.Mock(wraps=self.persistent_source)
-    mock_default_session_source_1 = mock.Mock(wraps=self.session_source)
-    mock_default_session_source_2 = mock.Mock(wraps=sources_.SessionSource(''))
+    spy_persistent_source = mock.Mock(wraps=self.persistent_source)
+    spy_default_session_source_1 = mock.Mock(wraps=self.session_source)
+    spy_default_session_source_2 = mock.Mock(wraps=sources_.SessionSource(''))
     
     persistor_.Persistor.set_default_setting_sources(
       collections.OrderedDict([
-        ('session', [mock_default_session_source_1, mock_default_session_source_2]),
-        ('persistent', mock_persistent_source)]))
+        ('session', [spy_default_session_source_1, spy_default_session_source_2]),
+        ('persistent', spy_persistent_source)]))
     
     self._test_load_save(None)
     
-    self.assertEqual(mock_default_session_source_1.read.call_count, 1)
-    self.assertEqual(mock_default_session_source_1.write.call_count, 1)
-    self.assertEqual(mock_default_session_source_2.read.call_count, 0)
-    self.assertEqual(mock_default_session_source_2.write.call_count, 1)
-    self.assertEqual(mock_persistent_source.read.call_count, 0)
-    self.assertEqual(mock_persistent_source.write.call_count, 1)
+    self.assertEqual(spy_default_session_source_1.read.call_count, 1)
+    self.assertEqual(spy_default_session_source_1.write.call_count, 1)
+    self.assertEqual(spy_default_session_source_2.read.call_count, 0)
+    self.assertEqual(spy_default_session_source_2.write.call_count, 1)
+    self.assertEqual(spy_persistent_source.read.call_count, 0)
+    self.assertEqual(spy_persistent_source.write.call_count, 1)
   
   def test_load_save_with_default_sources_and_dict(self, mock_gimp_module, mock_gimp_shelf):
-    mock_persistent_source = mock.Mock(wraps=self.persistent_source)
-    mock_default_session_source = mock.Mock(wraps=self.session_source)
-    mock_session_source = mock.Mock(wraps=sources_.SessionSource(''))
+    spy_persistent_source = mock.Mock(wraps=self.persistent_source)
+    spy_default_session_source = mock.Mock(wraps=self.session_source)
+    spy_session_source = mock.Mock(wraps=sources_.SessionSource(''))
     
-    session_source_for_persistor = {'session': mock_session_source}
+    session_source_for_persistor = {'session': spy_session_source}
     
     persistor_.Persistor.set_default_setting_sources(self.sources_for_persistor)
     
     self._test_load_save(session_source_for_persistor)
     
-    self.assertEqual(mock_session_source.read.call_count, 1)
-    self.assertEqual(mock_session_source.write.call_count, 1)
-    self.assertEqual(mock_default_session_source.read.call_count, 0)
-    self.assertEqual(mock_default_session_source.write.call_count, 0)
-    self.assertEqual(mock_persistent_source.read.call_count, 0)
-    self.assertEqual(mock_persistent_source.write.call_count, 0)
+    self.assertEqual(spy_session_source.read.call_count, 1)
+    self.assertEqual(spy_session_source.write.call_count, 1)
+    self.assertEqual(spy_default_session_source.read.call_count, 0)
+    self.assertEqual(spy_default_session_source.write.call_count, 0)
+    self.assertEqual(spy_persistent_source.read.call_count, 0)
+    self.assertEqual(spy_persistent_source.write.call_count, 0)
   
   def test_load_save_with_default_sources_and_dict_of_lists(
         self, mock_gimp_module, mock_gimp_shelf):
-    mock_persistent_source = mock.Mock(wraps=self.persistent_source)
-    mock_default_session_source = mock.Mock(wraps=self.session_source)
-    mock_session_source = mock.Mock(wraps=sources_.SessionSource(''))
+    spy_persistent_source = mock.Mock(wraps=self.persistent_source)
+    spy_default_session_source = mock.Mock(wraps=self.session_source)
+    spy_session_source = mock.Mock(wraps=sources_.SessionSource(''))
     
-    session_source_for_persistor = {'session': [mock_session_source, mock_default_session_source]}
+    session_source_for_persistor = {'session': [spy_session_source, spy_default_session_source]}
     
     persistor_.Persistor.set_default_setting_sources(self.sources_for_persistor)
     
     self._test_load_save(session_source_for_persistor)
     
-    self.assertEqual(mock_session_source.read.call_count, 1)
-    self.assertEqual(mock_session_source.write.call_count, 1)
-    self.assertEqual(mock_default_session_source.read.call_count, 0)
-    self.assertEqual(mock_default_session_source.write.call_count, 1)
-    self.assertEqual(mock_persistent_source.read.call_count, 0)
-    self.assertEqual(mock_persistent_source.write.call_count, 0)
+    self.assertEqual(spy_session_source.read.call_count, 1)
+    self.assertEqual(spy_session_source.write.call_count, 1)
+    self.assertEqual(spy_default_session_source.read.call_count, 0)
+    self.assertEqual(spy_default_session_source.write.call_count, 1)
+    self.assertEqual(spy_persistent_source.read.call_count, 0)
+    self.assertEqual(spy_persistent_source.write.call_count, 0)
   
   def test_load_save_with_default_sources_and_list(self, mock_gimp_module, mock_gimp_shelf):
-    mock_persistent_source = mock.Mock(wraps=self.persistent_source)
-    mock_session_source = mock.Mock(wraps=self.session_source)
+    spy_persistent_source = mock.Mock(wraps=self.persistent_source)
+    spy_session_source = mock.Mock(wraps=self.session_source)
     sources_for_persistor = ['session', 'persistent']
     default_sources = collections.OrderedDict([
-      ('session', mock_session_source),
-      ('persistent', mock_persistent_source)])
+      ('session', spy_session_source),
+      ('persistent', spy_persistent_source)])
     
     persistor_.Persistor.set_default_setting_sources(default_sources)
     
     self._test_load_save(sources_for_persistor)
     
-    self.assertEqual(mock_session_source.read.call_count, 1)
-    self.assertEqual(mock_session_source.write.call_count, 1)
-    # `read` should not be called as all settings have been found in `mock_session_source`.
-    self.assertEqual(mock_persistent_source.read.call_count, 0)
-    self.assertEqual(mock_persistent_source.write.call_count, 1)
+    self.assertEqual(spy_session_source.read.call_count, 1)
+    self.assertEqual(spy_session_source.write.call_count, 1)
+    # `read` should not be called as all settings have been found in `spy_session_source`.
+    self.assertEqual(spy_persistent_source.read.call_count, 0)
+    self.assertEqual(spy_persistent_source.write.call_count, 1)
   
   def _test_load_save(self, sources_for_persistor):
     self.settings['file_extension'].set_value('png')
