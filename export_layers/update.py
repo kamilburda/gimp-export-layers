@@ -266,8 +266,7 @@ def _is_fresh_start():
 
 def _save_plugin_version(settings):
   settings['main/plugin_version'].reset()
-  pg.setting.Persistor.save(
-    [settings['main/plugin_version']], ['persistent'])
+  pg.setting.Persistor.save([settings['main/plugin_version']], ['persistent'])
 
 
 def _try_remove_file(filepath):

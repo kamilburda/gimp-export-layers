@@ -652,14 +652,41 @@ class ExportLayersDialog(object):
     self._previews_controller = previews_controller_.PreviewsController(
       self._name_preview, self._image_preview, self._settings, self._image)
   
-  def _save_settings(self, filepath=None):
+  def _load_settings(self, filepath, file_format):
+    source = pg.setting.sources.PickleFileSource(pg.config.SOURCE_NAME, filepath)
+    
+    actions.clear(self._settings['main/procedures'], add_initial_actions=False)
+    actions.clear(self._settings['main/constraints'], add_initial_actions=False)
+    
+    session_settings = []
+    for setting in self._settings.walk():
+      if (setting.setting_sources is not None and list(setting.setting_sources) == ['session']
+          and 'ignore_reset' not in setting.tags):
+        setting.tags.add('ignore_reset')
+        session_settings.append(setting)
+    
+    self._reset_settings()
+    
+    for setting in session_settings:
+      setting.tags.remove('ignore_reset')
+    
+    status, status_message = self._settings.load({'persistent': source})
+    
+    if (status != pg.setting.Persistor.SUCCESS
+        and status != pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND):
+      messages_.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
+      return False
+    else:
+      return True
+  
+  def _save_settings(self, filepath=None, file_format='pkl'):
     if filepath is None:
       status, status_message = self._settings.save()
     else:
       source = pg.setting.sources.PickleFileSource(pg.config.SOURCE_NAME, filepath)
       status, status_message = self._settings.save({'persistent': source})
     
-    if status == pg.setting.Persistor.WRITE_FAIL:
+    if status != pg.setting.Persistor.SUCCESS:
       messages_.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
       return False
     else:
@@ -668,7 +695,7 @@ class ExportLayersDialog(object):
   def _reset_settings(self):
     self._settings.reset()
   
-  def _get_setting_config_filepath(self, action):
+  def _get_setting_config_filepath(self, action, add_file_extension_if_missing=True):
     if action == 'load':
       dialog_action = gtk.FILE_CHOOSER_ACTION_OPEN
       button_ok = gtk.STOCK_OPEN
@@ -691,9 +718,10 @@ class ExportLayersDialog(object):
     
     file_dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
+    pickle_file_ext = '.pkl'
     filter_pickle = gtk.FileFilter()
-    filter_pickle.set_name(_('Pickle file (.pkl)'))
-    filter_pickle.add_pattern('*.pkl')
+    filter_pickle.set_name(_('Pickle file ({})'.format(pickle_file_ext)))
+    filter_pickle.add_pattern('*' + pickle_file_ext)
     file_dialog.add_filter(filter_pickle)
     
     filter_any = gtk.FileFilter()
@@ -705,12 +733,19 @@ class ExportLayersDialog(object):
     
     if response_id == gtk.RESPONSE_OK:
       filepath = file_dialog.get_filename()
+      
+      file_format = 'pkl'
+      
+      if add_file_extension_if_missing:
+        if file_dialog.get_filter() == filter_pickle and not filepath.endswith(pickle_file_ext):
+          filepath += pickle_file_ext
     else:
       filepath = None
+      file_format = None
     
     file_dialog.destroy()
     
-    return filepath
+    return filepath, file_format
   
   def _on_text_entry_changed(self, entry, setting, name_preview_lock_update_key=None):
     try:
@@ -834,19 +869,22 @@ class ExportLayersDialog(object):
       self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
   
   def _on_load_settings_activate(self, menu_item):
-    filepath = self._get_setting_config_filepath(action='load')
+    filepath, file_format = self._get_setting_config_filepath(action='load')
     
     if filepath is not None:
-      load_successful = self._load_settings(filepath)
+      load_successful = self._load_settings(filepath, file_format)
+      # Also override default setting sources so that the loaded settings actually persist.
+      self._save_settings()
+      
       if load_successful:
         self._display_inline_message(_('Settings successfully loaded.'), gtk.MESSAGE_INFO)
   
   @_set_settings
   def _on_save_settings_to_activate(self, menu_item):
-    filepath = self._get_setting_config_filepath(action='save')
+    filepath, file_format = self._get_setting_config_filepath(action='save')
     
     if filepath is not None:
-      save_successful = self._save_settings(filepath)
+      save_successful = self._save_settings(filepath, file_format)
       if save_successful:
         self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
   

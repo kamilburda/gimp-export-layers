@@ -717,20 +717,25 @@ def _find_index_in_added_data(actions, action_name):
     None)
 
 
-def clear(actions):
-  """
-  Remove all added actions.
+def clear(actions, add_initial_actions=True):
+  """Removes all added actions.
+  
+  If `add_initial_actions` is `True`, add back actions specified as
+  `initial_actions` in `create()` after removing all actions.
   """
   actions.invoke_event('before-clear-actions')
   
-  _clear(actions)
+  _clear(actions, add_initial_actions)
   
   actions.invoke_event('after-clear-actions')
 
 
-def _clear(actions):
+def _clear(actions, add_initial_actions=True):
   actions['added'].remove([action.name for action in walk(actions)])
-  actions['_added_data'].reset()
+  if add_initial_actions:
+    actions['_added_data'].reset()
+  else:
+    actions['_added_data'].set_value({})
   actions['_added_data_values'].reset()
 
 
