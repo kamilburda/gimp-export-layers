@@ -502,17 +502,17 @@ class ExportLayersDialog(object):
     self._menu_item_show_more_settings = gtk.CheckMenuItem(_('Show More Settings'))
     self._menu_item_edit_mode = gtk.CheckMenuItem(_('Batch Editing'))
     self._menu_item_save_settings = gtk.MenuItem(_('Save Settings'))
-    self._menu_item_load_settings = gtk.MenuItem(_('Load Settings...'))
-    self._menu_item_save_settings_to = gtk.MenuItem(_('Save Settings to...'))
     self._menu_item_reset_settings = gtk.MenuItem(_('Reset settings'))
+    self._menu_item_import_settings = gtk.MenuItem(_('Import Settings...'))
+    self._menu_item_export_settings = gtk.MenuItem(_('Export Settings...'))
     
     self._menu_settings = gtk.Menu()
     self._menu_settings.append(self._menu_item_show_more_settings)
     self._menu_settings.append(self._menu_item_edit_mode)
     self._menu_settings.append(self._menu_item_save_settings)
-    self._menu_settings.append(self._menu_item_load_settings)
-    self._menu_settings.append(self._menu_item_save_settings_to)
     self._menu_settings.append(self._menu_item_reset_settings)
+    self._menu_settings.append(self._menu_item_import_settings)
+    self._menu_settings.append(self._menu_item_export_settings)
     self._menu_settings.show_all()
     
     self._dialog.action_area.pack_end(self._button_stop, expand=False, fill=False)
@@ -556,9 +556,9 @@ class ExportLayersDialog(object):
       'toggled', self._on_menu_item_show_more_settings_toggled)
     self._menu_item_edit_mode.connect('toggled', self._on_menu_item_edit_mode_toggled)
     self._menu_item_save_settings.connect('activate', self._on_save_settings_activate)
-    self._menu_item_load_settings.connect('activate', self._on_load_settings_activate)
-    self._menu_item_save_settings_to.connect('activate', self._on_save_settings_to_activate)
     self._menu_item_reset_settings.connect('activate', self._on_reset_settings_activate)
+    self._menu_item_import_settings.connect('activate', self._on_import_settings_activate)
+    self._menu_item_export_settings.connect('activate', self._on_export_settings_activate)
     
     self._file_extension_entry.connect(
       'changed',
@@ -868,25 +868,25 @@ class ExportLayersDialog(object):
     if save_successful:
       self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
   
-  def _on_load_settings_activate(self, menu_item):
+  def _on_import_settings_activate(self, menu_item):
     filepath, file_format = self._get_setting_config_filepath(action='load')
     
     if filepath is not None:
       load_successful = self._load_settings(filepath, file_format)
-      # Also override default setting sources so that the loaded settings actually persist.
+      # Also override default setting sources so that the imported settings actually persist.
       self._save_settings()
       
       if load_successful:
-        self._display_inline_message(_('Settings successfully loaded.'), gtk.MESSAGE_INFO)
+        self._display_inline_message(_('Settings successfully imported.'), gtk.MESSAGE_INFO)
   
   @_set_settings
-  def _on_save_settings_to_activate(self, menu_item):
+  def _on_export_settings_activate(self, menu_item):
     filepath, file_format = self._get_setting_config_filepath(action='save')
     
     if filepath is not None:
       save_successful = self._save_settings(filepath, file_format)
       if save_successful:
-        self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
+        self._display_inline_message(_('Settings successfully exported.'), gtk.MESSAGE_INFO)
   
   def _on_reset_settings_activate(self, menu_item):
     response_id, clear_actions = display_reset_prompt(
