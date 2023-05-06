@@ -255,10 +255,17 @@ class PickleFileSource(Source):
       self.write_dict(data_dict)
   
   def has_data(self):
+    """Returns `True` if the source contains data and the data have a valid
+    format, `'invalid_format'` if the source contains some data, but the data
+    have an invalid format, and `False` otherwise.
+    
+    `'invalid_format'` represents an ambiguous value since there is no way to
+    determine if there are data under `source_name` or not.
+    """
     try:
       data = self.read_dict()
     except SourceInvalidFormatError:
-      return False
+      return 'invalid_format'
     else:
       return data is not None
   
