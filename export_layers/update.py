@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import collections
+import io
 import os
 import re
 import shutil
@@ -30,10 +31,10 @@ from export_layers.gui import messages
 
 MIN_VERSION_WITHOUT_CLEAN_REINSTALL = pg.version.Version.parse('3.3')
 
-_UPDATE_STATUSES = (FRESH_START, UPDATE, CLEAR_SETTINGS, NO_ACTION, ABORT) = (0, 1, 2, 3, 4)
+_UPDATE_STATUSES = FRESH_START, UPDATE, CLEAR_SETTINGS, NO_ACTION, ABORT = 0, 1, 2, 3, 4
 
 
-def update(settings, prompt_on_clear=False):
+def update(settings, prompt_on_clear=False, sources=None):
   """
   Update to the latest version of the plug-in. This includes renaming settings
   or replacing obsolete procedures.
@@ -56,19 +57,28 @@ def update(settings, prompt_on_clear=False):
   If `prompt_on_clear` is `True` and the plug-in requires clearing settings,
   display a message dialog to prompt the user to proceed with clearing. If 'No'
   is chosen, do not clear settings and return `ABORT`.
+  
+  If `sources` is `None`, default setting sources are updated. Otherwise,
+  `sources` must be a dictionary of (key, source) pairs.
   """
-  if _is_fresh_start():
-    _save_plugin_version(settings)
+  if sources is None:
+    sources = pg.setting.Persistor.get_default_setting_sources()
+  
+  persistent_sources = _get_persistent_sources(sources)
+  
+  if _is_fresh_start(persistent_sources):
+    _save_plugin_version(settings, sources)
     return FRESH_START
   
   current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
   
-  status, unused_ = pg.setting.Persistor.load([settings['main/plugin_version']], ['persistent'])
+  status, unused_ = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
   
   if status == pg.setting.Persistor.READ_FAIL:
-    _fix_parasites(_FIX_PARASITE_HANDLERS, current_version)
+    fix_element_paths_for_pickle(
+      sources, _FIX_PICKLE_HANDLERS, current_version, pg.config.SOURCE_NAME.encode('utf-8'))
     
-    status, unused_ = pg.setting.Persistor.load([settings['main/plugin_version']], ['persistent'])
+    status, unused_ = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
   
   previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
   
@@ -77,9 +87,9 @@ def update(settings, prompt_on_clear=False):
   
   if (status == pg.setting.Persistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
-    _save_plugin_version(settings)
+    _save_plugin_version(settings, sources)
     
-    handle_update(settings, _UPDATE_HANDLERS, previous_version, current_version)
+    handle_update(settings, sources, _UPDATE_HANDLERS, previous_version, current_version)
     
     return UPDATE
   
@@ -91,38 +101,50 @@ def update(settings, prompt_on_clear=False):
       button_response_id_to_focus=gtk.RESPONSE_NO)
     
     if response == gtk.RESPONSE_YES:
-      clear_setting_sources(settings)
+      clear_setting_sources(settings, sources)
       return CLEAR_SETTINGS
     else:
       return ABORT
   else:
-    clear_setting_sources(settings)
+    clear_setting_sources(settings, sources)
     return CLEAR_SETTINGS
+
+
+def _get_persistent_sources(sources):
+  try:
+    persistent_sources = sources['persistent']
+  except KeyError:
+    raise ValueError('at least one persistent source must be specified to run update()')
+  
+  if not isinstance(persistent_sources, collections.Iterable):
+    return [persistent_sources]
+  else:
+    return persistent_sources
 
 
 def clear_setting_sources(settings, sources=None):
   if sources is None:
-    sources = ['session', 'persistent']
+    sources = pg.setting.Persistor.get_default_setting_sources()
   
   pg.setting.Persistor.clear(sources)
   
-  _save_plugin_version(settings)
+  _save_plugin_version(settings, sources)
 
 
-def handle_update(settings, update_handlers, previous_version, current_version):
+def handle_update(settings, sources, update_handlers, previous_version, current_version):
   for version_str, update_handler in update_handlers.items():
     if previous_version < pg.version.Version.parse(version_str) <= current_version:
-      update_handler(settings)
+      update_handler(settings, sources)
 
 
-def _fix_parasites(fix_parasite_handlers, current_version):
-  for version_str, fix_parasite_handler in fix_parasite_handlers.items():
+def fix_element_paths_for_pickle(sources, fix_pickle_handlers, current_version, key):
+  for version_str, fix_pickle_handler in fix_pickle_handlers.items():
     if pg.version.Version.parse(version_str) <= current_version:
-      fix_parasite_handler()
+      fix_pickle_handler(sources, key)
 
 
-def rename_settings(settings_to_rename):
-  for source in [pg.config.SESSION_SOURCE, pg.config.PERSISTENT_SOURCE]:
+def rename_settings(settings_to_rename, sources):
+  for source in sources.values():
     data_dict = source.read_dict()
     
     if data_dict:
@@ -260,13 +282,13 @@ def _get_actions(settings):
   ]
 
 
-def _is_fresh_start():
-  return not pg.config.PERSISTENT_SOURCE.has_data()
+def _is_fresh_start(persistent_sources):
+  return all(not source.has_data() for source in persistent_sources)
 
 
-def _save_plugin_version(settings):
+def _save_plugin_version(settings, sources):
   settings['main/plugin_version'].reset()
-  pg.setting.Persistor.save([settings['main/plugin_version']], ['persistent'])
+  pg.setting.Persistor.save([settings['main/plugin_version']], sources)
 
 
 def _try_remove_file(filepath):
@@ -276,27 +298,29 @@ def _try_remove_file(filepath):
     pass
 
 
-def _update_to_3_3_1(settings):
-  rename_settings([
-    ('gui/export_name_preview_sensitive',
-     'gui/name_preview_sensitive'),
-    ('gui/export_image_preview_sensitive',
-     'gui/image_preview_sensitive'),
-    ('gui/export_image_preview_automatic_update',
-     'gui/image_preview_automatic_update'),
-    ('gui/export_image_preview_automatic_update_if_below_maximum_duration',
-     'gui/image_preview_automatic_update_if_below_maximum_duration'),
-    ('gui_session/export_name_preview_layers_collapsed_state',
-     'gui_session/name_preview_layers_collapsed_state'),
-    ('gui_session/export_image_preview_displayed_layers',
-     'gui_session/image_preview_displayed_layers'),
-    ('gui_persistent/export_name_preview_layers_collapsed_state',
-     'gui_persistent/name_preview_layers_collapsed_state'),
-    ('gui_persistent/export_image_preview_displayed_layers',
-     'gui_persistent/image_preview_displayed_layers'),
-  ])
+def _update_to_3_3_1(settings, sources):
+  rename_settings(
+    [
+      ('gui/export_name_preview_sensitive',
+       'gui/name_preview_sensitive'),
+      ('gui/export_image_preview_sensitive',
+       'gui/image_preview_sensitive'),
+      ('gui/export_image_preview_automatic_update',
+       'gui/image_preview_automatic_update'),
+      ('gui/export_image_preview_automatic_update_if_below_maximum_duration',
+       'gui/image_preview_automatic_update_if_below_maximum_duration'),
+      ('gui_session/export_name_preview_layers_collapsed_state',
+       'gui_session/name_preview_layers_collapsed_state'),
+      ('gui_session/export_image_preview_displayed_layers',
+       'gui_session/image_preview_displayed_layers'),
+      ('gui_persistent/export_name_preview_layers_collapsed_state',
+       'gui_persistent/name_preview_layers_collapsed_state'),
+      ('gui_persistent/export_image_preview_displayed_layers',
+       'gui_persistent/image_preview_displayed_layers'),
+    ],
+    sources)
   
-  settings['main/layer_filename_pattern'].load()
+  settings['main/layer_filename_pattern'].load(sources)
   settings['main/layer_filename_pattern'].set_value(
     replace_field_arguments_in_pattern(
       settings['main/layer_filename_pattern'].value,
@@ -307,14 +331,14 @@ def _update_to_3_3_1(settings):
         ['layer path', r'\$\$', '%c'],
         ['tags', r'\$\$', '%t'],
       ]))
-  settings['main/layer_filename_pattern'].save()
+  settings['main/layer_filename_pattern'].save(sources)
 
 
-def _update_to_3_3_2(settings):
+def _update_to_3_3_2(settings, sources):
   _remove_obsolete_pygimplib_files_3_3_2()
   _remove_obsolete_plugin_files_3_3_2()
   
-  settings['main/layer_filename_pattern'].load()
+  settings['main/layer_filename_pattern'].load(sources)
   settings['main/layer_filename_pattern'].set_value(
     replace_field_arguments_in_pattern(
       settings['main/layer_filename_pattern'].value,
@@ -325,10 +349,10 @@ def _update_to_3_3_2(settings):
       ],
       as_lists=True,
     ))
-  settings['main/layer_filename_pattern'].save()
+  settings['main/layer_filename_pattern'].save(sources)
   
-  settings['main/procedures'].load()
-  settings['main/constraints'].load()
+  settings['main/procedures'].load(sources)
+  settings['main/constraints'].load(sources)
   
   procedures = _get_actions(settings['main/procedures'])
   constraints = _get_actions(settings['main/constraints'])
@@ -354,20 +378,20 @@ def _update_to_3_3_2(settings):
   _rename_generic_setting_in_actions(
     constraints, settings['main/constraints'], 'operation_groups', 'action_groups')
   
-  settings['main/procedures'].save()
+  settings['main/procedures'].save(sources)
   actions_.clear(settings['main/procedures'])
-  settings['main/constraints'].save()
+  settings['main/constraints'].save(sources)
   actions_.clear(settings['main/constraints'])
 
 
-def _update_to_3_3_5(settings):
+def _update_to_3_3_5(settings, sources):
   plugin_subdirectory_dirpath = pg.config.PLUGIN_SUBDIRPATH
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'settings_plugin.py'))
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'settings_plugin.pyc'))
 
 
-def _update_to_3_4(settings):
-  settings['main/procedures'].load()
+def _update_to_3_4(settings, sources):
+  settings['main/procedures'].load(sources)
   
   procedures = _get_actions(settings['main/procedures'])
   
@@ -379,10 +403,10 @@ def _update_to_3_4(settings):
     builtin_procedures.BUILTIN_PROCEDURES,
   )
   
-  settings['main/procedures'].save()
+  settings['main/procedures'].save(sources)
   actions_.clear(settings['main/procedures'])
   
-  settings['main/constraints'].load()
+  settings['main/constraints'].load(sources)
   
   constraints = _get_actions(settings['main/constraints'])
   
@@ -410,7 +434,9 @@ def _update_to_3_4(settings):
     builtin_constraints.BUILTIN_CONSTRAINTS,
   )
   
-  settings['main/constraints/visible/also_apply_to_parent_folders'].set_value(True)
+  for action in actions_.walk(settings['main/constraints']):
+    if action['orig_name'].value == 'visible':
+      action['also_apply_to_parent_folders'].set_value(True)
   
   _refresh_actions(
     constraints,
@@ -452,7 +478,8 @@ def _update_to_3_4(settings):
     builtin_constraints.BUILTIN_CONSTRAINTS,
   )
   
-  settings['main/constraints'].save()
+  settings['main/constraints'].save(sources)
+  
   actions_.clear(settings['main/constraints'])
 
 
@@ -486,23 +513,22 @@ def _remove_obsolete_plugin_files_3_3_2():
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'gui', 'operations.pyc'))
 
 
-def _fix_element_paths_in_parasites(paths_to_rename):
-  key = b'plug_in_export_layers'
-  
-  persistent_parasite = gimp.parasite_find(key)
-  if persistent_parasite is not None:
-    new_data = persistent_parasite.data
-    for old_path, new_path in paths_to_rename:
-      new_data = new_data.replace(old_path, new_path)
-    
-    gimp.parasite_attach(gimp.Parasite(key, gimpenums.PARASITE_PERSISTENT, new_data))
-  
+def _fix_pickle_paths(paths_to_rename, sources, key):
+  for source in sources.values():
+    if isinstance(source, pg.setting.sources.SessionSource):
+      _fix_pickle_paths_in_session_source(paths_to_rename, key)
+    elif isinstance(source, pg.setting.sources.PersistentSource):
+      _fix_pickle_paths_in_persistent_source(paths_to_rename, key)
+    elif isinstance(source, pg.setting.sources.PickleFileSource):
+      _fix_pickle_paths_in_pickle_file_source(paths_to_rename, key, source)
+
+
+def _fix_pickle_paths_in_session_source(paths_to_rename, key):
   try:
     session_parasite = gimp.get_data(key)
   except gimp.error:
-    session_parasite = None
-  
-  if session_parasite:
+    pass
+  else:
     new_data = session_parasite
     for old_path, new_path in paths_to_rename:
       new_data = new_data.replace(old_path, new_path)
@@ -510,37 +536,65 @@ def _fix_element_paths_in_parasites(paths_to_rename):
     gimp.set_data(key, new_data)
 
 
-def _fix_element_paths_in_parasites_3_3_2():
-  _fix_element_paths_in_parasites([
-    (b'export_layers.pygimplib.pgsetting', b'export_layers.pygimplib.setting'),
-    (b'export_layers.pygimplib.pgutils', b'export_layers.pygimplib.utils'),
-  ])
+def _fix_pickle_paths_in_persistent_source(paths_to_rename, key):
+  persistent_parasite = gimp.parasite_find(key)
+  if persistent_parasite is not None:
+    new_data = persistent_parasite.data
+    for old_path, new_path in paths_to_rename:
+      new_data = new_data.replace(old_path, new_path)
+    
+    gimp.parasite_attach(gimp.Parasite(key, gimpenums.PARASITE_PERSISTENT, new_data))
 
 
-def _fix_element_paths_in_parasites_3_3_5():
-  _fix_element_paths_in_parasites([
-    (b'builtin_procedures\nuse_file_extension_in_layer_name',
-     b'builtin_procedures\nuse_file_extension_in_item_name'),
-    (b'builtin_procedures\nremove_folder_hierarchy_from_layer',
-     b'builtin_procedures\nremove_folder_hierarchy_from_item'),
-    (b'builtin_constraints\nis_layer_in_selected_layers',
-     b'builtin_constraints\nis_item_in_selected_items'),
-  ])
+def _fix_pickle_paths_in_pickle_file_source(paths_to_rename, key, source):
+  with io.open(source.filepath, 'rb') as f:
+    data = f.read()
+  
+  new_data = data
+  for old_path, new_path in paths_to_rename:
+    new_data = new_data.replace(old_path, new_path)
+  
+  with io.open(source.filepath, 'wb') as f:
+    f.write(new_data)
 
 
-def _fix_element_paths_in_parasites_3_4():
-  _fix_element_paths_in_parasites([
-    (b'builtin_constraints\nis_empty_group',
-     b'export_layers.pygimplib.utils\nempty_func'),
-    (b'builtin_procedures\nuse_file_extension_in_item_name',
-     b'export_layers.pygimplib.utils\nempty_func'),
-    (b'builtin_procedures\ninsert_background_layer',
-     b'background_foreground\ninsert_background_layer'),
-    (b'builtin_procedures\ninsert_foreground_layer',
-     b'background_foreground\ninsert_foreground_layer'),
-    (b'builtin_procedures\nis_path_visible',
-     b'builtin_procedures\nis_visible'),
-  ])
+def _fix_pickle_paths_3_3_2(sources, key):
+  _fix_pickle_paths(
+    [
+      (b'export_layers.pygimplib.pgsetting', b'export_layers.pygimplib.setting'),
+      (b'export_layers.pygimplib.pgutils', b'export_layers.pygimplib.utils'),
+    ],
+    sources, key)
+
+
+def _fix_pickle_paths_3_3_5(sources, key):
+  _fix_pickle_paths(
+    [
+      (b'builtin_procedures\nuse_file_extension_in_layer_name',
+       b'builtin_procedures\nuse_file_extension_in_item_name'),
+      (b'builtin_procedures\nremove_folder_hierarchy_from_layer',
+       b'builtin_procedures\nremove_folder_hierarchy_from_item'),
+      (b'builtin_constraints\nis_layer_in_selected_layers',
+       b'builtin_constraints\nis_item_in_selected_items'),
+    ],
+    sources, key)
+
+
+def _fix_pickle_paths_3_4(sources, key):
+  _fix_pickle_paths(
+    [
+      (b'builtin_constraints\nis_empty_group',
+       b'export_layers.pygimplib.utils\nempty_func'),
+      (b'builtin_procedures\nuse_file_extension_in_item_name',
+       b'export_layers.pygimplib.utils\nempty_func'),
+      (b'builtin_procedures\ninsert_background_layer',
+       b'background_foreground\ninsert_background_layer'),
+      (b'builtin_procedures\ninsert_foreground_layer',
+       b'background_foreground\ninsert_foreground_layer'),
+      (b'builtin_procedures\nis_path_visible',
+       b'builtin_procedures\nis_visible'),
+    ],
+    sources, key)
 
 
 _UPDATE_HANDLERS = collections.OrderedDict([
@@ -551,8 +605,8 @@ _UPDATE_HANDLERS = collections.OrderedDict([
 ])
 
 
-_FIX_PARASITE_HANDLERS = collections.OrderedDict([
-  ('3.3.2', _fix_element_paths_in_parasites_3_3_2),
-  ('3.3.5', _fix_element_paths_in_parasites_3_3_5),
-  ('3.4', _fix_element_paths_in_parasites_3_4),
+_FIX_PICKLE_HANDLERS = collections.OrderedDict([
+  ('3.3.2', _fix_pickle_paths_3_3_2),
+  ('3.3.5', _fix_pickle_paths_3_3_5),
+  ('3.4', _fix_pickle_paths_3_4),
 ])

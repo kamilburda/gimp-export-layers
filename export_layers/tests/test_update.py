@@ -69,7 +69,7 @@ class TestUpdate(unittest.TestCase):
         mock_handle_update,
         mock_persistent_source,
         mock_session_source):
-    self.assertFalse(pg.config.PERSISTENT_SOURCE.has_data())
+    self.assertFalse(pg.setting.Persistor.get_default_setting_sources()['persistent'].has_data())
     
     status = update.update(self.settings)
     
@@ -197,10 +197,9 @@ class TestHandleUpdate(unittest.TestCase):
         previous_version_str,
         current_version_str,
         invoked_handlers):
-    self._invoked_handlers = []
-    
     update.handle_update(
       self.settings,
+      {},
       self.update_handlers,
       pg.version.Version.parse(previous_version_str),
       pg.version.Version.parse(current_version_str))
