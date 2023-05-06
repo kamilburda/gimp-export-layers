@@ -50,7 +50,7 @@ def display_failure_message(main_message, failure_message, details, parent=None)
     focus_on_button=True)
 
 
-def display_generic_failure_message(exception, parent=None):
+def display_processing_failure_message(exception, parent=None):
   display_failure_message(
     _('There was a problem during processing:'),
     failure_message=str(exception),

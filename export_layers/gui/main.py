@@ -938,7 +938,7 @@ class ExportLayersDialog(object):
         parent=self._dialog)
       should_quit = False
     except exceptions.BatcherError as e:
-      messages_.display_generic_failure_message(e, parent=self._dialog)
+      messages_.display_processing_failure_message(e, parent=self._dialog)
       should_quit = False
     except Exception as e:
       if pdb.gimp_image_is_valid(self._image):
@@ -1193,7 +1193,7 @@ class ExportLayersRepeatDialog(object):
     except exceptions.BatcherCancelError:
       pass
     except exceptions.BatcherError as e:
-      messages_.display_generic_failure_message(e, parent=self._dialog)
+      messages_.display_processing_failure_message(e, parent=self._dialog)
     except Exception as e:
       if pdb.gimp_image_is_valid(self._image):
         raise
