@@ -290,6 +290,16 @@ class TestPickleFileSource(unittest.TestCase):
     
     self.assertTrue(self.source.has_data())
   
+  def test_has_data_error_on_read(self, mock_os_path_isfile, mock_io_open):
+    self._set_up_mock_open(mock_io_open)
+    
+    self.source.write([self.settings['file_extension']])
+    
+    mock_os_path_isfile.return_value = True
+    mock_io_open.return_value.__exit__.side_effect = sources_.SourceInvalidFormatError
+    
+    self.assertFalse(self.source.has_data())
+  
   def test_clear_no_data(self, mock_os_path_isfile, mock_io_open):
     self._set_up_mock_open(mock_io_open)
     self.source.write_dict = mock.Mock(wraps=self.source.write_dict)

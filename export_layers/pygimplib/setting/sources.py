@@ -255,7 +255,12 @@ class PickleFileSource(Source):
       self.write_dict(data_dict)
   
   def has_data(self):
-    return self.read_dict() is not None
+    try:
+      data = self.read_dict()
+    except SourceInvalidFormatError:
+      return False
+    else:
+      return data is not None
   
   def write(self, settings):
     data_dict = self._read_all_data()
