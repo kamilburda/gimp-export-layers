@@ -33,7 +33,13 @@ def display_message(
     button_response_id_to_focus=button_response_id_to_focus)
 
 
-def display_failure_message(main_message, failure_message, details, parent=None):
+def display_failure_message(
+      main_message, failure_message, details, parent=None, report_description=None):
+  if report_description is None:
+    report_description = _(
+      'If you believe this is an error in the plug-in, you can help fix it'
+      ' by sending a report with the text in the details to one of the sites below')
+  
   pg.gui.display_alert_message(
     title=pg.config.PLUGIN_TITLE,
     app_name=pg.config.PLUGIN_TITLE,
@@ -44,9 +50,7 @@ def display_failure_message(main_message, failure_message, details, parent=None)
     details=details,
     display_details_initially=False,
     report_uri_list=pg.config.BUG_REPORT_URL_LIST,
-    report_description=_(
-      'If you believe this is an error in the plug-in, you can help fix it'
-      ' by sending a report with the text in the details to one of the sites below'),
+    report_description=report_description,
     focus_on_button=True)
 
 
@@ -66,6 +70,17 @@ def display_invalid_image_failure_message(parent=None):
     failure_message='',
     details=traceback.format_exc(),
     parent=parent)
+
+
+def display_import_settings_failure_message(main_message, details, parent=None):
+  display_failure_message(
+    main_message,
+    failure_message='',
+    details=details,
+    parent=parent,
+    report_description=_(
+      'If you believe this is an error in the plug-in, you can help fix it'
+      ' by sending a report with the file and the text in the details to one of the sites below'))
 
 
 def get_failing_action_message(action_and_item_or_action_error):
