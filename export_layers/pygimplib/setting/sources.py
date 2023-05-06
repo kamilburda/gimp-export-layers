@@ -105,6 +105,8 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   def clear(self):
     """Removes all settings from the source.
     
+    Settings not belonging to `source_name` are kept intact.
+    
     This method is useful if settings are renamed, since the old settings would
     not be removed and would thus lead to bloating the source.
     """
