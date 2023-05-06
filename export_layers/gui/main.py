@@ -872,11 +872,11 @@ class ExportLayersDialog(object):
     filepath, file_format = self._get_setting_config_filepath(action='load')
     
     if filepath is not None:
-      load_successful = self._load_settings(filepath, file_format)
+      import_successful = self._load_settings(filepath, file_format)
       # Also override default setting sources so that the imported settings actually persist.
       self._save_settings()
       
-      if load_successful:
+      if import_successful:
         self._display_inline_message(_('Settings successfully imported.'), gtk.MESSAGE_INFO)
   
   @_set_settings
@@ -884,8 +884,8 @@ class ExportLayersDialog(object):
     filepath, file_format = self._get_setting_config_filepath(action='save')
     
     if filepath is not None:
-      save_successful = self._save_settings(filepath, file_format)
-      if save_successful:
+      export_successful = self._save_settings(filepath, file_format)
+      if export_successful:
         self._display_inline_message(_('Settings successfully exported.'), gtk.MESSAGE_INFO)
   
   def _on_reset_settings_activate(self, menu_item):
