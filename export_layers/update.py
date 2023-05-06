@@ -34,7 +34,7 @@ MIN_VERSION_WITHOUT_CLEAN_REINSTALL = pg.version.Version.parse('3.3')
 _UPDATE_STATUSES = FRESH_START, UPDATE, CLEAR_SETTINGS, NO_ACTION, ABORT = 0, 1, 2, 3, 4
 
 
-def update(settings, prompt_on_clear=False, sources=None):
+def update(settings, handle_invalid='ask_to_clear', sources=None):
   """
   Update to the latest version of the plug-in. This includes renaming settings
   or replacing obsolete procedures.
@@ -54,9 +54,16 @@ def update(settings, prompt_on_clear=False, sources=None):
   * `ABORT` - No update was performed. This value is returned if the user
     cancelled clearing settings interactively.
   
-  If `prompt_on_clear` is `True` and the plug-in requires clearing settings,
-  display a message dialog to prompt the user to proceed with clearing. If 'No'
-  is chosen, do not clear settings and return `ABORT`.
+  `handle_invalid` is a string indicating how to handle a failed update:
+    
+    * `'ask_to_clear'` - a message is displayed asking the user whether to clear
+      settings. If the user chose to clear the settings, `CLEAR_SETTINGS` is
+      returned, `ABORT` otherwise.
+    
+    * `'clear'` - settings will be cleared unconditionally and `CLEAR_SETTINGS`
+      is returned.
+    
+    * any other value - no action is taken and `ABORT` is returned.
   
   If `sources` is `None`, default setting sources are updated. Otherwise,
   `sources` must be a dictionary of (key, source) pairs.
@@ -93,7 +100,7 @@ def update(settings, prompt_on_clear=False, sources=None):
     
     return UPDATE
   
-  if prompt_on_clear:
+  if handle_invalid == 'ask_to_clear':
     response = messages.display_message(
       _('Due to significant changes in the plug-in, settings need to be reset. Proceed?'),
       gtk.MESSAGE_WARNING,
@@ -105,9 +112,11 @@ def update(settings, prompt_on_clear=False, sources=None):
       return CLEAR_SETTINGS
     else:
       return ABORT
-  else:
+  elif handle_invalid == 'clear':
     clear_setting_sources(settings, sources)
     return CLEAR_SETTINGS
+  else:
+    return ABORT
 
 
 def _get_persistent_sources(sources):

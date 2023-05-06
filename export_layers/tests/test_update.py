@@ -100,6 +100,8 @@ class TestUpdate(unittest.TestCase):
         mock_handle_update,
         mock_persistent_source,
         mock_session_source):
+    mock_display_message.return_value = gtk.RESPONSE_YES
+    
     self.settings['main/test_setting'].save()
     
     status = update.update(self.settings)
@@ -113,6 +115,8 @@ class TestUpdate(unittest.TestCase):
         mock_handle_update,
         mock_persistent_source,
         mock_session_source):
+    mock_display_message.return_value = gtk.RESPONSE_YES
+    
     self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
     self.settings['main'].save()
     
@@ -124,7 +128,7 @@ class TestUpdate(unittest.TestCase):
       self.settings['main/test_setting'].load()[0],
       pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND)
   
-  def test_prompt_on_clear_positive_response(
+  def test_ask_to_clear_positive_response(
         self,
         mock_display_message,
         mock_handle_update,
@@ -135,14 +139,14 @@ class TestUpdate(unittest.TestCase):
     self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
     self.settings['main'].save()
     
-    status = update.update(self.settings, prompt_on_clear=True)
+    status = update.update(self.settings, 'ask_to_clear')
     self.assertEqual(status, update.CLEAR_SETTINGS)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     self.assertEqual(
       self.settings['main/test_setting'].load()[0],
       pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND)
   
-  def test_prompt_on_clear_negative_response(
+  def test_ask_to_clear_negative_response(
         self,
         mock_display_message,
         mock_handle_update,
@@ -153,7 +157,7 @@ class TestUpdate(unittest.TestCase):
     self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
     self.settings['main'].save()
     
-    status = update.update(self.settings, prompt_on_clear=True)
+    status = update.update(self.settings, 'ask_to_clear')
     self.assertEqual(status, update.ABORT)
     self.assertEqual(
       self.settings['main/plugin_version'].value, self.old_incompatible_version)
