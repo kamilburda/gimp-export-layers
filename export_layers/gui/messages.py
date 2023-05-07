@@ -22,7 +22,8 @@ def display_message(
       parent=None,
       buttons=gtk.BUTTONS_OK,
       message_in_text_view=False,
-      button_response_id_to_focus=None):
+      button_response_id_to_focus=None,
+      message_markup=False):
   return pg.gui.display_message(
     message,
     message_type,
@@ -30,7 +31,8 @@ def display_message(
     parent=parent,
     buttons=buttons,
     message_in_text_view=message_in_text_view,
-    button_response_id_to_focus=button_response_id_to_focus)
+    button_response_id_to_focus=button_response_id_to_focus,
+    message_markup=message_markup)
 
 
 def display_failure_message(
