@@ -255,7 +255,8 @@ def display_message(
       parent=None,
       buttons=gtk.BUTTONS_OK,
       message_in_text_view=False,
-      button_response_id_to_focus=None):
+      button_response_id_to_focus=None,
+      message_markup=False):
   """
   Display a generic message.
   
@@ -276,6 +277,8 @@ def display_message(
   
   * `button_response_id_to_focus` - Response ID of the button to set as the
     focus. If `None`, the dialog determines which widget gets the focus.
+  
+  * `message_markup` - If `True`, treat `message` as markup text.
   """
   dialog = gtk.MessageDialog(
     parent=parent,
@@ -286,9 +289,14 @@ def display_message(
   if title is not None:
     dialog.set_title(title)
   
-  messages = message.split('\n', 1)
+  if not message_markup:
+    processed_message = gobject.markup_escape_text(message)
+  else:
+    processed_message = message
+  
+  messages = processed_message.split('\n', 1)
   if len(messages) > 1:
-    dialog.set_markup(gobject.markup_escape_text(messages[0]))
+    dialog.set_markup(messages[0])
     
     if message_in_text_view:
       text_view = gtk.TextView()
@@ -310,9 +318,9 @@ def display_message(
       vbox = dialog.get_message_area()
       vbox.pack_end(scrolled_window, expand=True, fill=True)
     else:
-      dialog.format_secondary_markup(gobject.markup_escape_text(messages[1]))
+      dialog.format_secondary_markup(messages[1])
   else:
-    dialog.set_markup(gobject.markup_escape_text(message))
+    dialog.set_markup(processed_message)
   
   if button_response_id_to_focus is not None:
     button = dialog.get_widget_for_response(button_response_id_to_focus)
