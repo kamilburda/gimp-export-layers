@@ -723,6 +723,8 @@ class ExportLayersDialog(object):
       parent=self._dialog,
       action=dialog_action)
     
+    file_dialog.set_do_overwrite_confirmation(True)
+    
     file_dialog.add_buttons(
       button_ok, gtk.RESPONSE_OK,
       gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
