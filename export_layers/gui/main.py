@@ -829,6 +829,10 @@ class ExportLayersDialog(object):
       self._button_run.set_label(_('Export'))
       self._button_close.set_label(_('Cancel'))
     
+    # This fixes a bug where actions are allocated a height of 1 pixel.
+    while gtk.events_pending():
+      gtk.main_iteration()
+    
     if update_name_preview:
       self._name_preview.update()
   

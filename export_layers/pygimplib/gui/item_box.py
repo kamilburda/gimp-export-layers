@@ -238,8 +238,7 @@ class ItemBoxItem(object):
     # Make sure the width allocated to the buttons remains the same even if
     # buttons are hidden. This avoids a problem with unreachable buttons when
     # the horizontal scrollbar is displayed.
-    self._event_box_buttons.set_property(
-      'width-request', self._buttons_allocation.width)
+    self._event_box_buttons.set_property('width-request', self._buttons_allocation.width)
     
     self._hbox_buttons.hide()
 
