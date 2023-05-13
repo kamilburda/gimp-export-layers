@@ -74,7 +74,7 @@ def display_invalid_image_failure_message(parent=None):
     parent=parent)
 
 
-def display_import_settings_failure_message(main_message, details, parent=None):
+def display_import_export_settings_failure_message(main_message, details, parent=None):
   display_failure_message(
     main_message,
     failure_message='',

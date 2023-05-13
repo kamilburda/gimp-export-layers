@@ -664,7 +664,7 @@ class ExportLayersDialog(object):
     
     status = update.update(self._settings, handle_invalid='abort', sources={'persistent': source})
     if status == update.ABORT:
-      messages_.display_import_settings_failure_message(
+      messages_.display_import_export_settings_failure_message(
         _('Failed to import settings from file "{}"'.format(filepath)),
         details='update.update() returned ABORT',
         parent=self._dialog)
@@ -684,7 +684,7 @@ class ExportLayersDialog(object):
     
     if (status != pg.setting.Persistor.SUCCESS
         and status != pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND):
-      messages_.display_import_settings_failure_message(
+      messages_.display_import_export_settings_failure_message(
         _('Failed to import settings from file "{}"'.format(filepath)),
         details=status_message,
         parent=self._dialog)
@@ -700,7 +700,10 @@ class ExportLayersDialog(object):
       status, status_message = self._settings.save({'persistent': source})
     
     if status != pg.setting.Persistor.SUCCESS:
-      messages_.display_message(status_message, gtk.MESSAGE_WARNING, parent=self._dialog)
+      messages_.display_import_export_settings_failure_message(
+        _('Failed to export settings to file "{}"'.format(filepath)),
+        details=status_message,
+        parent=self._dialog)
       return False
     else:
       return True
