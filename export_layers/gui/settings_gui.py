@@ -7,6 +7,8 @@ from future.builtins import *
 
 import collections
 
+import gimp
+
 from export_layers import pygimplib as pg
 
 
@@ -103,6 +105,14 @@ def create_gui_settings():
       'name': 'image_preview_displayed_layers',
       # key: image ID; value: ID of the layer displayed in the preview
       'default_value': collections.defaultdict(pg.utils.return_none_func),
+    },
+    {
+      # Needs to be string type to avoid strict directory validation.
+      'type': pg.SettingTypes.string,
+      'name': 'current_directory',
+      'default_value': gimp.user_directory(1),  # `Documents` directory
+      'gui_type': None,
+      'tags': ['ignore_load'],
     },
   ])
   

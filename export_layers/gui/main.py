@@ -313,13 +313,6 @@ class ExportLayersDialog(object):
     if status == pg.setting.Persistor.READ_FAIL:
       messages_.display_message(status_message, gtk.MESSAGE_WARNING)
     
-    # Needs to be string to avoid strict directory validation
-    self._settings['gui_session'].add([
-      pg.setting.StringSetting(
-        'current_directory',
-        default_value=self._settings['main/output_directory'].default_value,
-        gui_type=None)])
-    
     _setup_image_ids_and_directories_and_initial_directory(
       self._settings, self._settings['gui_session/current_directory'], self._image)
     _setup_output_directory_changed(self._settings, self._image)
