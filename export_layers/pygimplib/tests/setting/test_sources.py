@@ -330,7 +330,7 @@ class TestPickleFileSource(unittest.TestCase):
     self.assertEqual(source_2.write_dict.call_count, 1)
   
   def _set_up_mock_open(self, mock_io_open):
-    mock_io_open.return_value.__enter__.return_value = io.BytesIO()
+    mock_io_open.return_value.__enter__.return_value = io.StringIO()
     mock_io_open.return_value.__exit__.side_effect = (
       lambda *args, **kwargs: mock_io_open.return_value.__enter__.return_value.seek(0))
 

@@ -20,6 +20,7 @@ import gimp
 import gimpenums
 import gimpshelf
 
+from .. import constants as pgconstants
 from .. import utils as pgutils
 
 from . import settings as settings_
@@ -238,6 +239,8 @@ class PickleFileSource(Source):
   with the Python `pickle` module.
   """
   
+  _SOURCE_NAME_CONTENTS_SEPARATOR = ' '
+  
   def __init__(self, source_name, filepath):
     super().__init__(source_name)
     
@@ -264,7 +267,7 @@ class PickleFileSource(Source):
     """
     try:
       data = self.read_dict()
-    except SourceInvalidFormatError:
+    except SourceError:
       return 'invalid_format'
     else:
       return data is not None
@@ -273,44 +276,63 @@ class PickleFileSource(Source):
     data_dict = self._read_all_data()
     
     if data_dict is not None and self.source_name in data_dict:
-      setting_names_and_values = data_dict[self.source_name]
+      setting_names_and_values = self._get_settings_from_pickled_data(data_dict[self.source_name])
       setting_names_and_values.update(self._settings_to_dict(settings))
       
-      data_dict[self.source_name] = setting_names_and_values
+      data_dict[self.source_name] = self._pickle_settings(setting_names_and_values)
       
       self.write_dict(data_dict)
     else:
       setting_names_and_values = self._settings_to_dict(settings)
       
       if data_dict is None:
-        data_dict = {self.source_name: setting_names_and_values}
+        data_dict = {self.source_name: self._pickle_settings(setting_names_and_values)}
       else:
-        data_dict[self.source_name] = setting_names_and_values
+        data_dict[self.source_name] = self._pickle_settings(setting_names_and_values)
         
       self.write_dict(data_dict)
   
   def read_dict(self):
     data_dict = self._read_all_data()
     if data_dict is not None and self.source_name in data_dict:
-      return data_dict[self.source_name]
+      return self._get_settings_from_pickled_data(data_dict[self.source_name])
     else:
       return None
   
-  def write_dict(self, setting_names_and_values):
+  def write_dict(self, data_dict):
     try:
-      with io.open(self._filepath, 'wb') as f:
-        pickle.dump(setting_names_and_values, f)
+      with io.open(self._filepath, 'w', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
+        for source_name, data in data_dict.items():
+          f.write(source_name + self._SOURCE_NAME_CONTENTS_SEPARATOR + data + '\n')
     except Exception as e:
-      raise SourceInvalidFormatError(str(e), self._filepath)
+      raise SourceWriteError(str(e))
   
   def _read_all_data(self):
     if not os.path.isfile(self._filepath):
       return None
     
+    data_dict = collections.OrderedDict()
+    
     try:
-      with io.open(self._filepath, 'rb') as f:
-        data_dict = pickle.load(f)
+      with io.open(self._filepath, 'r', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
+        for line in f:
+          split = line.split(self._SOURCE_NAME_CONTENTS_SEPARATOR, 1)
+          if len(split) == 2:
+            source_name, data = split
+            data_dict[source_name] = data
     except Exception as e:
-      raise SourceInvalidFormatError(str(e), self._filepath)
+      raise SourceReadError(str(e))
     else:
       return data_dict
+  
+  def _get_settings_from_pickled_data(self, data):
+    try:
+      return pickle.loads(bytes(data.decode('string_escape')))
+    except Exception as e:
+      raise SourceInvalidFormatError(str(e))
+  
+  def _pickle_settings(self, settings):
+    try:
+      return unicode(pickle.dumps(settings).encode('string_escape'))
+    except Exception as e:
+      raise SourceInvalidFormatError(str(e))
