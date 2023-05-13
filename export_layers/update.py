@@ -400,6 +400,21 @@ def _update_to_3_3_5(settings, sources):
 
 
 def _update_to_3_4(settings, sources):
+  rename_settings(
+    [
+      ('gui/dialog_position',
+       'gui/size/dialog_position'),
+      ('gui/dialog_size',
+       'gui/size/dialog_size'),
+      ('gui/paned_outside_previews_position',
+       'gui/size/paned_outside_previews_position'),
+      ('gui/paned_between_previews_position',
+       'gui/size/paned_between_previews_position'),
+      ('gui/settings_vpane_position',
+       'gui/size/settings_vpane_position'),
+    ],
+    sources)
+  
   settings['main/procedures'].load(sources)
   
   procedures = _get_actions(settings['main/procedures'])

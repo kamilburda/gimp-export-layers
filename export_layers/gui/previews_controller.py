@@ -27,9 +27,9 @@ class PreviewsController(object):
     self._is_initial_selection_set = False
     
     self._paned_outside_previews_previous_position = (
-      self._settings['gui/paned_outside_previews_position'].value)
+      self._settings['gui/size/paned_outside_previews_position'].value)
     self._paned_between_previews_previous_position = (
-      self._settings['gui/paned_between_previews_position'].value)
+      self._settings['gui/size/paned_between_previews_position'].value)
   
   def connect_setting_changes_to_previews(self):
     self._connect_actions_changed(self._settings['main/procedures'])

@@ -15,7 +15,11 @@ def create_gui_settings():
     name='gui',
     setting_attributes={'setting_sources': ['session', 'persistent']})
   
-  gui_settings.add([
+  size_gui_settings = pg.setting.Group(
+    name='size',
+    setting_attributes={'setting_sources': ['session', 'persistent']})
+  
+  size_gui_settings.add([
     {
       'type': pg.SettingTypes.generic,
       'name': 'dialog_position',
@@ -25,11 +29,6 @@ def create_gui_settings():
       'type': pg.SettingTypes.generic,
       'name': 'dialog_size',
       'default_value': (),
-    },
-    {
-      'type': pg.SettingTypes.boolean,
-      'name': 'show_more_settings',
-      'default_value': False,
     },
     {
       'type': pg.SettingTypes.integer,
@@ -45,6 +44,14 @@ def create_gui_settings():
       'type': pg.SettingTypes.float,
       'name': 'settings_vpane_position',
       'default_value': 400,
+    },
+  ])
+  
+  gui_settings.add([
+    {
+      'type': pg.SettingTypes.boolean,
+      'name': 'show_more_settings',
+      'default_value': False,
     },
     {
       'type': pg.SettingTypes.boolean,
@@ -70,6 +77,7 @@ def create_gui_settings():
       'default_value': True,
       'gui_type': None,
     },
+    size_gui_settings,
   ])
   
   session_only_gui_settings = pg.setting.Group(

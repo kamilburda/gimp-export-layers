@@ -617,23 +617,23 @@ class ExportLayersDialog(object):
         pg.setting.SettingGuiTypes.extended_entry, self._file_extension_entry],
       'main/layer_filename_pattern': [
         pg.setting.SettingGuiTypes.extended_entry, self._filename_pattern_entry],
-      'gui/dialog_position': [
-        pg.setting.SettingGuiTypes.window_position, self._dialog],
-      'gui/dialog_size': [
-        pg.setting.SettingGuiTypes.window_size, self._dialog],
-      'gui/show_more_settings': [
-        pg.setting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
       'main/edit_mode': [
         pg.setting.SettingGuiTypes.check_menu_item, self._menu_item_edit_mode],
-      'gui/paned_outside_previews_position': [
-        pg.setting.SettingGuiTypes.paned_position, self._hpaned_settings_and_previews],
-      'gui/paned_between_previews_position': [
-        pg.setting.SettingGuiTypes.paned_position, self._vpaned_previews],
-      'gui/settings_vpane_position': [
-        pg.setting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_actions],
+      'gui/show_more_settings': [
+        pg.setting.SettingGuiTypes.check_menu_item, self._menu_item_show_more_settings],
       'gui/image_preview_automatic_update': [
         pg.setting.SettingGuiTypes.check_menu_item,
         self._image_preview.menu_item_update_automatically],
+      'gui/size/dialog_position': [
+        pg.setting.SettingGuiTypes.window_position, self._dialog],
+      'gui/size/dialog_size': [
+        pg.setting.SettingGuiTypes.window_size, self._dialog],
+      'gui/size/paned_outside_previews_position': [
+        pg.setting.SettingGuiTypes.paned_position, self._hpaned_settings_and_previews],
+      'gui/size/paned_between_previews_position': [
+        pg.setting.SettingGuiTypes.paned_position, self._vpaned_previews],
+      'gui/size/settings_vpane_position': [
+        pg.setting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_actions],
       'gui_session/current_directory': [
         pg.setting.SettingGuiTypes.folder_chooser_widget, self._folder_chooser],
     })
@@ -662,10 +662,8 @@ class ExportLayersDialog(object):
     
     settings_to_ignore_for_reset = []
     for setting in self._settings.walk(lambda s: 'ignore_reset' not in s.tags):
-      if (((setting.setting_sources is not None and list(setting.setting_sources) == ['session'])
-           or setting.name in [
-                'dialog_position', 'dialog_size', 'paned_outside_previews_position',
-                'paned_between_previews_position', 'settings_vpane_position'])):
+      if ((setting.setting_sources is not None and list(setting.setting_sources) == ['session'])
+          or setting.get_path('root').startswith('gui/size')):
         setting.tags.add('ignore_reset')
         settings_to_ignore_for_reset.append(setting)
     
@@ -682,18 +680,16 @@ class ExportLayersDialog(object):
         parent=self._dialog)
       return False
     
-    settings_to_ignore_for_load = []
+    size_settings_to_ignore_for_load = []
     if not load_size_settings:
       for setting in self._settings['gui'].walk(lambda s: 'ignore_load' not in s.tags):
-        if (setting.name in [
-              'dialog_position', 'dialog_size', 'paned_outside_previews_position',
-              'paned_between_previews_position', 'settings_vpane_position']):
+        if setting.get_path('root').startswith('gui/size'):
           setting.tags.add('ignore_load')
-          settings_to_ignore_for_load.append(setting)
+          size_settings_to_ignore_for_load.append(setting)
     
     status, status_message = self._settings.load({'persistent': source})
     
-    for setting in settings_to_ignore_for_load:
+    for setting in size_settings_to_ignore_for_load:
       setting.tags.discard('ignore_load')
     
     if (status != pg.setting.Persistor.SUCCESS

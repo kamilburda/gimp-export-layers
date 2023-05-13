@@ -164,22 +164,22 @@ def take_screenshot():
 
 
 def move_dialog_to_corner(dialog, settings):
-  settings['gui/dialog_position'].set_value((0, 0))
+  settings['gui/size/dialog_position'].set_value((0, 0))
   dialog.set_gravity(gtk.gdk.GRAVITY_STATIC)
   decoration_offset_x, decoration_offset_y = dialog.get_position()
   dialog.set_gravity(gtk.gdk.GRAVITY_NORTH_WEST)
-  settings['gui/dialog_position'].set_value((-decoration_offset_x, 0))
+  settings['gui/size/dialog_position'].set_value((-decoration_offset_x, 0))
   
   return decoration_offset_x, decoration_offset_y
 
 
 def crop_to_dialog(image, settings, decoration_offsets):
-  settings['gui/dialog_size'].gui.update_setting_value()
+  settings['gui/size/dialog_size'].gui.update_setting_value()
   
   pdb.gimp_image_crop(
     image,
-    settings['gui/dialog_size'].value[0],
-    settings['gui/dialog_size'].value[1] + decoration_offsets[1],
+    settings['gui/size/dialog_size'].value[0],
+    settings['gui/size/dialog_size'].value[1] + decoration_offsets[1],
     0,
     0)
   
