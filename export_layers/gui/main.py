@@ -712,16 +712,16 @@ class ExportLayersDialog(object):
     self._settings.reset()
   
   def _get_setting_filepath(self, action, add_file_extension_if_missing=True):
-    if action == 'load':
+    if action == 'import':
       dialog_action = gtk.FILE_CHOOSER_ACTION_OPEN
       button_ok = gtk.STOCK_OPEN
-      title = _('Load Settings')
-    elif action == 'save':
+      title = _('Import Settings')
+    elif action == 'export':
       dialog_action = gtk.FILE_CHOOSER_ACTION_SAVE
       button_ok = gtk.STOCK_SAVE
-      title = _('Save Settings')
+      title = _('Export Settings')
     else:
-      raise ValueError('invalid action; valid values: "load", "save"')
+      raise ValueError('invalid action; valid values: "import", "export"')
     
     file_dialog = gtk.FileChooserDialog(
       title=title,
@@ -736,8 +736,8 @@ class ExportLayersDialog(object):
     
     file_dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
-    if action == 'load':
-      check_button_load_size_settings = gtk.CheckButton(_('Load size-related settings'))
+    if action == 'import':
+      check_button_load_size_settings = gtk.CheckButton(_('Import size-related settings'))
       check_button_load_size_settings.set_border_width(
         self._IMPORT_SETTINGS_CUSTOM_WIDGETS_BORDER_WIDTH)
       file_dialog.vbox.pack_start(check_button_load_size_settings, expand=False, fill=False)
@@ -906,7 +906,7 @@ class ExportLayersDialog(object):
       self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
   
   def _on_import_settings_activate(self, menu_item):
-    filepath, file_format, load_size_settings = self._get_setting_filepath(action='load')
+    filepath, file_format, load_size_settings = self._get_setting_filepath(action='import')
     
     if filepath is not None:
       import_successful = self._load_settings(filepath, file_format, load_size_settings)
@@ -918,7 +918,7 @@ class ExportLayersDialog(object):
   
   @_set_settings
   def _on_export_settings_activate(self, menu_item):
-    filepath, file_format, unused_ = self._get_setting_filepath(action='save')
+    filepath, file_format, unused_ = self._get_setting_filepath(action='export')
     
     if filepath is not None:
       export_successful = self._save_settings(filepath, file_format)
