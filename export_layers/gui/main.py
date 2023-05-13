@@ -332,9 +332,7 @@ class ExportLayersDialog(object):
     self._settings['main/constraints'].load()
   
   def _init_gui_elements(self):
-    self._dialog = gimpui.Dialog(
-      title=pg.config.PLUGIN_TITLE,
-      role=pg.config.PLUGIN_NAME)
+    self._dialog = gimpui.Dialog(title=pg.config.PLUGIN_TITLE, role=pg.config.PLUGIN_NAME)
     self._dialog.set_transient()
     self._dialog.set_default_size(*self._DIALOG_SIZE)
     self._dialog.set_border_width(self._DIALOG_BORDER_WIDTH)
@@ -346,8 +344,7 @@ class ExportLayersDialog(object):
     self._folder_chooser_label.set_markup('<b>' + _('Save in folder:') + '</b>')
     self._folder_chooser_label.set_alignment(0.0, 0.5)
     
-    self._folder_chooser = gtk.FileChooserWidget(
-      action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+    self._folder_chooser = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
     
     self._vbox_folder_chooser = gtk.VBox(homogeneous=False)
     self._vbox_folder_chooser.set_spacing(self._DIALOG_VBOX_SPACING)
