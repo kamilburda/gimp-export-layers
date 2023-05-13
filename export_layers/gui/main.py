@@ -228,6 +228,8 @@ class ExportLayersDialog(object):
   _MORE_SETTINGS_HORIZONTAL_SPACING = 12
   _MORE_SETTINGS_BORDER_WIDTH = 3
   
+  _IMPORT_SETTINGS_CUSTOM_WIDGETS_BORDER_WIDTH = 3
+  
   _FILE_EXTENSION_ENTRY_MIN_WIDTH_CHARS = 4
   _FILE_EXTENSION_ENTRY_MAX_WIDTH_CHARS = 10
   _FILENAME_PATTERN_ENTRY_MIN_WIDTH_CHARS = 12
@@ -652,23 +654,25 @@ class ExportLayersDialog(object):
     self._previews_controller = previews_controller_.PreviewsController(
       self._name_preview, self._image_preview, self._settings, self._image)
   
-  def _load_settings(self, filepath, file_format):
+  def _load_settings(self, filepath, file_format, load_size_settings=True):
     source = pg.setting.sources.PickleFileSource(pg.config.SOURCE_NAME, filepath)
     
     actions.clear(self._settings['main/procedures'], add_initial_actions=False)
     actions.clear(self._settings['main/constraints'], add_initial_actions=False)
     
-    session_settings = []
-    for setting in self._settings.walk():
-      if (setting.setting_sources is not None and list(setting.setting_sources) == ['session']
-          and 'ignore_reset' not in setting.tags):
+    settings_to_ignore_for_reset = []
+    for setting in self._settings.walk(lambda s: 'ignore_reset' not in s.tags):
+      if (((setting.setting_sources is not None and list(setting.setting_sources) == ['session'])
+           or setting.name in [
+                'dialog_position', 'dialog_size', 'paned_outside_previews_position',
+                'paned_between_previews_position', 'settings_vpane_position'])):
         setting.tags.add('ignore_reset')
-        session_settings.append(setting)
+        settings_to_ignore_for_reset.append(setting)
     
     self._reset_settings()
     
-    for setting in session_settings:
-      setting.tags.remove('ignore_reset')
+    for setting in settings_to_ignore_for_reset:
+      setting.tags.discard('ignore_reset')
     
     status = update.update(self._settings, handle_invalid='abort', sources={'persistent': source})
     if status == update.ABORT:
@@ -678,7 +682,19 @@ class ExportLayersDialog(object):
         parent=self._dialog)
       return False
     
+    settings_to_ignore_for_load = []
+    if not load_size_settings:
+      for setting in self._settings['gui'].walk(lambda s: 'ignore_load' not in s.tags):
+        if (setting.name in [
+              'dialog_position', 'dialog_size', 'paned_outside_previews_position',
+              'paned_between_previews_position', 'settings_vpane_position']):
+          setting.tags.add('ignore_load')
+          settings_to_ignore_for_load.append(setting)
+    
     status, status_message = self._settings.load({'persistent': source})
+    
+    for setting in settings_to_ignore_for_load:
+      setting.tags.discard('ignore_load')
     
     if (status != pg.setting.Persistor.SUCCESS
         and status != pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND):
@@ -706,7 +722,7 @@ class ExportLayersDialog(object):
   def _reset_settings(self):
     self._settings.reset()
   
-  def _get_setting_config_filepath(self, action, add_file_extension_if_missing=True):
+  def _get_setting_filepath(self, action, add_file_extension_if_missing=True):
     if action == 'load':
       dialog_action = gtk.FILE_CHOOSER_ACTION_OPEN
       button_ok = gtk.STOCK_OPEN
@@ -731,6 +747,14 @@ class ExportLayersDialog(object):
     
     file_dialog.set_alternative_button_order([gtk.RESPONSE_OK, gtk.RESPONSE_CANCEL])
     
+    if action == 'load':
+      check_button_load_size_settings = gtk.CheckButton(_('Load size-related settings'))
+      check_button_load_size_settings.set_border_width(
+        self._IMPORT_SETTINGS_CUSTOM_WIDGETS_BORDER_WIDTH)
+      file_dialog.vbox.pack_start(check_button_load_size_settings, expand=False, fill=False)
+    else:
+      check_button_load_size_settings = None
+    
     pickle_file_ext = '.pkl'
     filter_pickle = gtk.FileFilter()
     filter_pickle.set_name(_('Pickle file ({})'.format(pickle_file_ext)))
@@ -741,6 +765,8 @@ class ExportLayersDialog(object):
     filter_any.set_name(_('Any file'))
     filter_any.add_pattern('*')
     file_dialog.add_filter(filter_any)
+    
+    file_dialog.show_all()
     
     response_id = file_dialog.run()
     
@@ -756,9 +782,14 @@ class ExportLayersDialog(object):
       filepath = None
       file_format = None
     
+    if check_button_load_size_settings:
+      load_size_settings = check_button_load_size_settings.get_active()
+    else:
+      load_size_settings = False
+    
     file_dialog.destroy()
     
-    return filepath, file_format
+    return filepath, file_format, load_size_settings
   
   def _on_text_entry_changed(self, entry, setting, name_preview_lock_update_key=None):
     try:
@@ -886,10 +917,10 @@ class ExportLayersDialog(object):
       self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
   
   def _on_import_settings_activate(self, menu_item):
-    filepath, file_format = self._get_setting_config_filepath(action='load')
+    filepath, file_format, load_size_settings = self._get_setting_filepath(action='load')
     
     if filepath is not None:
-      import_successful = self._load_settings(filepath, file_format)
+      import_successful = self._load_settings(filepath, file_format, load_size_settings)
       # Also override default setting sources so that the imported settings actually persist.
       self._save_settings()
       
@@ -898,7 +929,7 @@ class ExportLayersDialog(object):
   
   @_set_settings
   def _on_export_settings_activate(self, menu_item):
-    filepath, file_format = self._get_setting_config_filepath(action='save')
+    filepath, file_format, unused_ = self._get_setting_filepath(action='save')
     
     if filepath is not None:
       export_successful = self._save_settings(filepath, file_format)
