@@ -289,7 +289,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   def setUp(self):
     self.setting = stubs_setting.SettingWithGuiStub('file_extension', 'png')
     self.flatten = settings_.BoolSetting('flatten', False)
-    self.session_source = sources_.SessionSource('')
+    self.session_source = sources_.GimpSessionSource('')
     
     self.session_source_dict = {'session': self.session_source}
   

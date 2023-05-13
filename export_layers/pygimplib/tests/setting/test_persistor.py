@@ -41,8 +41,8 @@ class TestPersistor(unittest.TestCase):
     new='gimp_directory')
   def setUp(self):
     self.settings = stubs_group.create_test_settings()
-    self.session_source = sources_.SessionSource('')
-    self.persistent_source = sources_.PersistentSource('')
+    self.session_source = sources_.GimpSessionSource('')
+    self.persistent_source = sources_.GimpPersistentSource('')
     
     self.sources_for_persistor = collections.OrderedDict([
       ('session', self.session_source),
@@ -80,7 +80,7 @@ class TestPersistor(unittest.TestCase):
         self, mock_gimp_module, mock_gimp_shelf):
     spy_persistent_source = mock.Mock(wraps=self.persistent_source)
     spy_default_session_source_1 = mock.Mock(wraps=self.session_source)
-    spy_default_session_source_2 = mock.Mock(wraps=sources_.SessionSource(''))
+    spy_default_session_source_2 = mock.Mock(wraps=sources_.GimpSessionSource(''))
     
     persistor_.Persistor.set_default_setting_sources(
       collections.OrderedDict([
@@ -99,7 +99,7 @@ class TestPersistor(unittest.TestCase):
   def test_load_save_with_default_sources_and_dict(self, mock_gimp_module, mock_gimp_shelf):
     spy_persistent_source = mock.Mock(wraps=self.persistent_source)
     spy_default_session_source = mock.Mock(wraps=self.session_source)
-    spy_session_source = mock.Mock(wraps=sources_.SessionSource(''))
+    spy_session_source = mock.Mock(wraps=sources_.GimpSessionSource(''))
     
     session_source_for_persistor = {'session': spy_session_source}
     
@@ -118,7 +118,7 @@ class TestPersistor(unittest.TestCase):
         self, mock_gimp_module, mock_gimp_shelf):
     spy_persistent_source = mock.Mock(wraps=self.persistent_source)
     spy_default_session_source = mock.Mock(wraps=self.session_source)
-    spy_session_source = mock.Mock(wraps=sources_.SessionSource(''))
+    spy_session_source = mock.Mock(wraps=sources_.GimpSessionSource(''))
     
     session_source_for_persistor = {'session': [spy_session_source, spy_default_session_source]}
     

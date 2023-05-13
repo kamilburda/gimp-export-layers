@@ -20,14 +20,14 @@ from . import stubs_group
 @mock.patch(
   pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
-class TestSessionSource(unittest.TestCase):
+class TestGimpSessionSource(unittest.TestCase):
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
     new=stubs_gimp.ShelfStub())
   def setUp(self):
     self.source_name = 'test_settings'
-    self.source = sources_.SessionSource(self.source_name)
+    self.source = sources_.GimpSessionSource(self.source_name)
     self.settings = stubs_group.create_test_settings()
   
   def test_write(self, mock_session_source):
@@ -110,14 +110,14 @@ class TestSessionSource(unittest.TestCase):
 @mock.patch(
   pgutils.get_pygimplib_module_path() + '.setting.sources.gimp',
   new_callable=stubs_gimp.GimpModuleStub)
-class TestPersistentSource(unittest.TestCase):
+class TestGimpPersistentSource(unittest.TestCase):
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.setting.sources.gimp.directory',
     new='gimp_directory')
   def setUp(self):
     self.source_name = 'test_settings'
-    self.source = sources_.PersistentSource(self.source_name)
+    self.source = sources_.GimpPersistentSource(self.source_name)
     self.settings = stubs_group.create_test_settings()
   
   def test_write_read(self, mock_persistent_source):
@@ -348,8 +348,8 @@ class TestSourceReadWriteDict(unittest.TestCase):
     new='gimp_directory')
   def setUp(self):
     self.source_name = 'test_settings'
-    self.source_session = sources_.SessionSource(self.source_name)
-    self.source_persistent = sources_.PersistentSource(self.source_name)
+    self.source_session = sources_.GimpSessionSource(self.source_name)
+    self.source_persistent = sources_.GimpPersistentSource(self.source_name)
     self.settings = stubs_group.create_test_settings()
   
   def test_read_dict(self, mock_persistent_source, mock_session_source):

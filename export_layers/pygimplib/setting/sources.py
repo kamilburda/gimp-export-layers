@@ -28,8 +28,8 @@ from ._sources_errors import *
 
 __all__ = [
   'Source',
-  'SessionSource',
-  'PersistentSource',
+  'GimpSessionSource',
+  'GimpPersistentSource',
 ]
 
 
@@ -156,7 +156,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     return settings_dict
 
 
-class SessionSource(Source):
+class GimpSessionSource(Source):
   """Class reading and writing settings to a source that persists within a
   single GIMP session.
   
@@ -189,7 +189,7 @@ class SessionSource(Source):
     return pgutils.safe_encode_gimp(self.source_name)
 
 
-class PersistentSource(Source):
+class GimpPersistentSource(Source):
   """Class reading and writing settings to a persistent source (i.e. permanent
   storage) maintained by GIMP.
   

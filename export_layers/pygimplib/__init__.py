@@ -241,8 +241,8 @@ def _init_config_builtin_delayed(config):
   
   if _gimp_dependent_modules_imported:
     config.SOURCE_NAME = _get_setting_source_name()
-    config.SESSION_SOURCE = setting.SessionSource(config.SOURCE_NAME)
-    config.PERSISTENT_SOURCE = setting.PersistentSource(config.SOURCE_NAME)
+    config.SESSION_SOURCE = setting.GimpSessionSource(config.SOURCE_NAME)
+    config.PERSISTENT_SOURCE = setting.GimpPersistentSource(config.SOURCE_NAME)
     
     setting.persistor.Persistor.set_default_setting_sources(collections.OrderedDict([
       ('session', config.SESSION_SOURCE),
