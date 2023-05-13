@@ -276,7 +276,12 @@ class PickleFileSource(Source):
     data_dict = self._read_all_data()
     
     if data_dict is not None and self.source_name in data_dict:
-      setting_names_and_values = self._get_settings_from_pickled_data(data_dict[self.source_name])
+      try:
+        setting_names_and_values = self._get_settings_from_pickled_data(
+          data_dict[self.source_name])
+      except SourceInvalidFormatError:
+        setting_names_and_values = collections.OrderedDict()
+      
       setting_names_and_values.update(self._settings_to_dict(settings))
       
       data_dict[self.source_name] = self._pickle_settings(setting_names_and_values)
