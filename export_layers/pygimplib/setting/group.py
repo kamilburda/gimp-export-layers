@@ -445,7 +445,8 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     
     If `include_setting_func` is `None`, iterate over all settings. Otherwise,
     `include_setting_func` is a function that should return `True` if a setting
-    should be yielded and `False` if a setting should be skipped.
+    should be yielded and `False` if a setting should be skipped. The function
+    must accept one positional parameter - the current setting or group.
     
     If `include_if_parent_skipped` is `False`, settings or groups within a
     parent group that does not match `include_setting_func` are skipped,
