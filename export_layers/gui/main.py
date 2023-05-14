@@ -666,9 +666,14 @@ class ExportLayersDialog(object):
       self._settings, handle_invalid='abort', sources={'persistent': source})
     if status == update.ABORT:
       messages_.display_import_export_settings_failure_message(
-        _('Failed to import settings from file "{}"'.format(filepath)),
-        details='update.update() returned ABORT',
+        _(('Failed to import settings from file "{}".'
+           ' Settings must be reset completely.').format(filepath)),
+        details=message,
         parent=self._dialog)
+      
+      self._reset_settings()
+      actions.clear(self._settings['main/procedures'])
+      actions.clear(self._settings['main/constraints'])
       return False
     
     size_settings_to_ignore_for_load = []
