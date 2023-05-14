@@ -7,8 +7,8 @@ settings being reorganized or removed).
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import ast
 import collections
-import io
 import os
 import re
 import shutil
@@ -156,15 +156,15 @@ def fix_element_paths_for_pickle(sources, fix_pickle_handlers, current_version, 
 
 def rename_settings(settings_to_rename, sources):
   for source in sources.values():
-    data_dict = source.read_dict()
+    settings_from_source = source.read_dict()
     
-    if data_dict:
+    if settings_from_source:
       for orig_setting_name, new_setting_name in settings_to_rename:
-        if orig_setting_name in data_dict:
-          data_dict[new_setting_name] = data_dict[orig_setting_name]
-          del data_dict[orig_setting_name]
+        if orig_setting_name in settings_from_source:
+          settings_from_source[new_setting_name] = settings_from_source[orig_setting_name]
+          del settings_from_source[orig_setting_name]
       
-      source.write_dict(data_dict)
+      source.write_dict(settings_from_source)
 
 
 def replace_field_arguments_in_pattern(
@@ -573,15 +573,29 @@ def _fix_pickle_paths_in_persistent_source(paths_to_rename, key):
 
 
 def _fix_pickle_paths_in_pickle_file_source(paths_to_rename, key, source):
-  with io.open(source.filepath, 'rb') as f:
-    data = f.read()
+  # Silently ignore errors. The update will eventually throw an error later
+  # outside this function which are properly handled and the error message is
+  # displayed to the user.
+  try:
+    data = source.read_data()
+  except Exception:
+    return
   
-  new_data = data
+  if data is None or key not in data:
+    return
+  
+  contents = ast.literal_eval(data[key])
+  
+  new_contents = contents
   for old_path, new_path in paths_to_rename:
-    new_data = new_data.replace(old_path, new_path)
+    new_contents = new_contents.replace(old_path, new_path)
   
-  with io.open(source.filepath, 'wb') as f:
-    f.write(new_data)
+  data[key] = repr(new_contents)
+  
+  try:
+    source.write_data(data)
+  except Exception:
+    return
 
 
 def _fix_pickle_paths_3_3_2(sources, key):
