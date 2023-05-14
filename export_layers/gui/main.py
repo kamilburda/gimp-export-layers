@@ -766,7 +766,7 @@ class ExportLayersDialog(object):
     response_id = file_dialog.run()
     
     if response_id == gtk.RESPONSE_OK:
-      filepath = file_dialog.get_filename()
+      filepath = pg.utils.safe_decode_gtk(file_dialog.get_filename())
       
       file_format = 'pkl'
       
