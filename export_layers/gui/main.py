@@ -64,6 +64,8 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
   if more_settings_shown:
     checkbutton_reset_actions = gtk.CheckButton(
       label=_('Remove procedures and constraints'), use_underline=False)
+    checkbutton_reset_actions.set_active(True)
+    
     dialog.vbox.pack_start(checkbutton_reset_actions, expand=False, fill=False)
   
   dialog.set_focus(dialog.get_widget_for_response(gtk.RESPONSE_NO))
@@ -72,8 +74,7 @@ def display_reset_prompt(parent=None, more_settings_shown=False):
   response_id = dialog.run()
   dialog.destroy()
   
-  clear_actions = (
-    checkbutton_reset_actions.get_active() if more_settings_shown else False)
+  clear_actions = checkbutton_reset_actions.get_active() if more_settings_shown else False
   
   return response_id, clear_actions
 

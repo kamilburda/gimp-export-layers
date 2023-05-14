@@ -35,6 +35,7 @@ Other changes:
 * Edit dialogs for procedures and constraints are now closed before the start of processing.
 * Removed restrictions on the maximum width and height for the image preview.
 * Updated documentation with examples on how to customize the export.
+* When resetting settings and `Show More Settings` is checked, the option to reset procedures and constraints is now checked by default.
 
 Bug fixes:
 * Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.
