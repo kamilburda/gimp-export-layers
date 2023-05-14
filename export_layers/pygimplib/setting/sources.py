@@ -86,7 +86,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       raise SettingsNotFoundInSourceError(
         _('The following settings could not be found:\n{}').format(
           '\n'.join(setting.get_path() for setting in settings_not_found)),
-        settings_not_found)
+        settings_not_found=settings_not_found)
   
   def write(self, settings):
     """Writes setting values from settings specified in the `settings` iterable.

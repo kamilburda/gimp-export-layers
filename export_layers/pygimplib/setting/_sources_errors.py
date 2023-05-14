@@ -5,6 +5,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import traceback as traceback_
+
 __all__ = [
   'SourceError',
   'SettingsNotFoundInSourceError',
@@ -16,12 +18,22 @@ __all__ = [
 
 
 class SourceError(Exception):
-  pass
+  
+  def __init__(self, message=''):
+    super().__init__(message)
+    
+    self.traceback = traceback_.format_exc()
+  
+  def __str__(self):
+    if self.traceback:
+      return self.traceback
+    else:
+      return self.message
 
 
 class SettingsNotFoundInSourceError(SourceError):
   
-  def __init__(self, message, settings_not_found=None):
+  def __init__(self, message='', settings_not_found=None):
     super().__init__(message)
     
     self.settings_not_found = settings_not_found if settings_not_found is not None else []
@@ -36,11 +48,7 @@ class SourceReadError(SourceError):
 
 
 class SourceInvalidFormatError(SourceError):
-  
-  def __init__(self, message, filepath=None):
-    super().__init__(message)
-    
-    self.filepath = filepath
+  pass
 
 
 class SourceWriteError(SourceError):
