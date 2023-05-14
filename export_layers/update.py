@@ -396,12 +396,16 @@ def _update_to_3_3_2(settings, sources):
 
 
 def _update_to_3_3_5(settings, sources):
-  plugin_subdirectory_dirpath = pg.config.PLUGIN_SUBDIRPATH
-  _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'settings_plugin.py'))
-  _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'settings_plugin.pyc'))
+  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'settings_plugin.py'))
+  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'settings_plugin.pyc'))
 
 
 def _update_to_3_4(settings, sources):
+  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.py'))
+  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.pyc'))
+  _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.py'))
+  _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.pyc'))
+  
   rename_settings(
     [
       ('gui/dialog_position',
