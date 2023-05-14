@@ -662,7 +662,8 @@ class ExportLayersDialog(object):
     for setting in settings_to_ignore_for_reset:
       setting.tags.discard('ignore_reset')
     
-    status = update.update(self._settings, handle_invalid='abort', sources={'persistent': source})
+    status, message = update.update(
+      self._settings, handle_invalid='abort', sources={'persistent': source})
     if status == update.ABORT:
       messages_.display_import_export_settings_failure_message(
         _('Failed to import settings from file "{}"'.format(filepath)),

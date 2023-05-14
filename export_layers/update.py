@@ -35,24 +35,9 @@ _UPDATE_STATUSES = FRESH_START, UPDATE, CLEAR_SETTINGS, NO_ACTION, ABORT = 0, 1,
 
 
 def update(settings, handle_invalid='ask_to_clear', sources=None):
-  """
-  Update to the latest version of the plug-in. This includes renaming settings
-  or replacing obsolete procedures.
+  """Updates settings and setting sources to the latest version of the plug-in.
   
-  Return one of the following values:
-  
-  * `FRESH_START` - The plug-in was never used before or has no settings stored.
-  
-  * `UPDATE` - The plug-in was successfully updated to the latest version.
-  
-  * `CLEAR_SETTINGS` - An old version of the plug-in (incompatible with the
-    changes in later versions) was used that required clearing stored settings.
-  
-  * `NO_ACTION` - No update was performed as the plug-in version remains the
-    same.
-  
-  * `ABORT` - No update was performed. This value is returned if the user
-    cancelled clearing settings interactively.
+  This includes renaming settings or replacing obsolete actions.
   
   `handle_invalid` is a string indicating how to handle a failed update:
     
@@ -67,6 +52,23 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   
   If `sources` is `None`, default setting sources are updated. Otherwise,
   `sources` must be a dictionary of (key, source) pairs.
+  
+  Two values are returned - status and an accompanying message.
+  
+  Status can have one of the following integer values:
+  
+  * `FRESH_START` - The plug-in was never used before or has no settings stored.
+  
+  * `UPDATE` - The plug-in was successfully updated to the latest version.
+  
+  * `CLEAR_SETTINGS` - An old version of the plug-in (incompatible with the
+    changes in later versions) was used that required clearing stored settings.
+  
+  * `NO_ACTION` - No update was performed as the plug-in version remains the
+    same.
+  
+  * `ABORT` - No update was performed. This value is returned if the user
+    cancelled clearing settings interactively.
   """
   if sources is None:
     sources = pg.setting.Persistor.get_default_setting_sources()
@@ -75,22 +77,22 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   
   if _is_fresh_start(persistent_sources):
     _save_plugin_version(settings, sources)
-    return FRESH_START
+    return FRESH_START, ''
   
   current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
   
-  status, unused_ = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
+  status, message = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
   
   if status == pg.setting.Persistor.READ_FAIL:
     fix_element_paths_for_pickle(
       sources, _FIX_PICKLE_HANDLERS, current_version, pg.config.SOURCE_NAME.encode('utf-8'))
     
-    status, unused_ = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
+    status, message = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
   
   previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
   
   if status == pg.setting.Persistor.SUCCESS and previous_version == current_version:
-    return NO_ACTION
+    return NO_ACTION, message
   
   if (status == pg.setting.Persistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
@@ -98,7 +100,7 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
     
     handle_update(settings, sources, _UPDATE_HANDLERS, previous_version, current_version)
     
-    return UPDATE
+    return UPDATE, message
   
   if handle_invalid == 'ask_to_clear':
     response = messages.display_message(
@@ -109,14 +111,14 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
     
     if response == gtk.RESPONSE_YES:
       clear_setting_sources(settings, sources)
-      return CLEAR_SETTINGS
+      return CLEAR_SETTINGS, message
     else:
-      return ABORT
+      return ABORT, message
   elif handle_invalid == 'clear':
     clear_setting_sources(settings, sources)
-    return CLEAR_SETTINGS
+    return CLEAR_SETTINGS, message
   else:
-    return ABORT
+    return ABORT, message
 
 
 def _get_persistent_sources(sources):

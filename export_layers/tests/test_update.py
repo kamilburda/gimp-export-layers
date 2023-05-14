@@ -71,7 +71,7 @@ class TestUpdate(unittest.TestCase):
         mock_session_source):
     self.assertFalse(pg.setting.Persistor.get_default_setting_sources()['persistent'].has_data())
     
-    status = update.update(self.settings)
+    status, unused_ = update.update(self.settings)
     
     self.assertEqual(status, update.FRESH_START)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
@@ -89,7 +89,7 @@ class TestUpdate(unittest.TestCase):
     self.settings['main/plugin_version'].set_value(self.current_version)
     self.settings['main/plugin_version'].save()
     
-    status = update.update(self.settings)
+    status, unused_ = update.update(self.settings)
     
     self.assertEqual(status, update.UPDATE)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
@@ -104,7 +104,7 @@ class TestUpdate(unittest.TestCase):
     
     self.settings['main/test_setting'].save()
     
-    status = update.update(self.settings)
+    status, unused_ = update.update(self.settings)
     
     self.assertEqual(status, update.CLEAR_SETTINGS)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
@@ -120,7 +120,7 @@ class TestUpdate(unittest.TestCase):
     self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
     self.settings['main'].save()
     
-    status = update.update(self.settings)
+    status, unused_ = update.update(self.settings)
     
     self.assertEqual(status, update.CLEAR_SETTINGS)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
@@ -139,7 +139,7 @@ class TestUpdate(unittest.TestCase):
     self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
     self.settings['main'].save()
     
-    status = update.update(self.settings, 'ask_to_clear')
+    status, unused_ = update.update(self.settings, 'ask_to_clear')
     self.assertEqual(status, update.CLEAR_SETTINGS)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     self.assertEqual(
@@ -157,7 +157,7 @@ class TestUpdate(unittest.TestCase):
     self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
     self.settings['main'].save()
     
-    status = update.update(self.settings, 'ask_to_clear')
+    status, unused_ = update.update(self.settings, 'ask_to_clear')
     self.assertEqual(status, update.ABORT)
     self.assertEqual(
       self.settings['main/plugin_version'].value, self.old_incompatible_version)
