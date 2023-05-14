@@ -153,13 +153,14 @@ def display_alert_message(
     expander.set_label('<b>' + _('Details') + '</b>')
     
     vbox_details = gtk.VBox(homogeneous=False)
+    vbox_details.set_spacing(3)
     
     details_window = _get_details_window(details)
     vbox_details.pack_start(details_window, expand=False, fill=False)
     
     if report_uri_list:
-      vbox_labels_report = _get_report_link_buttons(
-        report_uri_list, report_description, _('(right-click to copy link)'))
+      vbox_labels_report = _get_report_link_buttons_and_copy_icon(
+        report_uri_list, report_description, _('(right-click to copy link)'), details)
       vbox_details.pack_start(vbox_labels_report, expand=False, fill=False)
     
     if display_details_initially:
@@ -209,12 +210,12 @@ def _get_details_window(details_text):
   return scrolled_window
 
 
-def _get_report_link_buttons(
-      report_uri_list, report_description, label_report_text_instructions):
+def _get_report_link_buttons_and_copy_icon(
+      report_uri_list, report_description, label_report_text_instructions, details):
   if not report_uri_list:
     return None
   
-  vbox_link_buttons = gtk.VBox(homogeneous=False)
+  vbox = gtk.VBox(homogeneous=False)
   
   if report_description:
     label_report_text = report_description
@@ -227,7 +228,23 @@ def _get_report_link_buttons(
     label_report.set_padding(3, 6)
     label_report.set_line_wrap(True)
     label_report.set_line_wrap_mode(pango.WRAP_WORD)
-    vbox_link_buttons.pack_start(label_report, expand=False, fill=False)
+    
+    button_copy_to_clipboard = gtk.Button()
+    button_copy_to_clipboard.set_relief(gtk.RELIEF_NONE)
+    button_copy_to_clipboard.add(
+      gtk.image_new_from_pixbuf(
+        button_copy_to_clipboard.render_icon(gtk.STOCK_COPY, gtk.ICON_SIZE_MENU)))
+    button_copy_to_clipboard.set_tooltip_text(_('Copy to clipboard'))
+    button_copy_to_clipboard.connect(
+      'clicked', lambda *args, **kwargs: gtk.clipboard_get().set_text(details))
+    
+    hbox_label_report_and_copy_icon = gtk.HBox(homogeneous=False)
+    hbox_label_report_and_copy_icon.set_spacing(3)
+    hbox_label_report_and_copy_icon.pack_start(label_report, expand=True, fill=True)
+    hbox_label_report_and_copy_icon.pack_start(
+      button_copy_to_clipboard, expand=False, fill=False)
+    
+    vbox.pack_start(hbox_label_report_and_copy_icon, expand=False, fill=False)
   
   report_linkbuttons = []
   for name, uri in report_uri_list:
@@ -236,7 +253,7 @@ def _get_report_link_buttons(
     report_linkbuttons.append(linkbutton)
   
   for linkbutton in report_linkbuttons:
-    vbox_link_buttons.pack_start(linkbutton, expand=False, fill=False)
+    vbox.pack_start(linkbutton, expand=False, fill=False)
   
   if _webbrowser_module_found:
     # Apparently, GTK doesn't know how to open URLs on Windows, hence the custom
@@ -245,7 +262,7 @@ def _get_report_link_buttons(
       linkbutton.connect(
         'clicked', lambda linkbutton: webbrowser.open_new_tab(linkbutton.get_uri()))
   
-  return vbox_link_buttons
+  return vbox
 
 
 def display_message(
