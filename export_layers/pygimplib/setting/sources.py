@@ -7,6 +7,7 @@ from future.builtins import *
 import future.utils
 
 import abc
+import ast
 import collections
 import io
 import os
@@ -251,11 +252,11 @@ class PickleFileSource(Source):
     return self._filepath
   
   def clear(self):
-    data_dict = self._read_all_data()
-    if data_dict is not None and self.source_name in data_dict:
-      del data_dict[self.source_name]
+    data = self.read_data()
+    if data is not None and self.source_name in data:
+      del data[self.source_name]
       
-      self.write_dict(data_dict)
+      self.write_data(data)
   
   def has_data(self):
     """Returns `True` if the source contains data and the data have a valid
@@ -266,78 +267,72 @@ class PickleFileSource(Source):
     determine if there are data under `source_name` or not.
     """
     try:
-      data = self.read_dict()
+      settings_from_source = self.read_dict()
     except SourceError:
       return 'invalid_format'
     else:
-      return data is not None
-  
-  def write(self, settings):
-    data_dict = self._read_all_data()
-    
-    if data_dict is not None and self.source_name in data_dict:
-      try:
-        setting_names_and_values = self._get_settings_from_pickled_data(
-          data_dict[self.source_name])
-      except SourceInvalidFormatError:
-        setting_names_and_values = collections.OrderedDict()
-      
-      setting_names_and_values.update(self._settings_to_dict(settings))
-      
-      data_dict[self.source_name] = self._pickle_settings(setting_names_and_values)
-      
-      self.write_dict(data_dict)
-    else:
-      setting_names_and_values = self._settings_to_dict(settings)
-      
-      if data_dict is None:
-        data_dict = {self.source_name: self._pickle_settings(setting_names_and_values)}
-      else:
-        data_dict[self.source_name] = self._pickle_settings(setting_names_and_values)
-        
-      self.write_dict(data_dict)
+      return settings_from_source is not None
   
   def read_dict(self):
-    data_dict = self._read_all_data()
-    if data_dict is not None and self.source_name in data_dict:
-      return self._get_settings_from_pickled_data(data_dict[self.source_name])
+    data = self.read_data()
+    if data is not None and self.source_name in data:
+      return self._get_settings_from_pickled_data(data[self.source_name])
     else:
       return None
   
-  def write_dict(self, data_dict):
-    try:
-      with io.open(self._filepath, 'w', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
-        for source_name, data in data_dict.items():
-          f.write(source_name + self._SOURCE_NAME_CONTENTS_SEPARATOR + data + '\n')
-    except Exception as e:
-      raise SourceWriteError(str(e))
+  def write_dict(self, setting_names_and_values):
+    data_for_source = self._pickle_settings(setting_names_and_values)
+    
+    data = self.read_data()
+    if data is None:
+      data = collections.OrderedDict([(self.source_name, data_for_source)])
+    else:
+      data[self.source_name] = data_for_source
+    
+    self.write_data(data)
   
-  def _read_all_data(self):
+  def read_data(self):
+    """Reads the entire file into a dictionary of (source name, contents) pairs.
+    
+    The dictionary also contains contents from other source names if they exist.
+    """
     if not os.path.isfile(self._filepath):
       return None
     
-    data_dict = collections.OrderedDict()
+    data = collections.OrderedDict()
     
     try:
       with io.open(self._filepath, 'r', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
         for line in f:
           split = line.split(self._SOURCE_NAME_CONTENTS_SEPARATOR, 1)
           if len(split) == 2:
-            source_name, data = split
-            data_dict[source_name] = data
+            source_name, contents = split
+            data[source_name] = contents
     except Exception as e:
       raise SourceReadError(str(e))
     else:
-      return data_dict
+      return data
   
-  def _get_settings_from_pickled_data(self, data):
+  def write_data(self, data):
+    """Writes `data` into the file, overwriting the entire file contents.
+    
+    `data` is a dictionary of (source name, contents) pairs.
+    """
     try:
-      return pickle.loads(bytes(data.decode('string_escape')))
+      with io.open(self._filepath, 'w', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
+        for source_name, contents in data.items():
+          f.write(source_name + self._SOURCE_NAME_CONTENTS_SEPARATOR + contents + '\n')
+    except Exception as e:
+      raise SourceWriteError(str(e))
+  
+  def _get_settings_from_pickled_data(self, contents):
+    try:
+      return pickle.loads(ast.literal_eval(contents))
     except Exception as e:
       raise SourceInvalidFormatError(str(e))
   
   def _pickle_settings(self, settings):
     try:
-      return unicode(pickle.dumps(settings).encode('string_escape'))
+      return repr(pickle.dumps(settings))
     except Exception as e:
       raise SourceInvalidFormatError(str(e))

@@ -326,7 +326,7 @@ class TestPickleFileSource(unittest.TestCase):
     self.assertFalse(self.source.has_data())
     self.assertTrue(source_2.has_data())
     
-    self.assertEqual(self.source.write_dict.call_count, 2)
+    self.assertEqual(self.source.write_dict.call_count, 1)
     self.assertEqual(source_2.write_dict.call_count, 1)
   
   def _set_up_mock_open(self, mock_io_open):
@@ -368,9 +368,9 @@ class TestSourceReadWriteDict(unittest.TestCase):
   def _test_read_dict(self, source):
     source.write(self.settings)
     
-    data_dict = source.read_dict()
+    settings_from_source = source.read_dict()
     self.assertDictEqual(
-      data_dict,
+      settings_from_source,
       {
         'file_extension': self.settings['file_extension'].value,
         'flatten': self.settings['flatten'].value,
@@ -381,7 +381,7 @@ class TestSourceReadWriteDict(unittest.TestCase):
     self.assertIsNone(source.read_dict())
   
   def _test_write_dict(self, source):
-    data_dict = {
+    settings_from_source = {
       'file_extension': self.settings['file_extension'].default_value,
       'flatten': self.settings['flatten'].default_value,
     }
@@ -389,7 +389,7 @@ class TestSourceReadWriteDict(unittest.TestCase):
     self.settings['file_extension'].set_value('jpg')
     self.settings['flatten'].set_value(True)
     
-    source.write_dict(data_dict)
+    source.write_dict(settings_from_source)
     
     source.read(
       [self.settings['file_extension'], self.settings['flatten']])
