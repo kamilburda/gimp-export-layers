@@ -219,28 +219,25 @@ class ItemBoxItem(object):
       self._hbox_buttons.hide()
   
   def _on_event_box_size_allocate(self, event_box, allocation):
-    if self._is_event_box_allocated_size:
-      return
-    
-    self._is_event_box_allocated_size = True
-    
-    # Assign enough height to the HBox to make sure it does not resize when
-    # showing buttons.
-    if self._buttons_allocation.height >= allocation.height:
-      self._hbox.set_property('height-request', allocation.height)
+    if not self._is_event_box_allocated_size and self._buttons_allocation is not None:
+      self._is_event_box_allocated_size = True
+      
+      # Assign enough height to the box to make sure it does not resize when showing buttons.
+      if self._buttons_allocation.height >= allocation.height:
+        self._hbox.set_property('height-request', allocation.height)
   
   def _on_event_box_buttons_size_allocate(self, event_box, allocation):
-    if self._buttons_allocation is not None:
-      return
-    
-    self._buttons_allocation = allocation
-    
-    # Make sure the width allocated to the buttons remains the same even if
-    # buttons are hidden. This avoids a problem with unreachable buttons when
-    # the horizontal scrollbar is displayed.
-    self._event_box_buttons.set_property('width-request', self._buttons_allocation.width)
-    
-    self._hbox_buttons.hide()
+    # Checking for 1-pixel width and height prevents wrong size from being allocated
+    # when parent widgets are resized.
+    if self._buttons_allocation is None and allocation.width > 1 and allocation.height > 1:
+      self._buttons_allocation = allocation
+      
+      # Make sure the width allocated to the buttons remains the same even if
+      # buttons are hidden. This avoids a problem with unreachable buttons when
+      # the horizontal scrollbar is displayed.
+      self._event_box_buttons.set_property('width-request', self._buttons_allocation.width)
+      
+      self._hbox_buttons.hide()
 
 
 class ArrayBox(ItemBox):
