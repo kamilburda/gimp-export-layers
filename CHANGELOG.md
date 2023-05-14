@@ -41,6 +41,7 @@ Bug fixes:
 * Fixed image preview not scaling layer groups if no custom GIMP PDB procedure is active.
 * Fixed export failing for some custom procedures modifying the number of layers, e.g. `gimp-image-merge-visible-layers`.
 * Fixed custom PDB procedures modifying layer names not taking effect (e.g. `gimp-item-set-name`).
+* Fixed array widgets in edit dialog for custom procedures having incorrect height when pressing Reset and then Cancel.
 
 
 3.3.5
