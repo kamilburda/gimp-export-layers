@@ -92,6 +92,7 @@ class ExtendedEntry(gtk.Entry):
     If `enable_undo` is `True`, add the assignment to the undo history.
     """
     if self.has_focus() or not self._should_assign_placeholder_text(text):
+      self._unassign_placeholder_text()
       self._do_assign_text(text, enable_undo)
     else:
       self._assign_placeholder_text()
