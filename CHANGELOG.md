@@ -30,13 +30,13 @@ Other changes:
 * Built-in procedures and constraints are now listed alphabetically.
 * Shortened the name of the DICOM file format. As a result, the file format popup is now much shorter and thus more compact.
 * Reworked warning messages displayed when a procedure or constraint fails during processing or preview.
+* Added a button to copy details to clipboard in error/warning dialogs for easier reporting.
 * A procedure or constraint causing an error during processing is now also indicated in the dialog with a warning icon. Clicking on the icon displays details about the error.
 * When editing a procedure or constraint, clicking on the edit button again will bring the edit dialog to front.
 * Edit dialogs for procedures and constraints are now closed before the start of processing.
 * Removed restrictions on the maximum width and height for the image preview.
 * Updated documentation with examples on how to customize the export.
 * When resetting settings and `Show More Settings` is checked, the option to reset procedures and constraints is now checked by default.
-* Added a button to copy to clipboard in error/warning dialogs for easier reporting.
 
 Bug fixes:
 * Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.
