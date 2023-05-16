@@ -36,7 +36,8 @@ def display_message(
 
 
 def display_failure_message(
-      main_message, failure_message, details, parent=None, report_description=None):
+      main_message, failure_message, details, parent=None, report_description=None,
+      display_details_initially=False):
   if report_description is None:
     report_description = _(
       'If you believe this is an error in the plug-in, you can help fix it'
@@ -50,7 +51,7 @@ def display_failure_message(
     message_markup=main_message,
     message_secondary_markup=failure_message,
     details=details,
-    display_details_initially=False,
+    display_details_initially=display_details_initially,
     report_uri_list=pg.config.BUG_REPORT_URL_LIST,
     report_description=report_description,
     focus_on_button=True)
