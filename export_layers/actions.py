@@ -666,7 +666,7 @@ def reorder(actions, action_name, new_position):
   Raises:
   * `ValueError` - `action_name` not found in `actions`.
   """
-  current_position = _find_index_in_added_data(actions, action_name)
+  current_position = get_index(actions, action_name)
   
   if current_position is None:
     raise ValueError('action "{}" not found in actions named "{}"'.format(
@@ -694,7 +694,7 @@ def remove(actions, action_name):
   Raises:
   * `ValueError` - `action_name` not found in `actions`.
   """
-  action_index = _find_index_in_added_data(actions, action_name)
+  action_index = get_index(actions, action_name)
   
   if action_index is None:
     raise ValueError('action "{}" not found in actions named "{}"'.format(
@@ -710,7 +710,11 @@ def remove(actions, action_name):
   actions.invoke_event('after-remove-action', action_name)
 
 
-def _find_index_in_added_data(actions, action_name):
+def get_index(actions, action_name):
+  """Returns the index of the action matching `action_name`.
+  
+  If there is no such action, return `None`.
+  """
   return next(
     (index for index, dict_ in enumerate(actions['_added_data'].value)
      if dict_['name'] == action_name),

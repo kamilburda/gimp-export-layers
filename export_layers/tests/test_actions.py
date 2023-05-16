@@ -289,6 +289,29 @@ class TestManageActions(unittest.TestCase):
       _find_in_added_data(self.procedures, 'autocrop')['custom_field'], 'value')
   
   @parameterized.parameterized.expand([
+    ('first',
+     'autocrop', 0),
+    
+    ('middle',
+     'autocrop_background', 1),
+    
+    ('last',
+     'autocrop_foreground', 2),
+    
+    ('nonexistent_action',
+     'some_action', None),
+  ])
+  def test_get_index(
+        self,
+        test_case_name_suffix,
+        action_name,
+        expected_position):
+    for action_dict in self.test_procedures.values():
+      actions.add(self.procedures, action_dict)
+    
+    self.assertEqual(actions.get_index(self.procedures, action_name), expected_position)
+  
+  @parameterized.parameterized.expand([
     ('middle_to_first',
      'autocrop_background',
      0,
