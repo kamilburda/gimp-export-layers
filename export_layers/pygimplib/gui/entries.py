@@ -117,6 +117,9 @@ class ExtendedEntry(gtk.Entry):
     if not enable_undo:
       self._undo_context.undo_enabled = False
     
+    if not isinstance(text, bytes):
+      text = pgutils.safe_encode_gtk(text)
+    
     self.set_text(text)
     
     if not enable_undo:
