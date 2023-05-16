@@ -434,6 +434,28 @@ def _update_to_3_4(settings, sources):
     builtin_procedures.BUILTIN_PROCEDURES,
   )
   
+  removed_autocrop_background = _remove_actions(
+    procedures, settings['main/procedures'], 'autocrop_background')
+  if removed_autocrop_background:
+    # While there may be multiple such procedures with different tags, only a
+    # single procedure will be added back.
+    first_old_action, first_old_action_index = removed_autocrop_background[0]
+    new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
+    new_action['arguments/drawable'].set_value('background_layer')
+    new_action['enabled'].set_value(first_old_action['enabled'].value)
+    actions_.reorder(settings['main/procedures'], new_action, first_old_action_index)
+  
+  removed_autocrop_foreground = _remove_actions(
+    procedures, settings['main/procedures'], 'autocrop_foreground')
+  if removed_autocrop_foreground:
+    # While there may be multiple such procedures with different tags, only a
+    # single procedure will be added back.
+    first_old_action, first_old_action_index = removed_autocrop_foreground[0]
+    new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
+    new_action['arguments/drawable'].set_value('foreground_layer')
+    new_action['enabled'].set_value(first_old_action['enabled'].value)
+    actions_.reorder(settings['main/procedures'], new_action, first_old_action_index)
+  
   settings['main/procedures'].save(sources)
   actions_.clear(settings['main/procedures'])
   
@@ -458,28 +480,6 @@ def _update_to_3_4(settings, sources):
           and not removed_include_layer_groups[0][0]['enabled'].value)):
     actions_.add(
       settings['main/constraints'], builtin_constraints.BUILTIN_CONSTRAINTS['layers'])
-  
-  removed_autocrop_background = _remove_actions(
-    procedures, settings['main/procedures'], 'autocrop_background')
-  if removed_autocrop_background:
-    # While there may be multiple such procedures with different tags, only a
-    # single procedure will be added back.
-    first_old_action, first_old_action_index = removed_autocrop_background[0]
-    new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
-    new_action['arguments/drawable'].set_value('background_layer')
-    new_action['enabled'].set_value(first_old_action['enabled'].value)
-    actions_.reorder(settings['main/procedures'], new_action, first_old_action_index)
-  
-  removed_autocrop_foreground = _remove_actions(
-    procedures, settings['main/procedures'], 'autocrop_foreground')
-  if removed_autocrop_foreground:
-    # While there may be multiple such procedures with different tags, only a
-    # single procedure will be added back.
-    first_old_action, first_old_action_index = removed_autocrop_foreground[0]
-    new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
-    new_action['arguments/drawable'].set_value('foreground_layer')
-    new_action['enabled'].set_value(first_old_action['enabled'].value)
-    actions_.reorder(settings['main/procedures'], new_action, first_old_action_index)
   
   _refresh_actions(
     constraints,
