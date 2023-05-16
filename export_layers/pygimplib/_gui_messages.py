@@ -234,7 +234,7 @@ def _get_report_link_buttons_and_copy_icon(
     button_copy_to_clipboard.add(
       gtk.image_new_from_pixbuf(
         button_copy_to_clipboard.render_icon(gtk.STOCK_COPY, gtk.ICON_SIZE_MENU)))
-    button_copy_to_clipboard.set_tooltip_text(_('Copy to clipboard'))
+    button_copy_to_clipboard.set_tooltip_text(_('Copy details to clipboard'))
     button_copy_to_clipboard.connect(
       'clicked', lambda *args, **kwargs: gtk.clipboard_get().set_text(details))
     
