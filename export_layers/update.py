@@ -439,22 +439,34 @@ def _update_to_3_4(settings, sources):
   if removed_autocrop_background:
     # While there may be multiple such procedures with different tags, only a
     # single procedure will be added back.
-    first_old_action, first_old_action_index = removed_autocrop_background[0]
+    old_action, old_action_index = removed_autocrop_background[0]
     new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
     new_action['arguments/drawable'].set_value('background_layer')
-    new_action['enabled'].set_value(first_old_action['enabled'].value)
-    actions_.reorder(settings['main/procedures'], new_action, first_old_action_index)
+    new_action['enabled'].set_value(old_action['enabled'].value)
+    actions_.reorder(settings['main/procedures'], new_action, old_action_index)
   
   removed_autocrop_foreground = _remove_actions(
     procedures, settings['main/procedures'], 'autocrop_foreground')
   if removed_autocrop_foreground:
     # While there may be multiple such procedures with different tags, only a
     # single procedure will be added back.
-    first_old_action, first_old_action_index = removed_autocrop_foreground[0]
+    old_action, old_action_index = removed_autocrop_foreground[0]
     new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
+    actions_.reorder(settings['main/procedures'], new_action, old_action_index)
     new_action['arguments/drawable'].set_value('foreground_layer')
-    new_action['enabled'].set_value(first_old_action['enabled'].value)
-    actions_.reorder(settings['main/procedures'], new_action, first_old_action_index)
+    new_action['enabled'].set_value(old_action['enabled'].value)
+  
+  removed_use_file_extension = _remove_actions(
+    procedures, settings['main/procedures'], 'use_file_extension_in_item_name')
+  if removed_use_file_extension:
+    # Use the last removed action as the previous actions had no effect.
+    old_action, old_action_index = removed_use_file_extension[-1]
+    new_action = actions_.add(
+      settings['main/procedures'], builtin_procedures.BUILTIN_PROCEDURES['export'])
+    actions_.reorder(settings['main/procedures'], new_action, old_action_index)
+    new_action['arguments/output_directory'].set_value(settings['main/output_directory'].value)
+    new_action['arguments/file_extension'].set_value(settings['main/file_extension'].value)
+    new_action['arguments/use_file_extension_in_item_name'].set_value(old_action['enabled'].value)
   
   settings['main/procedures'].save(sources)
   actions_.clear(settings['main/procedures'])
@@ -663,6 +675,8 @@ def _fix_pickle_paths_3_4(sources, key):
       (b'builtin_procedures\nis_path_visible',
        b'builtin_procedures\nis_visible'),
       (b'builtin_procedures\nautocrop_tagged_layer',
+       b'export_layers.pygimplib.utils\nempty_func'),
+      (b'builtin_procedures\nuse_file_extension_in_item_name',
        b'export_layers.pygimplib.utils\nempty_func'),
     ],
     sources, key)
