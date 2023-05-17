@@ -468,7 +468,12 @@ def _update_to_3_4(settings, sources):
     new_action['arguments/file_extension'].set_value(settings['main/file_extension'].value)
     new_action['arguments/use_file_extension_in_item_name'].set_value(old_action['enabled'].value)
   
+  for action in actions_.walk(settings['main/procedures']):
+    if action.get_value('is_pdb_procedure', False):
+      action['origin'].set_item('gimp_pdb')
+  
   settings['main/procedures'].save(sources)
+  
   actions_.clear(settings['main/procedures'])
   
   settings['main/constraints'].load(sources)
@@ -544,6 +549,10 @@ def _update_to_3_4(settings, sources):
     'selected_in_preview',
     builtin_constraints.BUILTIN_CONSTRAINTS,
   )
+  
+  for action in actions_.walk(settings['main/constraints']):
+    if action.get_value('is_pdb_procedure', False):
+      action['origin'].set_item('gimp_pdb')
   
   settings['main/constraints'].save(sources)
   

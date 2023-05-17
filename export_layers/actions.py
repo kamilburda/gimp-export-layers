@@ -270,6 +270,7 @@ def _set_values_for_actions(added_data_values_setting, added_actions_group):
 def _create_action(
       name,
       function=None,
+      origin='builtin',
       arguments=None,
       enabled=True,
       display_name=None,
@@ -310,6 +311,15 @@ def _create_action(
       'name': 'function',
       'default_value': function,
       'setting_sources': None,
+    },
+    {
+      'type': pg.SettingTypes.enumerated,
+      'name': 'origin',
+      'default_value': origin,
+      'items': [
+        ('builtin', _('Built-in')),
+        ('gimp_pdb', _('GIMP PDB procedure'))],
+      'gui_type': None,
     },
     arguments_group,
     {
@@ -382,7 +392,7 @@ def _create_action(
     _set_display_name_for_enabled_gui,
     action['display_name'])
   
-  if action.get_value('is_pdb_procedure', True):
+  if action['origin'].is_item('gimp_pdb'):
     _connect_events_to_sync_array_and_array_length_arguments(action)
     _hide_gui_for_run_mode_and_array_length_arguments(action)
   
@@ -561,9 +571,9 @@ def get_action_dict_for_pdb_procedure(pdb_procedure):
   action_dict = {
     'name': pg.utils.safe_decode_gimp(pdb_procedure.proc_name),
     'function': pg.utils.safe_decode_gimp(pdb_procedure.proc_name),
+    'origin': 'gimp_pdb',
     'arguments': [],
     'display_name': pg.utils.safe_decode_gimp(pdb_procedure.proc_name),
-    'is_pdb_procedure': True,
     'display_options_on_create': True,
   }
   

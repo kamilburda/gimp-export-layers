@@ -339,7 +339,7 @@ class ActionBox(pg.gui.ItemBox):
       item.action_edit_dialog.present()
       return
     
-    if item.action.get_value('is_pdb_procedure', False):
+    if item.action['origin'].is_item('gimp_pdb'):
       pdb_procedure = pdb[pg.utils.safe_encode_gimp(item.action['function'].value)]
     else:
       pdb_procedure = None

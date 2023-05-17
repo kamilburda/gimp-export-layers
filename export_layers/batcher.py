@@ -457,7 +457,7 @@ class Batcher(object):
     If `action_groups` is not `None`, the action will be added to the specified
     action groups instead of the groups defined in `action['action_groups']`.
     """
-    if action.get_value('is_pdb_procedure', False):
+    if action['origin'].is_item('gimp_pdb'):
       try:
         function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
       except KeyError:
@@ -476,7 +476,7 @@ class Batcher(object):
     function_args = tuple(arg_setting.value for arg_setting in action['arguments'])
     function_kwargs = {}
     
-    if action.get_value('is_pdb_procedure', False):
+    if action['origin'].is_item('gimp_pdb'):
       if self._has_run_mode_param(function):
         function_kwargs = {b'run_mode': function_args[0]}
         function_args = function_args[1:]

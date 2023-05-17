@@ -724,11 +724,10 @@ class TestManagePdbProceduresAsActions(unittest.TestCase):
     
     self.assertEqual(action.name, 'file-png-save')
     self.assertEqual(action['function'].value, 'file-png-save')
+    self.assertTrue(action['origin'].is_item('gimp_pdb'))
     self.assertEqual(action['enabled'].value, True)
     self.assertEqual(action['display_name'].value, self.procedure_stub.proc_name)
-    self.assertEqual(
-      action['action_groups'].value, [actions.DEFAULT_PROCEDURES_GROUP])
-    self.assertEqual(action['is_pdb_procedure'].value, True)
+    self.assertEqual(action['action_groups'].value, [actions.DEFAULT_PROCEDURES_GROUP])
     
     self.assertEqual(action['arguments/run-mode'].gui.get_visible(), False)
     self.assertEqual(action['arguments/num-save-options'].gui.get_visible(), False)
@@ -762,8 +761,7 @@ class TestManagePdbProceduresAsActions(unittest.TestCase):
   @mock.patch(
     pg.utils.get_pygimplib_module_path() + '.setting.sources.gimp',
     new_callable=stubs_gimp.GimpModuleStub)
-  def test_load_save_pdb_procedure_as_action(
-        self, mock_persistent_source, mock_session_source):
+  def test_load_save_pdb_procedure_as_action(self, mock_persistent_source, mock_session_source):
     action = actions.add(self.procedures, self.procedure_stub)
     
     action['enabled'].set_value(False)
@@ -774,8 +772,8 @@ class TestManagePdbProceduresAsActions(unittest.TestCase):
     
     self.assertEqual(action.name, 'file-png-save')
     self.assertEqual(action['function'].value, 'file-png-save')
+    self.assertTrue(action['origin'].is_item('gimp_pdb'))
     self.assertEqual(action['enabled'].value, False)
-    self.assertEqual(action['is_pdb_procedure'].value, True)
     self.assertEqual(action['arguments/filename'].value, 'image.png')
     
     self.assertEqual(
@@ -843,7 +841,5 @@ class TestGetActionDictAsPdbProcedure(unittest.TestCase):
     
     action_dict = actions.get_action_dict_for_pdb_procedure(self.procedure_stub)
     
-    self.assertEqual(
-      action_dict['arguments'][-2]['type'], placeholders.PlaceholderImageSetting)
-    self.assertEqual(
-      action_dict['arguments'][-1]['type'], placeholders.PlaceholderLayerSetting)
+    self.assertEqual(action_dict['arguments'][-2]['type'], placeholders.PlaceholderImageSetting)
+    self.assertEqual(action_dict['arguments'][-1]['type'], placeholders.PlaceholderLayerSetting)
