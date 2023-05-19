@@ -126,6 +126,17 @@ _BUILTIN_CONSTRAINTS_LIST = [
   },
 ]
 
-BUILTIN_CONSTRAINTS = collections.OrderedDict(
-  (action_dict['name'], action_dict)
-  for action_dict in _BUILTIN_CONSTRAINTS_LIST)
+# Create a separate dictionary for functions since objects cannot be saved
+# to a persistent source. Saving them as strings would not be reliable as
+# function names and paths may change when refactoring or adding/modifying features.
+# The 'function' setting is set to an empty value as the function can be inferred
+# via the action's 'orig_name' setting.
+BUILTIN_CONSTRAINTS = collections.OrderedDict()
+BUILTIN_CONSTRAINTS_FUNCTIONS = collections.OrderedDict()
+
+for action_dict in _BUILTIN_CONSTRAINTS_LIST:
+  function = action_dict['function']
+  action_dict['function'] = ''
+  
+  BUILTIN_CONSTRAINTS[action_dict['name']] = action_dict
+  BUILTIN_CONSTRAINTS_FUNCTIONS[action_dict['name']] = function

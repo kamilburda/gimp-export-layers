@@ -15,6 +15,7 @@ from gimp import pdb
 from export_layers import pygimplib as pg
 
 from export_layers import actions
+from export_layers import builtin_constraints
 from export_layers import builtin_procedures
 from export_layers import exceptions
 from export_layers import export as export_
@@ -457,14 +458,24 @@ class Batcher(object):
     If `action_groups` is not `None`, the action will be added to the specified
     action groups instead of the groups defined in `action['action_groups']`.
     """
-    if action['origin'].is_item('gimp_pdb'):
+    if action['origin'].is_item('builtin'):
+      if 'procedure' in action.tags:
+        function = builtin_procedures.BUILTIN_PROCEDURES_FUNCTIONS[action['orig_name'].value]
+      elif 'constraint' in action.tags:
+        function = builtin_constraints.BUILTIN_CONSTRAINTS_FUNCTIONS[action['orig_name'].value]
+      else:
+        raise ValueError(
+          'invalid action "{}" - must contain "procedure" or "constraint" in tags'.format(
+            action.name))
+    elif action['origin'].is_item('gimp_pdb'):
       try:
         function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
       except KeyError:
         raise exceptions.InvalidPdbProcedureError(
           'invalid PDB procedure "{}"'.format(action['function'].value))
     else:
-      function = action['function'].value
+      raise ValueError('invalid origin "{}" for action "{}"'.format(
+          action['origin'].value, action.name))
     
     if function is None:
       return

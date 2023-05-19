@@ -100,7 +100,10 @@ def create(name, initial_actions=None):
   
   Each created action in the returned group is a nested `setting.Group`. Each
   action contains the following settings or subgroups:
-  * `'function'` - The function to call.
+  * `'function'` - Name of the function to call. If `'origin'` is `'builtin'`,
+    then the function is an empty string and the function must be replaced
+    during processing with a function object. This allows the function to be
+    saved to a persistent setting source.
   * `'origin'` - Type of the function. If `'builtin'`, the function is defined
     directly in the plug-in. If `'gimp_pdb'`, the function is taken from the
     GIMP PDB. The origin affects how the function is modified (wrapped) during
@@ -129,7 +132,7 @@ def create(name, initial_actions=None):
   * `'name'` - This field is required. This is the `name` attribute of the
     created action.
   * `'type'` - Action type. See below for details.
-  * `'function'` - The function to call.
+  * `'function'`
   * `'origin'`
   * `'arguments'` - Specified as list of dictionaries defining settings. Each
     dictionary must contain required attributes and can contain optional
@@ -274,7 +277,7 @@ def _set_values_for_actions(added_data_values_setting, added_actions_group):
 
 def _create_action(
       name,
-      function=None,
+      function='',
       origin='builtin',
       arguments=None,
       enabled=True,
@@ -312,10 +315,11 @@ def _create_action(
   
   action.add([
     {
-      'type': pg.SettingTypes.generic,
+      'type': pg.SettingTypes.string,
       'name': 'function',
       'default_value': function,
       'setting_sources': None,
+      'gui_type': None,
     },
     {
       'type': pg.SettingTypes.enumerated,
@@ -553,13 +557,10 @@ def add(actions, action_dict_or_function):
 
 
 def get_action_dict_for_pdb_procedure(pdb_procedure):
-  """
-  Return a dictionary representing the specified GIMP PDB procedure that can be
-  added to a setting group for actions via `add()`.
+  """Returns a dictionary representing the specified GIMP PDB procedure that can
+  be added to a setting group for actions via `add()`.
   
-  The `'function'` field contains the PDB procedure name instead of the function
-  itself in order for the dictionary to allow loading/saving to a persistent
-  source.
+  The `'function'` field contains the PDB procedure name.
   
   If the procedure contains arguments with the same name, each subsequent
   identical name is made unique (since arguments are internally represented as
@@ -624,12 +625,8 @@ def get_action_dict_for_pdb_procedure(pdb_procedure):
 
 def _uniquify_name_and_display_name(actions, action_dict):
   action_dict['orig_name'] = action_dict['name']
-  
-  action_dict['name'] = _uniquify_action_name(
-    actions, action_dict['name'])
-  
-  action_dict['display_name'] = _uniquify_action_display_name(
-    actions, action_dict['display_name'])
+  action_dict['name'] = _uniquify_action_name(actions, action_dict['name'])
+  action_dict['display_name'] = _uniquify_action_display_name(actions, action_dict['display_name'])
 
 
 def _uniquify_action_name(actions, name):

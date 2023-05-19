@@ -471,6 +471,9 @@ def _update_to_3_4(settings, sources):
   for action in actions_.walk(settings['main/procedures']):
     if action.get_value('is_pdb_procedure', False):
       action['origin'].set_item('gimp_pdb')
+    
+    if action['origin'].is_item('builtin'):
+      action['function'].set_value('')
   
   settings['main/procedures'].save(sources)
   
@@ -553,6 +556,9 @@ def _update_to_3_4(settings, sources):
   for action in actions_.walk(settings['main/constraints']):
     if action.get_value('is_pdb_procedure', False):
       action['origin'].set_item('gimp_pdb')
+    
+    if action['origin'].is_item('builtin'):
+      action['function'].set_value('')
   
   settings['main/constraints'].save(sources)
   

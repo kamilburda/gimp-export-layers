@@ -23,7 +23,7 @@ test_procedures = [
   {
     'name': 'autocrop',
     'type': 'procedure',
-    'function': pg.utils.empty_func,
+    'function': '',
     'enabled': True,
     'display_name': 'Autocrop',
     'action_groups': ['basic'],
@@ -43,14 +43,14 @@ test_procedures = [
   {
     'name': 'autocrop_background',
     'type': 'procedure',
-    'function': pg.utils.empty_func,
+    'function': '',
     'enabled': False,
     'display_name': 'Autocrop background layers',
   },
   {
     'name': 'autocrop_foreground',
     'type': 'procedure',
-    'function': pg.utils.empty_func,
+    'function': '',
     'enabled': False,
     'display_name': 'Autocrop foreground layers',
   },
@@ -60,14 +60,14 @@ test_constraints = [
   {
     'name': 'layers',
     'type': 'constraint',
-    'function': pg.utils.empty_func,
+    'function': '',
     'enabled': True,
     'display_name': 'Layers',
   },
   {
     'name': 'visible',
     'type': 'constraint',
-    'function': pg.utils.empty_func,
+    'function': '',
     'enabled': False,
     'display_name': 'Visible',
   },
