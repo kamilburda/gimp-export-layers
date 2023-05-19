@@ -101,6 +101,10 @@ def create(name, initial_actions=None):
   Each created action in the returned group is a nested `setting.Group`. Each
   action contains the following settings or subgroups:
   * `'function'` - The function to call.
+  * `'origin'` - Type of the function. If `'builtin'`, the function is defined
+    directly in the plug-in. If `'gimp_pdb'`, the function is taken from the
+    GIMP PDB. The origin affects how the function is modified (wrapped) during
+    processing in the `batcher` module.
   * `'arguments'` - Arguments to `'function'` as a `setting.Group` instance
     containing arguments as separate `Setting` instances.
   * `'enabled'` - Whether the action should be applied or not.
@@ -126,6 +130,7 @@ def create(name, initial_actions=None):
     created action.
   * `'type'` - Action type. See below for details.
   * `'function'` - The function to call.
+  * `'origin'`
   * `'arguments'` - Specified as list of dictionaries defining settings. Each
     dictionary must contain required attributes and can contain optional
     attributes as stated in `setting.Group.add()`.
