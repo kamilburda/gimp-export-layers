@@ -55,9 +55,7 @@ __all__ = [
 
 
 class GtkPresenter(future.utils.with_metaclass(abc.ABCMeta, presenter_.Presenter)):
-  """
-  This class is a `Presenter` subclass for GTK GUI elements.
-  """
+  """Abstract `Presenter` subclass for GTK GUI elements."""
   
   def __init__(self, *args, **kwargs):
     self._event_handler_id = None
@@ -86,8 +84,7 @@ class GtkPresenter(future.utils.with_metaclass(abc.ABCMeta, presenter_.Presenter
 
 
 class GtkIntSpinButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.SpinButton` elements.
+  """`Presenter` subclass for `gtk.SpinButton` elements.
   
   Value: Integer value of the spin button.
   """
@@ -105,8 +102,7 @@ class GtkIntSpinButtonPresenter(GtkPresenter):
 
 
 class GtkFloatSpinButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.SpinButton` elements.
+  """`Presenter` subclass for `gtk.SpinButton` elements.
   
   Value: Floating point value of the spin button.
   """
@@ -124,8 +120,7 @@ class GtkFloatSpinButtonPresenter(GtkPresenter):
 
 
 class GtkCheckButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.CheckButton` elements.
+  """`Presenter` subclass for `gtk.CheckButton` elements.
   
   Value: Checked state of the check button (checked/unchecked).
   """
@@ -154,8 +149,7 @@ class GtkCheckButtonNoTextPresenter(GtkCheckButtonPresenter):
 
 
 class GtkCheckButtonLabelPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.CheckButton` elements.
+  """`Presenter` subclass for `gtk.CheckButton` elements.
   
   Value: Label of the check button.
   """
@@ -168,8 +162,7 @@ class GtkCheckButtonLabelPresenter(GtkPresenter):
 
 
 class GtkCheckMenuItemPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.CheckMenuItem` elements.
+  """`Presenter` subclass for `gtk.CheckMenuItem` elements.
   
   Value: Checked state of the menu item (checked/unchecked).
   """
@@ -187,8 +180,7 @@ class GtkCheckMenuItemPresenter(GtkPresenter):
 
 
 class GtkExpanderPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.Expander` elements.
+  """`Presenter` subclass for `gtk.Expander` elements.
   
   Value: `True` if the expander is expanded, `False` if collapsed.
   """
@@ -208,8 +200,7 @@ class GtkExpanderPresenter(GtkPresenter):
 
 
 class GimpUiIntComboBoxPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.IntComboBox` elements.
+  """`Presenter` subclass for `gimpui.IntComboBox` elements.
   
   Value: Item selected in the combo box.
   """
@@ -232,8 +223,7 @@ class GimpUiIntComboBoxPresenter(GtkPresenter):
   
 
 class GtkEntryPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.Entry` elements.
+  """`Presenter` subclass for `gtk.Entry` elements.
   
   Value: Text in the entry.
   """
@@ -251,8 +241,7 @@ class GtkEntryPresenter(GtkPresenter):
 
 
 class GimpUiImageComboBoxPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.ImageComboBox` elements.
+  """`Presenter` subclass for `gimpui.ImageComboBox` elements.
   
   Value: `gimp.Image` selected in the combo box.
   """
@@ -266,19 +255,19 @@ class GimpUiImageComboBoxPresenter(GtkPresenter):
     return self._element.get_active_image()
   
   def _set_value(self, value):
-    """
-    Set a `gimp.Image` instance to be selected in the combo box. Passing
-    `None` has no effect.
+    """Sets a `gimp.Image` instance to be selected in the combo box.
+    
+    Passing `None` has no effect.
     """
     if value is not None:
       self._element.set_active_image(value)
 
 
 class GimpItemComboBoxPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gui.GimpItemComboBox` elements. If
-  the setting references a `gimp.Image`, only drawables from that image will be
-  displayed.
+  """`Presenter` subclass for `gui.GimpItemComboBox` elements.
+  
+  If the setting references a `gimp.Image`, only drawables from that image will
+  be displayed.
   
   Value: `gimp.Item` selected in the combo box.
   """
@@ -292,17 +281,17 @@ class GimpItemComboBoxPresenter(GtkPresenter):
     return self._element.get_active_item()
   
   def _set_value(self, value):
-    """
-    Set a `gimp.Item` instance to be selected in the combo box. Passing `None`
-    has no effect.
+    """Sets a `gimp.Item` instance to be selected in the combo box.
+    
+    Passing `None` has no effect.
     """
     if value is not None:
       self._element.set_active_item(value)
 
 
 class GimpUiDrawableComboBoxPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.DrawableComboBox` elements.
+  """`Presenter` subclass for `gimpui.DrawableComboBox` elements.
+  
   If the setting references a `gimp.Image`, only drawables from that image will
   be displayed.
   
@@ -318,18 +307,18 @@ class GimpUiDrawableComboBoxPresenter(GtkPresenter):
     return self._element.get_active_drawable()
   
   def _set_value(self, value):
-    """
-    Set a `gimp.Drawable` instance to be selected in the combo box. Passing
-    `None` has no effect.
+    """Sets a `gimp.Drawable` instance to be selected in the combo box.
+    
+    Passing `None` has no effect.
     """
     if value is not None:
       self._element.set_active_drawable(value)
 
 
 class GimpUiLayerComboBoxPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.LayerComboBox` elements. If
-  the setting references a `gimp.Image`, only layers from that image will be
+  """`Presenter` subclass for `gimpui.LayerComboBox` elements.
+  
+  If the setting references a `gimp.Image`, only layers from that image will be
   displayed.
   
   Value: `gimp.Layer` selected in the combo box.
@@ -344,19 +333,19 @@ class GimpUiLayerComboBoxPresenter(GtkPresenter):
     return self._element.get_active_layer()
   
   def _set_value(self, value):
-    """
-    Set a `gimp.Layer` instance to be selected in the combo box. Passing
-    `None` has no effect.
+    """Sets a `gimp.Layer` instance to be selected in the combo box.
+    
+    Passing `None` has no effect.
     """
     if value is not None:
       self._element.set_active_layer(value)
 
 
 class GimpUiChannelComboBoxPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.ChannelComboBox` elements. If
-  the setting references a `gimp.Image`, only channels from that image will be
-  displayed.
+  """`Presenter` subclass for `gimpui.ChannelComboBox` elements.
+  
+  If the setting references a `gimp.Image`, only channels from that image will
+  be displayed.
   
   Value: `gimp.Channel` selected in the combo box.
   """
@@ -370,19 +359,19 @@ class GimpUiChannelComboBoxPresenter(GtkPresenter):
     return self._element.get_active_channel()
   
   def _set_value(self, value):
-    """
-    Set a `gimp.Channel` instance to be selected in the combo box. Passing
-    `None` has no effect.
+    """Sets a `gimp.Channel` instance to be selected in the combo box.
+    
+    Passing `None` has no effect.
     """
     if value is not None:
       self._element.set_active_channel(value)
 
 
 class GimpUiVectorsComboBoxPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.VectorsComboBox` elements. If
-  the setting references a `gimp.Image`, only vectors from that image will be
-  displayed.
+  """`Presenter` subclass for `gimpui.VectorsComboBox` elements.
+  
+  If the setting references a `gimp.Image`, only vectors from that image will
+  be displayed.
   
   Value: `gimp.Vectors` selected in the combo box.
   """
@@ -396,17 +385,16 @@ class GimpUiVectorsComboBoxPresenter(GtkPresenter):
     return self._element.get_active_vectors()
   
   def _set_value(self, value):
-    """
-    Set a `gimp.Vectors` instance to be selected in the combo box. Passing
-    `None` has no effect.
+    """Sets a `gimp.Vectors` instance to be selected in the combo box.
+    
+    Passing `None` has no effect.
     """
     if value is not None:
       self._element.set_active_vectors(value)
   
 
 class GimpUiColorButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.ColorButton` elements.
+  """`Presenter` subclass for `gimpui.ColorButton` elements.
   
   Value: `gimpcolor.RGB` instance representing color in RGB.
   """
@@ -425,8 +413,7 @@ class GimpUiColorButtonPresenter(GtkPresenter):
 
 
 class ParasiteBoxPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gui.ParasiteBox` elements.
+  """`Presenter` subclass for `gui.ParasiteBox` elements.
   
   Value: `gimp.Parasite` instance.
   """
@@ -444,8 +431,7 @@ class ParasiteBoxPresenter(GtkPresenter):
 
 
 class GtkDisplaySpinButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.SpinButton` elements.
+  """`Presenter` subclass for `gtk.SpinButton` elements.
   
   Value: `gimp.Display` instance, represented by its integer ID in the spin
   button.
@@ -479,8 +465,7 @@ class GtkDisplaySpinButtonPresenter(GtkPresenter):
 
 
 class ExtendedEntryPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gui.ExtendedEntry` elements.
+  """`Presenter` subclass for `gui.ExtendedEntry` elements.
   
   Value: Text in the entry.
   """
@@ -565,8 +550,7 @@ class GtkFolderChooserButtonPresenter(GtkPresenter):
 
 
 class GimpUiBrushSelectButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.BrushSelectButton` elements.
+  """`Presenter` subclass for `gimpui.BrushSelectButton` elements.
   
   Value: Tuple representing a brush.
   """
@@ -586,8 +570,7 @@ class GimpUiBrushSelectButtonPresenter(GtkPresenter):
 
 
 class GimpUiFontSelectButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.FontSelectButton` elements.
+  """`Presenter` subclass for `gimpui.FontSelectButton` elements.
   
   Value: String representing a font.
   """
@@ -605,9 +588,7 @@ class GimpUiFontSelectButtonPresenter(GtkPresenter):
 
 
 class GimpUiGradientSelectButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.GradientSelectButton`
-  elements.
+  """`Presenter` subclass for `gimpui.GradientSelectButton` elements.
   
   Value: String representing a gradient.
   """
@@ -625,9 +606,7 @@ class GimpUiGradientSelectButtonPresenter(GtkPresenter):
 
 
 class GimpUiPaletteSelectButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.PaletteSelectButton`
-  elements.
+  """`Presenter` subclass for `gimpui.PaletteSelectButton` elements.
   
   Value: String representing a color palette.
   """
@@ -645,9 +624,7 @@ class GimpUiPaletteSelectButtonPresenter(GtkPresenter):
 
 
 class GimpUiPatternSelectButtonPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gimpui.PatternSelectButton`
-  elements.
+  """`Presenter` subclass for `gimpui.PatternSelectButton` elements.
   
   Value: String representing a pattern.
   """
@@ -665,8 +642,7 @@ class GimpUiPatternSelectButtonPresenter(GtkPresenter):
 
 
 class ArrayBoxPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gui.ArrayBox` elements.
+  """`Presenter` subclass for `gui.ArrayBox` elements.
   
   Value: Tuple of values of type `element_type` specified in the passed
   `gui.ArraySetting` instance.
@@ -759,8 +735,7 @@ class ArrayBoxPresenter(GtkPresenter):
 
 
 class GtkWindowPositionPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for window or dialog elements
+  """`Presenter` subclass for window or dialog elements
   (`gtk.Window`, `gtk.Dialog`) to get/set its position.
   
   Value: Current position of the window as a tuple with 2 integers.
@@ -770,18 +745,16 @@ class GtkWindowPositionPresenter(GtkPresenter):
     return self._element.get_position()
   
   def _set_value(self, value):
-    """
-    Set new position of the window (i.e. move the window).
+    """Sets a new position of the window (i.e. move the window).
     
-    Do not move the window if `value` is `None` or empty.
+    The window is not moved if `value` is `None` or empty.
     """
     if value:
       self._element.move(*value)
 
 
 class GtkWindowSizePresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for window or dialog elements
+  """`Presenter` subclass for window or dialog elements
   (`gtk.Window`, `gtk.Dialog`) to get/set its size.
   
   Value: Current size of the window as a tuple with 2 integers.
@@ -791,18 +764,16 @@ class GtkWindowSizePresenter(GtkPresenter):
     return self._element.get_size()
   
   def _set_value(self, value):
-    """
-    Set new size of the window.
+    """Sets a new size of the window.
     
-    Do not resize the window if `value` is `None` or empty.
+    The window is not resized if `value` is `None` or empty.
     """
     if value:
       self._element.resize(*value)
 
 
 class GtkPanedPositionPresenter(GtkPresenter):
-  """
-  This class is a `Presenter` subclass for `gtk.Paned` elements.
+  """`Presenter` subclass for `gtk.Paned` elements.
   
   Value: Position of the pane.
   """
@@ -853,9 +824,7 @@ def _create_item_combo_box(item_combo_box_type, setting):
 
 
 class SettingGuiTypes(object):
-  """
-  This enum maps `Presenter` classes to more human-readable names.
-  """
+  """Mapping of `Presenter` classes to more human-readable names."""
   
   int_spin_button = GtkIntSpinButtonPresenter
   float_spin_button = GtkFloatSpinButtonPresenter
