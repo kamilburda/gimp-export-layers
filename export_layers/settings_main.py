@@ -22,6 +22,8 @@ from export_layers.gui import settings_gui
 
 
 pg.setting.register_setting_type(settings_custom.FilenamePatternSetting, 'filename_pattern')
+pg.setting.register_setting_gui_type(
+  settings_custom.FilenamePatternEntryPresenter, 'filename_pattern_entry')
 
 
 def create_settings():

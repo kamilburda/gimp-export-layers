@@ -63,6 +63,10 @@ __all__ = [
   'register_setting_type',
   'is_setting_type_registered',
   'unregister_setting_type',
+  'process_setting_gui_type',
+  'register_setting_gui_type',
+  'is_setting_gui_type_registered',
+  'unregister_setting_gui_type',
 ]
 
 
@@ -2210,6 +2214,14 @@ for key, value in inspect.getmembers(SettingTypes, lambda attr: not(inspect.isro
     _BUILTIN_SETTING_TYPE_NAMES.add(key)
 
 
+_SETTING_GUI_TYPES_TO_NAMES_MAP = collections.defaultdict(list)
+_BUILTIN_SETTING_GUI_TYPE_NAMES = set()
+for key, value in inspect.getmembers(SettingGuiTypes, lambda attr: not(inspect.isroutine(attr))):
+  if not key.startswith('__'):
+    _SETTING_GUI_TYPES_TO_NAMES_MAP[value].append(key)
+    _BUILTIN_SETTING_GUI_TYPE_NAMES.add(key)
+
+
 PDB_TYPES_TO_SETTING_TYPES_MAP = {
   gimpenums.PDB_INT32: 'integer',
   gimpenums.PDB_INT16: 'integer',
@@ -2240,67 +2252,165 @@ PDB_TYPES_TO_SETTING_TYPES_MAP = {
 
 
 def process_setting_type(setting_type_or_name):
-  """Returns a `settings.Setting` class based on the input setting type or name.
+  """Returns a `setting.Setting` class based on the input setting type or name.
   
   `setting_type_or_name` can be an object or a string, representing one of the
-  aliases specified in `settings.SettingTypes` or registered via
+  aliases specified in `setting.SettingTypes` or registered via
   `register_setting_type()`.
   
-  `ValueError` is raised if `setting_type` is not valid.
+  `ValueError` is raised if `setting_gui_type_or_name` is not valid.
   """
-  if isinstance(setting_type_or_name, str):
-    if is_setting_type_registered(setting_type_or_name):
-      return getattr(SettingTypes, setting_type_or_name)
-    else:
-      raise ValueError(
-        ('setting type "{}" is not recognized; see pygimplib.setting.SettingTypes'
-         ' for a list of supported setting types').format(setting_type_or_name))
-  else:
-    if is_setting_type_registered(setting_type_or_name):
-      return setting_type_or_name
-    else:
-      raise ValueError(
-        ('setting type "{}" is not recognized; if this is a custom setting type, register it'
-         ' via settings.register_setting_type()').format(setting_type_or_name))
+  return _process_type(
+    setting_type_or_name,
+    SettingTypes,
+    _SETTING_TYPES_TO_NAMES_MAP,
+    ('setting type "{}" is not recognized; see pygimplib.setting.SettingTypes'
+     ' for a list of supported setting types').format(setting_type_or_name),
+    ('setting type "{}" is not recognized; if this is a custom setting type, register it'
+     ' via settings.register_setting_type()').format(setting_type_or_name))
 
 
 def register_setting_type(setting_type, name):
-  """Adds `setting_type` as a recognized Setting class to
-  `settings.SettingTypes`, using `name` as the human-readable alias."""
-  if is_setting_type_registered(name):
-    raise ValueError(
-      'a setting type is already registered with the name "{}" (namely "{}")'.format(
-        name, getattr(SettingTypes, name)))
-  
-  setattr(SettingTypes, name, setting_type)
-  _SETTING_TYPES_TO_NAMES_MAP[setting_type].append(name)
+  """Adds `setting_type` as a recognized setting type (`setting.Setting` class)
+  to `settings.SettingTypes`, using `name` as the human-readable alias."""
+  _register_type(
+    setting_type,
+    name,
+    SettingTypes,
+    _SETTING_TYPES_TO_NAMES_MAP,
+    'a setting type is already registered with the name "{}" (namely "{}")'.format(
+      name, getattr(SettingTypes, name, None)))
 
 
 def is_setting_type_registered(setting_type_or_name):
-  if isinstance(setting_type_or_name, str):
-    return hasattr(SettingTypes, setting_type_or_name)
-  else:
-    return setting_type_or_name in _SETTING_TYPES_TO_NAMES_MAP
+  """Returns `True` if the specified setting type or name is registered via
+  `register_setting_type()` or is a built-in setting type."""
+  return _is_type_registered(setting_type_or_name, SettingTypes, _SETTING_TYPES_TO_NAMES_MAP)
 
 
 def unregister_setting_type(name):
   """Removes a setting type registered via `register_setting_type()` from
-  `settings.SettingTypes`.
+  `setting.SettingTypes`.
   
   `ValueError` is raised when `name` does not match any existing setting type or
-  when attempting to unregister a hard-coded setting type (e.g. `'integer'`).
+  when attempting to unregister a built-in setting type (e.g. `'integer'`).
   """
-  if not is_setting_type_registered(name):
-    raise ValueError('setting type with name "{}" does not exist'.format(name))
+  _unregister_type(
+    name,
+    SettingTypes,
+    _SETTING_TYPES_TO_NAMES_MAP,
+    _BUILTIN_SETTING_TYPE_NAMES,
+    'setting type with name "{}" does not exist'.format(name),
+    'attempting to unregister a built-in setting type with name "{}"'.format(name))
+
+
+def process_setting_gui_type(setting_gui_type_or_name):
+  """Returns a `setting.Presenter` class based on the input setting type or
+  name.
   
-  if name in _BUILTIN_SETTING_TYPE_NAMES:
-    raise ValueError(
-      'attempting to unregister a built-in setting type with name "{}"'.format(name))
+  `setting_gui_type_or_name` can be an object or a string, representing one of
+  the aliases specified in `setting.SettingGuiTypes` or registered via
+  `register_setting_gui_type()`.
   
-  setting_type = getattr(SettingTypes, name)
+  `ValueError` is raised if `setting_gui_type_or_name` is not valid.
+  """
+  return _process_type(
+    setting_gui_type_or_name,
+    SettingGuiTypes,
+    _SETTING_GUI_TYPES_TO_NAMES_MAP,
+    ('setting GUI type "{}" is not recognized; see pygimplib.setting.SettingGuiTypes'
+     ' for a list of supported setting GUI types').format(setting_gui_type_or_name),
+    ('setting GUI type "{}" is not recognized; if this is a custom setting GUI type, register it'
+     ' via settings.register_setting_gui_type()').format(setting_gui_type_or_name))
+
+
+def register_setting_gui_type(setting_gui_type, name):
+  """Adds `setting_gui_type` as a recognized setting GUI type
+  (`setting.Presenter` class) to `setting.SettingGuiTypes`, using `name` as the
+  human-readable alias."""
+  _register_type(
+    setting_gui_type,
+    name,
+    SettingGuiTypes,
+    _SETTING_GUI_TYPES_TO_NAMES_MAP,
+    'a setting GUI type is already registered with the name "{}" (namely "{}")'.format(
+      name, getattr(SettingGuiTypes, name, None)))
+
+
+def is_setting_gui_type_registered(setting_gui_type_or_name):
+  """Returns `True` if the specified setting GUI type or name is registered via
+  `register_setting_gui_type()` or is a built-in setting GUI type."""
+  return _is_type_registered(
+    setting_gui_type_or_name, SettingGuiTypes, _SETTING_GUI_TYPES_TO_NAMES_MAP)
+
+
+def unregister_setting_gui_type(name):
+  """Removes a setting GUI type registered via `register_setting_gui_type()`
+  from `setting.SettingGuiTypes`.
   
-  delattr(SettingTypes, name)
+  `ValueError` is raised when `name` does not match any existing setting GUI
+  type or when attempting to unregister a built-in setting GUI type
+  (e.g. `'check_button'`).
+  """
+  _unregister_type(
+    name,
+    SettingGuiTypes,
+    _SETTING_GUI_TYPES_TO_NAMES_MAP,
+    _BUILTIN_SETTING_GUI_TYPE_NAMES,
+    'setting GUI type with name "{}" does not exist'.format(name),
+    'attempting to unregister a built-in setting GUI type with name "{}"'.format(name))
+
+
+def _process_type(
+      type_or_name,
+      types_class,
+      types_to_names_map,
+      error_message_for_name,
+      error_message_for_type):
+  if isinstance(type_or_name, str):
+    if _is_type_registered(type_or_name, types_class, types_to_names_map):
+      return getattr(types_class, type_or_name)
+    else:
+      raise ValueError(error_message_for_name)
+  else:
+    if _is_type_registered(type_or_name, types_class, types_to_names_map):
+      return type_or_name
+    else:
+      raise ValueError(error_message_for_type)
+
+
+def _register_type(type_, name, types_class, types_to_names_map, error_message):
+  if _is_type_registered(name, types_class, types_to_names_map):
+    raise ValueError(error_message)
   
-  _SETTING_TYPES_TO_NAMES_MAP[setting_type].remove(name)
-  if not _SETTING_TYPES_TO_NAMES_MAP[setting_type]:
-    del _SETTING_TYPES_TO_NAMES_MAP[setting_type]
+  setattr(types_class, name, type_)
+  types_to_names_map[type_].append(name)
+
+
+def _is_type_registered(type_or_name, types_class, types_to_names_map):
+  if isinstance(type_or_name, str):
+    return hasattr(types_class, type_or_name)
+  else:
+    return type_or_name in types_to_names_map
+
+
+def _unregister_type(
+      name,
+      types_class,
+      types_to_names_map,
+      builtin_names,
+      error_message_for_non_existent,
+      error_message_for_builtin):
+  if not _is_type_registered(name, types_class, types_to_names_map):
+    raise ValueError(error_message_for_non_existent)
+  
+  if name in builtin_names:
+    raise ValueError(error_message_for_builtin)
+  
+  type_ = getattr(types_class, name)
+  
+  delattr(types_class, name)
+  
+  types_to_names_map[type_].remove(name)
+  if not types_to_names_map[type_]:
+    del types_to_names_map[type_]

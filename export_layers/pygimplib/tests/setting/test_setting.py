@@ -18,6 +18,7 @@ from ... import utils as pgutils
 from ... import path as pgpath
 
 from ...setting import persistor as persistor_
+from ...setting import presenters_gtk
 from ...setting import settings as settings_
 from ...setting import sources as sources_
 
@@ -1566,3 +1567,64 @@ class TestSettingTypeFunctions(unittest.TestCase):
   def test_unregister_setting_type_raises_error_when_attempting_to_remove_builtin_type(self):
     with self.assertRaises(ValueError):
       settings_.unregister_setting_type('int')
+
+
+class TestSettingGuiTypeFunctions(unittest.TestCase):
+  
+  def test_process_setting_gui_type_with_name(self):
+    self.assertEqual(
+      settings_.process_setting_gui_type('check_button'), presenters_gtk.GtkCheckButtonPresenter)
+  
+  def test_process_setting_gui_type_with_type_alias(self):
+    self.assertEqual(
+      settings_.process_setting_gui_type(settings_.SettingGuiTypes.check_button),
+      presenters_gtk.GtkCheckButtonPresenter)
+  
+  def test_process_setting_gui_type_with_type(self):
+    self.assertEqual(
+      settings_.process_setting_gui_type(presenters_gtk.GtkCheckButtonPresenter),
+      presenters_gtk.GtkCheckButtonPresenter)
+  
+  def test_process_setting_gui_type_with_invalid_name(self):
+    with self.assertRaises(ValueError):
+      self.assertEqual(settings_.process_setting_gui_type('invalid_type'))
+  
+  def test_process_setting_gui_type_with_invalid_type(self):
+    with self.assertRaises(ValueError):
+      self.assertEqual(settings_.process_setting_gui_type(object()))
+  
+  def test_register_setting_gui_type(self):
+    settings_.register_setting_gui_type(stubs_setting.CheckButtonPresenterStub, 'stub')
+    
+    self.assertTrue(
+      settings_.is_setting_gui_type_registered(stubs_setting.CheckButtonPresenterStub))
+    self.assertTrue(settings_.is_setting_gui_type_registered('stub'))
+    
+    settings_.unregister_setting_gui_type('stub')
+  
+  def test_register_setting_gui_type_allows_multiple_names_for_the_same_type(self):
+    settings_.register_setting_gui_type(stubs_setting.CheckButtonPresenterStub, 'stub')
+    settings_.register_setting_gui_type(stubs_setting.CheckButtonPresenterStub, 'stub2')
+    
+    self.assertTrue(
+      settings_.is_setting_gui_type_registered(stubs_setting.CheckButtonPresenterStub))
+    self.assertTrue(settings_.is_setting_gui_type_registered('stub'))
+    self.assertTrue(settings_.is_setting_gui_type_registered('stub2'))
+    
+    settings_.unregister_setting_gui_type('stub')
+    settings_.unregister_setting_gui_type('stub2')
+  
+  def test_register_setting_gui_type_raises_error_on_already_registered_name(self):
+    settings_.register_setting_gui_type(stubs_setting.CheckButtonPresenterStub, 'stub')
+    with self.assertRaises(ValueError):
+      settings_.register_setting_gui_type(stubs_setting.PresenterStub, 'stub')
+    
+    settings_.unregister_setting_gui_type('stub')
+  
+  def test_unregister_setting_gui_type_raises_error_on_unrecognized_name(self):
+    with self.assertRaises(ValueError):
+      settings_.unregister_setting_gui_type('invalid_type')
+  
+  def test_unregister_setting_gui_type_raises_error_when_attempting_to_remove_builtin_type(self):
+    with self.assertRaises(ValueError):
+      settings_.unregister_setting_gui_type('check_button')
