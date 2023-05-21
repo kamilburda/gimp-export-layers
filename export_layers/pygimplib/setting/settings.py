@@ -9,6 +9,7 @@ import future.utils
 import abc
 import collections
 import copy
+import inspect
 import os
 import types
 
@@ -58,6 +59,10 @@ __all__ = [
   'SettingDefaultValueError',
   'SettingTypes',
   'PDB_TYPES_TO_SETTING_TYPES_MAP',
+  'process_setting_type',
+  'register_setting_type',
+  'is_setting_type_registered',
+  'unregister_setting_type',
 ]
 
 
@@ -1861,12 +1866,12 @@ class ArraySetting(Setting):
     parameters must be prefixed with `'element_'` (e.g.
     `element_default_value`). Required parameters for the basic setting classes
     include:
-    * `element_type` - setting type of each array element. Passing
-      `ArraySetting` is also possible, allowing to create multidimensional
-      arrays. Note that in that case, required parameters for elements of each
-      subsequent dimension must be specified and must have an extra `'element_'`
-      prefix. For example, for the second dimension of a 2D array,
-      `element_element_type` must also be specified.
+    * `element_type` - setting type (or name thereof) of each array element.
+      Passing `ArraySetting` is also possible, allowing to create
+      multidimensional arrays. Note that in that case, required parameters for
+      elements of each subsequent dimension must be specified and must have an
+      extra `'element_'` prefix. For example, for the second dimension of a 2D
+      array, `element_element_type` must also be specified.
     * all other required parameters as per individual setting classes.
     
     All parameters prefixed with `'element_'` will be created in the array
@@ -1879,7 +1884,7 @@ class ArraySetting(Setting):
       unlimited).
     """
     
-    self._element_type = element_type
+    self._element_type = process_setting_type(element_type)
     self._min_size = min_size if min_size is not None else 0
     self._max_size = max_size
     
@@ -2136,9 +2141,8 @@ class ArraySetting(Setting):
 
 
 class SettingValueError(Exception):
-  """
-  This exception class is raised when a value assigned to a `Setting` object is
-  invalid.
+  """Exception class raised when assigning an invalid value to a `Setting`
+  object.
   """
   
   def __init__(self, *args, **kwargs):
@@ -2149,8 +2153,7 @@ class SettingValueError(Exception):
 
 
 class SettingDefaultValueError(SettingValueError):
-  """
-  This exception class is raised when the default value specified during the
+  """Exception class raised when the default value specified during the
   `Setting` object initialization is invalid.
   """
   
@@ -2158,16 +2161,18 @@ class SettingDefaultValueError(SettingValueError):
 
 
 class SettingTypes(object):
-  """
-  This enum maps `Setting` classes to more human-readable names.
-  """
+  """Mapping of `Setting` classes to more human-readable names."""
   
   generic = Setting
   integer = IntSetting
+  int = integer
   float = FloatSetting
   boolean = BoolSetting
+  bool = boolean
   enumerated = EnumSetting
+  enum = enumerated
   string = StringSetting
+  str = string
   
   image = ImageSetting
   item = ItemSetting
@@ -2197,30 +2202,105 @@ class SettingTypes(object):
   array = ArraySetting
 
 
+_SETTING_TYPES_TO_NAMES_MAP = collections.defaultdict(list)
+_BUILTIN_SETTING_TYPE_NAMES = set()
+for key, value in inspect.getmembers(SettingTypes, lambda attr: not(inspect.isroutine(attr))):
+  if not key.startswith('__'):
+    _SETTING_TYPES_TO_NAMES_MAP[value].append(key)
+    _BUILTIN_SETTING_TYPE_NAMES.add(key)
+
+
 PDB_TYPES_TO_SETTING_TYPES_MAP = {
-  gimpenums.PDB_INT32: IntSetting,
-  gimpenums.PDB_INT16: IntSetting,
-  gimpenums.PDB_INT8: IntSetting,
-  gimpenums.PDB_FLOAT: FloatSetting,
-  gimpenums.PDB_STRING: StringSetting,
+  gimpenums.PDB_INT32: 'integer',
+  gimpenums.PDB_INT16: 'integer',
+  gimpenums.PDB_INT8: 'integer',
+  gimpenums.PDB_FLOAT: 'float',
+  gimpenums.PDB_STRING: 'string',
   
-  gimpenums.PDB_IMAGE: ImageSetting,
-  gimpenums.PDB_ITEM: ItemSetting,
-  gimpenums.PDB_DRAWABLE: DrawableSetting,
-  gimpenums.PDB_LAYER: LayerSetting,
-  gimpenums.PDB_CHANNEL: ChannelSetting,
-  gimpenums.PDB_SELECTION: SelectionSetting,
-  gimpenums.PDB_VECTORS: VectorsSetting,
+  gimpenums.PDB_IMAGE: 'image',
+  gimpenums.PDB_ITEM: 'item',
+  gimpenums.PDB_DRAWABLE: 'drawable',
+  gimpenums.PDB_LAYER: 'layer',
+  gimpenums.PDB_CHANNEL: 'channel',
+  gimpenums.PDB_SELECTION: 'selection',
+  gimpenums.PDB_VECTORS: 'vectors',
   
-  gimpenums.PDB_COLOR: ColorSetting,
-  gimpenums.PDB_PARASITE: ParasiteSetting,
-  gimpenums.PDB_DISPLAY: DisplaySetting,
-  gimpenums.PDB_STATUS: PdbStatusSetting,
+  gimpenums.PDB_COLOR: 'color',
+  gimpenums.PDB_PARASITE: 'parasite',
+  gimpenums.PDB_DISPLAY: 'display',
+  gimpenums.PDB_STATUS: 'pdb_status',
   
-  gimpenums.PDB_INT32ARRAY: {'type': ArraySetting, 'element_type': IntSetting},
-  gimpenums.PDB_INT16ARRAY: {'type': ArraySetting, 'element_type': IntSetting},
-  gimpenums.PDB_INT8ARRAY: {'type': ArraySetting, 'element_type': IntSetting},
-  gimpenums.PDB_FLOATARRAY: {'type': ArraySetting, 'element_type': FloatSetting},
-  gimpenums.PDB_STRINGARRAY: {'type': ArraySetting, 'element_type': StringSetting},
-  gimpenums.PDB_COLORARRAY: {'type': ArraySetting, 'element_type': ColorSetting},
+  gimpenums.PDB_INT32ARRAY: {'type': 'array', 'element_type': 'integer'},
+  gimpenums.PDB_INT16ARRAY: {'type': 'array', 'element_type': 'integer'},
+  gimpenums.PDB_INT8ARRAY: {'type': 'array', 'element_type': 'integer'},
+  gimpenums.PDB_FLOATARRAY: {'type': 'array', 'element_type': 'float'},
+  gimpenums.PDB_STRINGARRAY: {'type': 'array', 'element_type': 'string'},
+  gimpenums.PDB_COLORARRAY: {'type': 'array', 'element_type': 'color'},
 }
+
+
+def process_setting_type(setting_type_or_name):
+  """Returns a `settings.Setting` class based on the input setting type or name.
+  
+  `setting_type_or_name` can be an object or a string, representing one of the
+  aliases specified in `settings.SettingTypes` or registered via
+  `register_setting_type()`.
+  
+  `ValueError` is raised if `setting_type` is not valid.
+  """
+  if isinstance(setting_type_or_name, str):
+    if is_setting_type_registered(setting_type_or_name):
+      return getattr(SettingTypes, setting_type_or_name)
+    else:
+      raise ValueError(
+        ('setting type "{}" is not recognized; see pygimplib.setting.SettingTypes'
+         ' for a list of supported setting types').format(setting_type_or_name))
+  else:
+    if is_setting_type_registered(setting_type_or_name):
+      return setting_type_or_name
+    else:
+      raise ValueError(
+        ('setting type "{}" is not recognized; if this is a custom setting type, register it'
+         ' via settings.register_setting_type()').format(setting_type_or_name))
+
+
+def register_setting_type(setting_type, name):
+  """Adds `setting_type` as a recognized Setting class to
+  `settings.SettingTypes`, using `name` as the human-readable alias."""
+  if is_setting_type_registered(name):
+    raise ValueError(
+      'a setting type is already registered with the name "{}" (namely "{}")'.format(
+        name, getattr(SettingTypes, name)))
+  
+  setattr(SettingTypes, name, setting_type)
+  _SETTING_TYPES_TO_NAMES_MAP[setting_type].append(name)
+
+
+def is_setting_type_registered(setting_type_or_name):
+  if isinstance(setting_type_or_name, str):
+    return hasattr(SettingTypes, setting_type_or_name)
+  else:
+    return setting_type_or_name in _SETTING_TYPES_TO_NAMES_MAP
+
+
+def unregister_setting_type(name):
+  """Removes a setting type registered via `register_setting_type()` from
+  `settings.SettingTypes`.
+  
+  `ValueError` is raised when `name` does not match any existing setting type or
+  when attempting to unregister a hard-coded setting type (e.g. `'integer'`).
+  """
+  if not is_setting_type_registered(name):
+    raise ValueError('setting type with name "{}" does not exist'.format(name))
+  
+  if name in _BUILTIN_SETTING_TYPE_NAMES:
+    raise ValueError(
+      'attempting to unregister a built-in setting type with name "{}"'.format(name))
+  
+  setting_type = getattr(SettingTypes, name)
+  
+  delattr(SettingTypes, name)
+  
+  _SETTING_TYPES_TO_NAMES_MAP[setting_type].remove(name)
+  if not _SETTING_TYPES_TO_NAMES_MAP[setting_type]:
+    del _SETTING_TYPES_TO_NAMES_MAP[setting_type]

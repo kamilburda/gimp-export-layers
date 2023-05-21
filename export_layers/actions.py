@@ -183,13 +183,13 @@ def create(name, initial_actions=None):
   actions.add([
     added_actions,
     {
-      'type': pg.SettingTypes.generic,
+      'type': 'generic',
       'name': '_added_data',
       'default_value': _get_initial_added_data(initial_actions),
       'setting_sources': ['session', 'persistent']
     },
     {
-      'type': pg.SettingTypes.generic,
+      'type': 'generic',
       'name': '_added_data_values',
       'default_value': {},
       'setting_sources': ['session', 'persistent']
@@ -315,14 +315,14 @@ def _create_action(
   
   action.add([
     {
-      'type': pg.SettingTypes.string,
+      'type': 'string',
       'name': 'function',
       'default_value': function,
       'setting_sources': None,
       'gui_type': None,
     },
     {
-      'type': pg.SettingTypes.enumerated,
+      'type': 'enumerated',
       'name': 'origin',
       'default_value': origin,
       'items': [
@@ -332,44 +332,44 @@ def _create_action(
     },
     arguments_group,
     {
-      'type': pg.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'enabled',
       'default_value': enabled,
     },
     {
-      'type': pg.SettingTypes.string,
+      'type': 'string',
       'name': 'display_name',
       'default_value': display_name,
       'gui_type': None,
       'tags': ['ignore_initialize_gui'],
     },
     {
-      'type': pg.SettingTypes.string,
+      'type': 'string',
       'name': 'description',
       'default_value': description,
       'gui_type': None,
     },
     {
-      'type': pg.SettingTypes.generic,
+      'type': 'generic',
       'name': 'action_groups',
       'default_value': action_groups,
       'gui_type': None,
     },
     {
-      'type': pg.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'more_options_expanded',
       'default_value': more_options_expanded,
       'display_name': _('_More options'),
       'gui_type': pg.SettingGuiTypes.expander,
     },
     {
-      'type': pg.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'enabled_for_previews',
       'default_value': enabled_for_previews,
       'display_name': _('Enable for previews'),
     },
     {
-      'type': pg.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'display_options_on_create',
       'default_value': display_options_on_create,
       'gui_type': None,
@@ -379,7 +379,7 @@ def _create_action(
   orig_name_value = custom_fields.pop('orig_name', name)
   action.add([
     {
-      'type': pg.SettingTypes.string,
+      'type': 'string',
       'name': 'orig_name',
       'default_value': orig_name_value,
       'gui_type': None,
@@ -389,7 +389,7 @@ def _create_action(
   for field_name, field_value in custom_fields.items():
     action.add([
       {
-        'type': pg.SettingTypes.generic,
+        'type': 'generic',
         'name': field_name,
         'default_value': field_value,
         'gui_type': None,
@@ -453,13 +453,13 @@ def _create_constraint(
   
   constraint.add([
     {
-      'type': pg.SettingTypes.string,
+      'type': 'string',
       'name': 'subfilter',
       'default_value': subfilter,
       'gui_type': None,
     },
     {
-      'type': pg.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'also_apply_to_parent_folders',
       'default_value': also_apply_to_parent_folders,
       'display_name': _('Also apply to parent folders'),

@@ -48,14 +48,14 @@ class TestUpdate(unittest.TestCase):
     
     self.settings['main'].add([
       {
-        'type': pg.SettingTypes.generic,
+        'type': 'generic',
         'name': 'plugin_version',
         'default_value': self.new_version,
         'pdb_type': None,
         'gui_type': None,
       },
       {
-        'type': pg.SettingTypes.generic,
+        'type': 'generic',
         'name': 'test_setting',
         'default_value': 'test',
         'pdb_type': None,

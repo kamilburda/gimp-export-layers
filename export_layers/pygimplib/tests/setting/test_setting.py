@@ -962,38 +962,36 @@ class TestCreateArraySetting(unittest.TestCase):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0)
     
     self.assertEqual(setting.name, 'coordinates')
     self.assertEqual(setting.default_value, (1.0, 5.0, 10.0))
     self.assertEqual(setting.value, (1.0, 5.0, 10.0))
-    self.assertEqual(setting.element_type, settings_.SettingTypes.float)
+    self.assertEqual(setting.element_type, settings_.FloatSetting)
     self.assertEqual(setting.element_default_value, 0.0)
   
   def test_create_with_empty_tuple(self):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=(),
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0)
     
     self.assertEqual(setting.default_value, ())
     self.assertEqual(setting.value, ())
   
   def test_create_with_element_default_value(self):
-    setting = settings_.ArraySetting(
-      'coordinates', element_type=settings_.SettingTypes.float)
+    setting = settings_.ArraySetting('coordinates', element_type='float')
     setting.add_element()
     
     self.assertEqual(setting[0].value, 0.0)
   
-  def test_create_passing_non_tuple_as_default_value_converts_initial_value_to_tuple(
-        self):
+  def test_create_passing_non_tuple_as_default_value_converts_initial_value_to_tuple(self):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=[1.0, 5.0, 10.0],
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0)
     
     self.assertEqual(setting.default_value, [1.0, 5.0, 10.0])
@@ -1003,7 +1001,7 @@ class TestCreateArraySetting(unittest.TestCase):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0,
       element_min_value=-100.0,
       element_max_value=100.0)
@@ -1020,7 +1018,7 @@ class TestCreateArraySetting(unittest.TestCase):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0,
       element_min_value=-100.0,
       element_max_value=100.0,
@@ -1033,7 +1031,7 @@ class TestCreateArraySetting(unittest.TestCase):
       settings_.ArraySetting(
         'coordinates',
         default_value=(-200.0, 200.0),
-        element_type=settings_.SettingTypes.float,
+        element_type='float',
         element_default_value=0.0,
         element_min_value=-100.0,
         element_max_value=100.0)
@@ -1048,7 +1046,7 @@ class TestCreateArraySetting(unittest.TestCase):
       settings_.ArraySetting(
         'coordinates',
         default_value=default_value,
-        element_type=settings_.SettingTypes.float,
+        element_type='float',
         element_default_value=-200.0,
         element_min_value=-100.0,
         element_max_value=100.0)
@@ -1056,17 +1054,17 @@ class TestCreateArraySetting(unittest.TestCase):
   @parameterized.parameterized.expand([
     ('element_pdb_type_is_registrable',
      settings_.SettingPdbTypes.automatic,
-     settings_.SettingTypes.float,
+     'float',
      settings_.SettingPdbTypes.array_float),
     
     ('element_pdb_type_is_not_registrable',
      settings_.SettingPdbTypes.automatic,
-     settings_.SettingTypes.generic,
+     'generic',
      settings_.SettingPdbTypes.none),
     
     ('registration_is_disabled_explicitly',
      None,
-     settings_.SettingTypes.float,
+     'float',
      settings_.SettingPdbTypes.none),
   ])
   def test_create_with_pdb_type(
@@ -1084,7 +1082,7 @@ class TestCreateArraySetting(unittest.TestCase):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1, 5, 10),
-      element_type=settings_.SettingTypes.integer,
+      element_type='integer',
       element_default_value=0,
       element_pdb_type=settings_.SettingPdbTypes.int16)
     
@@ -1095,7 +1093,7 @@ class TestCreateArraySetting(unittest.TestCase):
       settings_.ArraySetting(
         'coordinates',
         default_value=(1.0, 5.0, 10.0),
-        element_type=settings_.SettingTypes.float,
+        element_type='float',
         element_default_value=0.0,
         element_pdb_type=settings_.SettingPdbTypes.int16)
   
@@ -1105,18 +1103,18 @@ class TestCreateArraySetting(unittest.TestCase):
     setting = settings_.ArraySetting(
       'path_coordinates',
       default_value=values,
-      element_type=settings_.SettingTypes.array,
+      element_type='array',
       element_default_value=(0.0, 0.0, 0.0),
-      element_element_type=settings_.SettingTypes.float,
+      element_element_type='float',
       element_element_default_value=1.0)
     
     self.assertTupleEqual(setting.default_value, values)
-    self.assertEqual(setting.element_type, settings_.SettingTypes.array)
+    self.assertEqual(setting.element_type, settings_.ArraySetting)
     self.assertEqual(setting.element_default_value, (0.0, 0.0, 0.0))
     self.assertFalse(setting.can_be_registered_to_pdb())
     
     for i in range(len(setting)):
-      self.assertEqual(setting[i].element_type, settings_.SettingTypes.float)
+      self.assertEqual(setting[i].element_type, settings_.FloatSetting)
       self.assertEqual(setting[i].default_value, (0.0, 0.0, 0.0))
       self.assertEqual(setting[i].value, values[i])
       self.assertFalse(setting[i].can_be_registered_to_pdb())
@@ -1128,8 +1126,8 @@ class TestCreateArraySetting(unittest.TestCase):
   def test_create_multidimensional_array_with_default_default_values(self):
     setting = settings_.ArraySetting(
       'path_coordinates',
-      element_type=settings_.SettingTypes.array,
-      element_element_type=settings_.SettingTypes.float)
+      element_type='array',
+      element_element_type='float')
     
     setting.add_element()
     self.assertEqual(setting.value, ((),))
@@ -1143,7 +1141,7 @@ class TestArraySetting(unittest.TestCase):
     self.setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0,
       element_min_value=-100.0,
       element_max_value=100.0)
@@ -1160,7 +1158,7 @@ class TestArraySetting(unittest.TestCase):
   def test_has_element_default_value_even_if_not_specified(self):
     setting = settings_.ArraySetting(
       'coordinates',
-      element_type=settings_.SettingTypes.float)
+      element_type='float')
     
     self.assertTrue(hasattr(setting, 'element_default_value'))
     self.assertEqual(setting.element_default_value, 0.0)
@@ -1279,7 +1277,7 @@ class TestArraySetting(unittest.TestCase):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=(),
-      element_type=settings_.SettingTypes.generic,
+      element_type='generic',
       element_default_value=0)
     
     setting.add_element(value=None)
@@ -1410,7 +1408,7 @@ class TestArraySetting(unittest.TestCase):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
-      element_type=settings_.SettingTypes.generic,
+      element_type='generic',
       element_default_value=0.0)
     
     self.assertEqual(setting.get_pdb_param(), None)
@@ -1436,7 +1434,7 @@ class TestArraySettingCreateWithSize(unittest.TestCase):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0,
       min_size=min_size,
       max_size=max_size)
@@ -1456,7 +1454,7 @@ class TestArraySettingCreateWithSize(unittest.TestCase):
       settings_.ArraySetting(
         'coordinates',
         default_value=(1.0, 5.0, 10.0),
-        element_type=settings_.SettingTypes.float,
+        element_type='float',
         element_default_value=0.0,
         min_size=min_size,
         max_size=max_size)
@@ -1468,7 +1466,7 @@ class TestArraySettingSize(unittest.TestCase):
     self.setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0,
       element_min_value=-100.0,
       element_max_value=100.0,
@@ -1513,3 +1511,58 @@ class TestArraySettingSize(unittest.TestCase):
     del self.setting[-1]
     with self.assertRaises(settings_.SettingValueError):
       del self.setting[-1]
+
+
+class TestSettingTypeFunctions(unittest.TestCase):
+  
+  def test_process_setting_type_with_name(self):
+    self.assertEqual(settings_.process_setting_type('int'), settings_.IntSetting)
+  
+  def test_process_setting_type_with_type_alias(self):
+    self.assertEqual(
+      settings_.process_setting_type(settings_.SettingTypes.int), settings_.IntSetting)
+  
+  def test_process_setting_type_with_type(self):
+    self.assertEqual(settings_.process_setting_type(settings_.IntSetting), settings_.IntSetting)
+  
+  def test_process_setting_type_with_invalid_name(self):
+    with self.assertRaises(ValueError):
+      self.assertEqual(settings_.process_setting_type('invalid_type'))
+  
+  def test_process_setting_type_with_invalid_type(self):
+    with self.assertRaises(ValueError):
+      self.assertEqual(settings_.process_setting_type(object()))
+  
+  def test_register_setting_type(self):
+    settings_.register_setting_type(stubs_setting.SettingStub, 'stub')
+    
+    self.assertTrue(settings_.is_setting_type_registered(stubs_setting.SettingStub))
+    self.assertTrue(settings_.is_setting_type_registered('stub'))
+    
+    settings_.unregister_setting_type('stub')
+  
+  def test_register_setting_type_allows_multiple_names_for_the_same_type(self):
+    settings_.register_setting_type(stubs_setting.SettingStub, 'stub')
+    settings_.register_setting_type(stubs_setting.SettingStub, 'stub2')
+    
+    self.assertTrue(settings_.is_setting_type_registered(stubs_setting.SettingStub))
+    self.assertTrue(settings_.is_setting_type_registered('stub'))
+    self.assertTrue(settings_.is_setting_type_registered('stub2'))
+    
+    settings_.unregister_setting_type('stub')
+    settings_.unregister_setting_type('stub2')
+  
+  def test_register_setting_type_raises_error_on_already_registered_name(self):
+    settings_.register_setting_type(stubs_setting.SettingStub, 'stub')
+    with self.assertRaises(ValueError):
+      settings_.register_setting_type(stubs_setting.SettingWithGuiStub, 'stub')
+    
+    settings_.unregister_setting_type('stub')
+  
+  def test_unregister_setting_type_raises_error_on_unrecognized_name(self):
+    with self.assertRaises(ValueError):
+      settings_.unregister_setting_type('invalid_type')
+  
+  def test_unregister_setting_type_raises_error_when_attempting_to_remove_builtin_type(self):
+    with self.assertRaises(ValueError):
+      settings_.unregister_setting_type('int')

@@ -253,7 +253,7 @@ def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_nam
       else:
         action.add([
           {
-            'type': pg.SettingTypes.generic,
+            'type': 'generic',
             'name': new_name,
             'default_value': action[orig_name].value,
             'gui_type': None,

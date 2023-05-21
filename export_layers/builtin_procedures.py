@@ -148,14 +148,14 @@ _BUILTIN_PROCEDURES_LIST = [
     'display_options_on_create': True,
     'arguments': [
       {
-        'type': pg.SettingTypes.directory,
+        'type': 'directory',
         'name': 'output_directory',
         'default_value': gimp.user_directory(1),  # `Documents` directory
         'display_name': _('Output folder'),
         'gui_type': pg.setting.SettingGuiTypes.folder_chooser_button,
       },
       {
-        'type': pg.SettingTypes.file_extension,
+        'type': 'file_extension',
         'name': 'file_extension',
         'default_value': 'png',
         'display_name': _('File extension'),
@@ -163,7 +163,7 @@ _BUILTIN_PROCEDURES_LIST = [
         'adjust_value': True,
       },
       {
-        'type': pg.SettingTypes.enumerated,
+        'type': 'enumerated',
         'name': 'export_mode',
         'default_value': 'each_layer',
         'items': [
@@ -178,28 +178,28 @@ _BUILTIN_PROCEDURES_LIST = [
         'display_name': _('Perform export:'),
       },
       {
-        'type': settings_custom.FilenamePatternSetting,
+        'type': 'filename_pattern',
         'name': 'single_image_filename_pattern',
         'default_value': '[image name]',
         'display_name': _('Image filename pattern'),
         'gui_type': settings_custom.FilenamePatternEntryPresenter,
       },
       {
-        'type': pg.SettingTypes.boolean,
+        'type': 'boolean',
         'name': 'use_file_extension_in_item_name',
         'default_value': False,
         'display_name': _('Use file extension in layer name'),
         'gui_type': pg.SettingGuiTypes.check_button_no_text,
       },
       {
-        'type': pg.SettingTypes.boolean,
+        'type': 'boolean',
         'name': 'convert_file_extension_to_lowercase',
         'default_value': False,
         'display_name': _('Convert file extension to lowercase'),
         'gui_type': pg.SettingGuiTypes.check_button_no_text,
       },
       {
-        'type': pg.SettingTypes.boolean,
+        'type': 'boolean',
         'name': 'preserve_layer_name_after_export',
         'default_value': False,
         'display_name': _('Preserve layer name after export'),
@@ -224,7 +224,7 @@ _BUILTIN_PROCEDURES_LIST = [
     'display_name': _('Insert background layers'),
     'arguments': [
       {
-        'type': pg.SettingTypes.string,
+        'type': 'string',
         'name': 'tag',
         'default_value': 'background',
       },
@@ -236,7 +236,7 @@ _BUILTIN_PROCEDURES_LIST = [
     'display_name': _('Insert foreground layers'),
     'arguments': [
       {
-        'type': pg.SettingTypes.string,
+        'type': 'string',
         'name': 'tag',
         'default_value': 'foreground',
       },
@@ -248,7 +248,7 @@ _BUILTIN_PROCEDURES_LIST = [
     'display_name': _('Merge background'),
     'arguments': [
       {
-        'type': pg.SettingTypes.enumerated,
+        'type': 'enumerated',
         'name': 'merge_type',
         'default_value': 'expand_as_necessary',
         'items': [
@@ -266,7 +266,7 @@ _BUILTIN_PROCEDURES_LIST = [
     'display_name': _('Merge foreground'),
     'arguments': [
       {
-        'type': pg.SettingTypes.enumerated,
+        'type': 'enumerated',
         'name': 'merge_type',
         'default_value': 'expand_as_necessary',
         'items': [
@@ -286,21 +286,21 @@ _BUILTIN_PROCEDURES_LIST = [
     'display_options_on_create': True,
     'arguments': [
       {
-        'type': settings_custom.FilenamePatternSetting,
+        'type': 'filename_pattern',
         'name': 'pattern',
         'default_value': '[layer name]',
         'display_name': _('Layer filename pattern'),
         'gui_type': settings_custom.FilenamePatternEntryPresenter,
       },
       {
-        'type': pg.SettingTypes.boolean,
+        'type': 'boolean',
         'name': 'rename_layers',
         'default_value': True,
         'display_name': _('Rename layers'),
         'gui_type': pg.SettingGuiTypes.check_button_no_text,
       },
       {
-        'type': pg.SettingTypes.boolean,
+        'type': 'boolean',
         'name': 'rename_folders',
         'default_value': False,
         'display_name': _('Rename folders'),

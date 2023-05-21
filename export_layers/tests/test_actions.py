@@ -16,7 +16,6 @@ from export_layers import pygimplib as pg
 from export_layers.pygimplib.tests import stubs_gimp
 
 from export_layers import actions
-from export_layers import placeholders
 
 
 test_procedures = [
@@ -29,12 +28,12 @@ test_procedures = [
     'action_groups': ['basic'],
     'arguments': [
       {
-        'type': pg.SettingTypes.integer,
+        'type': 'integer',
         'name': 'offset_x',
         'default_value': 0,
       },
       {
-        'type': pg.SettingTypes.integer,
+        'type': 'integer',
         'name': 'offset_y',
         'default_value': 0,
       },
@@ -841,5 +840,5 @@ class TestGetActionDictAsPdbProcedure(unittest.TestCase):
     
     action_dict = actions.get_action_dict_for_pdb_procedure(self.procedure_stub)
     
-    self.assertEqual(action_dict['arguments'][-2]['type'], placeholders.PlaceholderImageSetting)
-    self.assertEqual(action_dict['arguments'][-1]['type'], placeholders.PlaceholderLayerSetting)
+    self.assertEqual(action_dict['arguments'][-2]['type'], 'placeholder_image')
+    self.assertEqual(action_dict['arguments'][-1]['type'], 'placeholder_layer')

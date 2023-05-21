@@ -125,19 +125,19 @@ def _get_basic_settings():
   return [
     {
       'name': 'integer',
-      'type': settings_.SettingTypes.integer,
+      'type': 'integer',
     },
     {
       'name': 'float',
-      'type': settings_.SettingTypes.float,
+      'type': 'float',
     },
     {
       'name': 'boolean',
-      'type': settings_.SettingTypes.boolean,
+      'type': 'boolean',
     },
     {
      'name': 'enumerated',
-     'type': settings_.SettingTypes.enumerated,
+     'type': 'enumerated',
      'items': [('interactive', 'RUN-INTERACTIVE'),
       ('non_interactive', 'RUN-NONINTERACTIVE'),
       ('run_with_last_vals', 'RUN-WITH-LAST-VALS')],
@@ -145,93 +145,93 @@ def _get_basic_settings():
     },
     {
       'name': 'string',
-      'type': settings_.SettingTypes.string,
+      'type': 'string',
       'default_value': 'Test',
     },
     
     {
       'name': 'image',
-      'type': settings_.SettingTypes.image,
+      'type': 'image',
       'default_value': image,
     },
     {
       'name': 'item',
-      'type': settings_.SettingTypes.item,
+      'type': 'item',
       'default_value': image.layers[0],
     },
     {
       'name': 'drawable',
-      'type': settings_.SettingTypes.drawable,
+      'type': 'drawable',
       'default_value': image.layers[0],
     },
     {
       'name': 'layer',
-      'type': settings_.SettingTypes.layer,
+      'type': 'layer',
       'default_value': image.layers[0],
     },
     {
       'name': 'channel',
-      'type': settings_.SettingTypes.channel,
+      'type': 'channel',
       'default_value': image.channels[0],
     },
     {
       'name': 'selection',
-      'type': settings_.SettingTypes.selection,
+      'type': 'selection',
       'default_value': pdb.gimp_image_get_selection(image),
     },
     {
       'name': 'vectors',
-      'type': settings_.SettingTypes.vectors,
+      'type': 'vectors',
       'default_value': image.vectors[0],
     },
     
     {
       'name': 'color',
-      'type': settings_.SettingTypes.color,
+      'type': 'color',
     },
     {
       'name': 'parasite',
-      'type': settings_.SettingTypes.parasite,
+      'type': 'parasite',
     },
     {
       'name': 'display',
-      'type': settings_.SettingTypes.display,
+      'type': 'display',
       'default_value': gimp.Display(image),
     },
     {
       'name': 'pdb_status',
-      'type': settings_.SettingTypes.pdb_status,
+      'type': 'pdb_status',
     },
     
     {
       'name': 'file_extension',
-      'type': settings_.SettingTypes.file_extension,
+      'type': 'file_extension',
       'default_value': 'png',
     },
     {
       'name': 'directory',
-      'type': settings_.SettingTypes.directory,
+      'type': 'directory',
     },
     
     {
       'name': 'brush',
-      'type': settings_.SettingTypes.brush,
+      'type': 'brush',
     },
     {
       'name': 'font',
-      'type': settings_.SettingTypes.font,
+      'type': 'font',
     },
     {
       'name': 'gradient',
-      'type': settings_.SettingTypes.gradient,
+      'type': 'gradient',
     },
     {
       'name': 'palette',
-      'type': settings_.SettingTypes.palette,
+      'type': 'palette',
     },
     {
       'name': 'pattern',
-      'type': settings_.SettingTypes.pattern,
+      'type': 'pattern',
     },
   ]
 
@@ -239,35 +239,35 @@ def _get_basic_settings():
 def _get_array_settings():
   return [
     {
-     'type': settings_.SettingTypes.array,
+     'type': 'array',
      'name': 'array_of_booleans',
      'default_value': (True, False, True),
-     'element_type': settings_.SettingTypes.boolean,
+     'element_type': 'boolean',
      'element_default_value': True,
      'min_size': 3,
      'max_size': 10,
     },
     
     {
-     'type': settings_.SettingTypes.array,
+     'type': 'array',
      'name': 'array_of_floats',
      'default_value': (5.0, 10.0, 30.0),
-     'element_type': settings_.SettingTypes.float,
+     'element_type': 'float',
      'element_default_value': 1.0,
      'min_size': 3,
      'max_size': 10,
     },
     
     {
-     'type': settings_.SettingTypes.array,
+     'type': 'array',
      'name': '2D_array_of_floats',
      'display_name': '2D array of floats',
      'default_value': ((1.0, 5.0, 10.0), (2.0, 15.0, 25.0), (-5.0, 10.0, 40.0)),
-     'element_type': settings_.SettingTypes.array,
+     'element_type': 'array',
      'element_default_value': (0.0, 0.0, 0.0),
      'min_size': 3,
      'max_size': 10,
-     'element_element_type': settings_.SettingTypes.float,
+     'element_element_type': 'float',
      'element_element_default_value': 1.0,
      'element_min_size': 1,
      'element_max_size': 3,

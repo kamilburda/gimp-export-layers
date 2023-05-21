@@ -13,20 +13,20 @@ def create_test_settings():
   settings = group_.Group('main')
   settings.add([
     {
-      'type': settings_.SettingTypes.file_extension,
+      'type': 'file_extension',
       'name': 'file_extension',
       'default_value': 'bmp',
       'display_name': 'File extension'
     },
     {
-      'type': settings_.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'flatten',
       'default_value': False,
       'display_name': 'Flatten',
       'setting_sources': ['persistent']
     },
     {
-      'type': settings_.SettingTypes.enumerated,
+      'type': 'enumerated',
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
       'items': [('replace', 'Replace'),
@@ -46,7 +46,7 @@ def create_test_settings_hierarchical():
   main_settings = group_.Group('main')
   main_settings.add([
     {
-      'type': settings_.SettingTypes.file_extension,
+      'type': 'file_extension',
       'name': 'file_extension',
       'default_value': 'bmp',
       'display_name': 'File extension'
@@ -56,13 +56,13 @@ def create_test_settings_hierarchical():
   advanced_settings = group_.Group('advanced')
   advanced_settings.add([
     {
-      'type': settings_.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'flatten',
       'default_value': False,
       'display_name': 'Flatten',
     },
     {
-      'type': settings_.SettingTypes.enumerated,
+      'type': 'enumerated',
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
       'items': [('replace', 'Replace'),
@@ -85,7 +85,7 @@ def create_test_settings_load_save():
   
   main_settings.add([
     {
-      'type': settings_.SettingTypes.file_extension,
+      'type': 'file_extension',
       'name': 'file_extension',
       'default_value': 'bmp',
     },
@@ -96,13 +96,13 @@ def create_test_settings_load_save():
   
   advanced_settings.add([
     {
-      'type': settings_.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'flatten',
       'default_value': False,
       'setting_sources': ['persistent', 'session']
     },
     {
-      'type': settings_.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'use_layer_size',
       'default_value': False
     },

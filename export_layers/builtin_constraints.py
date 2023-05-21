@@ -77,7 +77,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'display_name': _('Selected in preview'),
     'arguments': [
       {
-        'type': pg.SettingTypes.generic,
+        'type': 'generic',
         'name': 'selected_layers',
         'default_value': set(),
         'gui_type': None,
@@ -103,9 +103,9 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'display_name': _('With tags'),
     'arguments': [
       {
-        'type': pg.SettingTypes.array,
+        'type': 'array',
         'name': 'tags',
-        'element_type': pg.SettingTypes.string,
+        'element_type': 'string',
         'default_value': (),
       },
     ],
@@ -117,9 +117,9 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'display_name': _('Without tags'),
     'arguments': [
       {
-        'type': pg.SettingTypes.array,
+        'type': 'array',
         'name': 'tags',
-        'element_type': pg.SettingTypes.string,
+        'element_type': 'string',
         'default_value': (),
       },
     ],

@@ -54,7 +54,7 @@ class TestGroupAddWithSettingDict(unittest.TestCase):
   def setUp(self):
     self.settings = group_.Group('main')
     self.setting_dict = {
-      'type': settings_.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'use_layer_size',
       'default_value': False}
   
@@ -121,12 +121,12 @@ class TestGroupAddFromDict(unittest.TestCase):
     settings = group_.Group(name='main', setting_attributes={'pdb_type': None})
     settings.add([
       {
-       'type': settings_.SettingTypes.boolean,
+       'type': 'boolean',
        'name': 'flatten',
        'default_value': False,
       },
       {
-       'type': settings_.SettingTypes.boolean,
+       'type': 'boolean',
        'name': 'use_layer_size',
        'default_value': False,
       }
@@ -139,12 +139,12 @@ class TestGroupAddFromDict(unittest.TestCase):
     settings = group_.Group(name='main', setting_attributes={'pdb_type': None})
     settings.add([
       {
-       'type': settings_.SettingTypes.boolean,
+       'type': 'boolean',
        'name': 'flatten',
        'default_value': False,
       },
       {
-       'type': settings_.SettingTypes.boolean,
+       'type': 'boolean',
        'name': 'use_layer_size',
        'default_value': False,
        'pdb_type': settings_.SettingPdbTypes.int16
@@ -161,7 +161,7 @@ class TestGroupAddFromDict(unittest.TestCase):
     
     additional_settings.add([
       {
-       'type': settings_.SettingTypes.boolean,
+       'type': 'boolean',
        'name': 'use_layer_size',
        'default_value': False
       }
@@ -172,7 +172,7 @@ class TestGroupAddFromDict(unittest.TestCase):
     
     settings.add([
       {
-       'type': settings_.SettingTypes.boolean,
+       'type': 'boolean',
        'name': 'flatten',
        'default_value': False,
       },
@@ -237,7 +237,7 @@ class TestGroup(unittest.TestCase):
     self.settings = stubs_group.create_test_settings()
     
     self.first_plugin_run_setting_dict = {
-      'type': settings_.SettingTypes.boolean,
+      'type': 'boolean',
       'name': 'first_plugin_run',
       'default_value': False}
     
@@ -450,7 +450,7 @@ class TestGroupHierarchical(unittest.TestCase):
     expert_settings = group_.Group('expert')
     expert_settings.add([
         {
-         'type': settings_.SettingTypes.integer,
+         'type': 'integer',
          'name': 'file_extension_strip_mode',
          'default_value': 0
         }
@@ -753,17 +753,25 @@ class TestGroupLoadSave(unittest.TestCase):
 
 
 class TestGroupGui(unittest.TestCase):
-
+  
+  @classmethod
+  def setUpClass(self):
+    settings_.register_setting_type(stubs_setting.SettingWithGuiStub, 'stub_with_gui')
+  
+  @classmethod
+  def tearDownClass(cls):
+    settings_.unregister_setting_type('stub_with_gui')
+  
   def setUp(self):
     self.settings = group_.Group('main')
     self.settings.add([
       {
-        'type': stubs_setting.SettingWithGuiStub,
+        'type': 'stub_with_gui',
         'name': 'file_extension',
         'default_value': 'bmp',
       },
       {
-        'type': stubs_setting.SettingWithGuiStub,
+        'type': 'stub_with_gui',
         'name': 'flatten',
         'default_value': False,
       },

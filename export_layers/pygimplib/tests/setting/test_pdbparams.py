@@ -23,7 +23,7 @@ class TestCreateParams(unittest.TestCase):
     self.coordinates_setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0)
     
     self.settings = stubs_group.create_test_settings_hierarchical()
@@ -101,7 +101,7 @@ class TestIterArgs(unittest.TestCase):
     coordinates_setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
-      element_type=settings_.SettingTypes.float,
+      element_type='float',
       element_default_value=0.0)
     
     self.settings.add([coordinates_setting])
