@@ -518,6 +518,8 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     * `auto_update_gui_to_setting` - See `auto_update_gui_to_setting` parameter
       in `__init__()`.
     """
+    gui_type = process_setting_gui_type(gui_type)
+    
     if gui_type != SettingGuiTypes.automatic and gui_element is None:
       raise ValueError('gui_element cannot be None if gui_type is automatic')
     if gui_type == SettingGuiTypes.automatic and gui_element is not None:
@@ -714,22 +716,25 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     
     if gui_type is None:
       gui_type_to_return = SettingGuiTypes.none
-    elif gui_type == SettingGuiTypes.automatic:
-      if self._ALLOWED_GUI_TYPES:
-        gui_type_to_return = self._ALLOWED_GUI_TYPES[0]
-      else:
-        gui_type_to_return = SettingGuiTypes.none
     else:
-      if gui_type in self._ALLOWED_GUI_TYPES:
-        gui_type_to_return = gui_type
-      elif gui_type in [SettingGuiTypes.none, presenter_.NullPresenter]:
-        gui_type_to_return = gui_type
+      gui_type = process_setting_gui_type(gui_type)
+      
+      if gui_type == SettingGuiTypes.automatic:
+        if self._ALLOWED_GUI_TYPES:
+          gui_type_to_return = self._ALLOWED_GUI_TYPES[0]
+        else:
+          gui_type_to_return = SettingGuiTypes.none
       else:
-        raise ValueError(
-          '{}: invalid GUI type "{}"; must be one of {}'.format(
-            self.name,
-            gui_type,
-            [type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
+        if gui_type in self._ALLOWED_GUI_TYPES:
+          gui_type_to_return = gui_type
+        elif gui_type in [SettingGuiTypes.none, presenter_.NullPresenter]:
+          gui_type_to_return = gui_type
+        else:
+          raise ValueError(
+            '{}: invalid GUI type "{}"; must be one of {}'.format(
+              self.name,
+              gui_type,
+              [type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
     
     return gui_type_to_return
   

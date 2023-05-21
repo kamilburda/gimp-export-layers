@@ -292,7 +292,7 @@ def _create_action(
   
   def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
     setting_display_name.set_gui(
-      gui_type=pg.setting.SettingGuiTypes.check_button_label,
+      gui_type='check_button_label',
       gui_element=setting_enabled.gui.element)
   
   action = pg.setting.Group(
@@ -360,7 +360,7 @@ def _create_action(
       'name': 'more_options_expanded',
       'default_value': more_options_expanded,
       'display_name': _('_More options'),
-      'gui_type': pg.SettingGuiTypes.expander,
+      'gui_type': 'expander',
     },
     {
       'type': 'boolean',

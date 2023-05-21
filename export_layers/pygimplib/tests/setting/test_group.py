@@ -757,10 +757,12 @@ class TestGroupGui(unittest.TestCase):
   @classmethod
   def setUpClass(self):
     settings_.register_setting_type(stubs_setting.SettingWithGuiStub, 'stub_with_gui')
+    settings_.register_setting_gui_type(stubs_setting.PresenterStub, 'stub_presenter')
   
   @classmethod
   def tearDownClass(cls):
     settings_.unregister_setting_type('stub_with_gui')
+    settings_.unregister_setting_gui_type('stub_presenter')
   
   def setUp(self):
     self.settings = group_.Group('main')

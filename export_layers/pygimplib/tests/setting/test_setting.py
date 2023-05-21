@@ -390,6 +390,27 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
 
 class TestSettingGui(unittest.TestCase):
   
+  @classmethod
+  def setUpClass(self):
+    settings_.register_setting_gui_type(
+      stubs_setting.CheckButtonPresenterStub, 'stub_check_button')
+    settings_.register_setting_gui_type(
+      stubs_setting.PresenterStub, 'stub_presenter')
+    settings_.register_setting_gui_type(
+      stubs_setting.YesNoToggleButtonPresenterStub, 'stub_yes_no_toggle_button')
+    settings_.register_setting_gui_type(
+      stubs_setting.PresenterWithoutGuiElementCreationStub, 'stub_presenter_without_creation')
+    settings_.register_setting_gui_type(
+      stubs_setting.PresenterWithValueChangedSignalStub, 'stub_presenter_value_changed_signal')
+  
+  @classmethod
+  def tearDownClass(cls):
+    settings_.unregister_setting_gui_type('stub_check_button')
+    settings_.unregister_setting_gui_type('stub_presenter')
+    settings_.unregister_setting_gui_type('stub_yes_no_toggle_button')
+    settings_.unregister_setting_gui_type('stub_presenter_without_creation')
+    settings_.unregister_setting_gui_type('stub_presenter_value_changed_signal')
+  
   def setUp(self):
     self.setting = stubs_setting.SettingWithGuiStub('file_extension', 'png')
     self.widget = stubs_setting.GuiWidgetStub('')

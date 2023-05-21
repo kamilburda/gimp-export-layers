@@ -11,12 +11,9 @@ import gimp
 from gimp import pdb
 import gimpenums
 
-from export_layers import pygimplib as pg
-
 from export_layers import background_foreground
 from export_layers import export as export_
 from export_layers import renamer as renamer_
-from export_layers import settings_custom
 
 
 NAME_ONLY_TAG = 'name'
@@ -152,14 +149,14 @@ _BUILTIN_PROCEDURES_LIST = [
         'name': 'output_directory',
         'default_value': gimp.user_directory(1),  # `Documents` directory
         'display_name': _('Output folder'),
-        'gui_type': pg.setting.SettingGuiTypes.folder_chooser_button,
+        'gui_type': 'folder_chooser_button',
       },
       {
         'type': 'file_extension',
         'name': 'file_extension',
         'default_value': 'png',
         'display_name': _('File extension'),
-        'gui_type': pg.SettingGuiTypes.file_extension_entry,
+        'gui_type': 'file_extension_entry',
         'adjust_value': True,
       },
       {
@@ -182,28 +179,28 @@ _BUILTIN_PROCEDURES_LIST = [
         'name': 'single_image_filename_pattern',
         'default_value': '[image name]',
         'display_name': _('Image filename pattern'),
-        'gui_type': settings_custom.FilenamePatternEntryPresenter,
+        'gui_type': 'filename_pattern_entry',
       },
       {
         'type': 'boolean',
         'name': 'use_file_extension_in_item_name',
         'default_value': False,
         'display_name': _('Use file extension in layer name'),
-        'gui_type': pg.SettingGuiTypes.check_button_no_text,
+        'gui_type': 'check_button_no_text',
       },
       {
         'type': 'boolean',
         'name': 'convert_file_extension_to_lowercase',
         'default_value': False,
         'display_name': _('Convert file extension to lowercase'),
-        'gui_type': pg.SettingGuiTypes.check_button_no_text,
+        'gui_type': 'check_button_no_text',
       },
       {
         'type': 'boolean',
         'name': 'preserve_layer_name_after_export',
         'default_value': False,
         'display_name': _('Preserve layer name after export'),
-        'gui_type': pg.SettingGuiTypes.check_button_no_text,
+        'gui_type': 'check_button_no_text',
       },
     ],
   },
@@ -290,21 +287,21 @@ _BUILTIN_PROCEDURES_LIST = [
         'name': 'pattern',
         'default_value': '[layer name]',
         'display_name': _('Layer filename pattern'),
-        'gui_type': settings_custom.FilenamePatternEntryPresenter,
+        'gui_type': 'filename_pattern_entry',
       },
       {
         'type': 'boolean',
         'name': 'rename_layers',
         'default_value': True,
         'display_name': _('Rename layers'),
-        'gui_type': pg.SettingGuiTypes.check_button_no_text,
+        'gui_type': 'check_button_no_text',
       },
       {
         'type': 'boolean',
         'name': 'rename_folders',
         'default_value': False,
         'display_name': _('Rename folders'),
-        'gui_type': pg.SettingGuiTypes.check_button_no_text,
+        'gui_type': 'check_button_no_text',
       },
     ],
   },
