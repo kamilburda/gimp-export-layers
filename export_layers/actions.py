@@ -155,9 +155,9 @@ def create(name, initial_actions=None):
     `DEFAULT_CONSTRAINTS_GROUP` if not defined.
   
   Additional allowed fields for type `'constraint'` include:
-  * `'subfilter'` - The name of a nested filter for an `ObjectFilter` instance
-    where constraints should be added. By default, `'subfilter'` is `None` (no
-    nested filter is assumed).
+  * `'also_apply_to_parent_folders'` - If `True`, apply the constraint to parent
+    groups (folders) as well. The constraint is then satisfied only if the item
+    and all of its parents satisfy the constraint.
   
   Custom fields are accepted as well. For each field, a separate setting is
   created, using the field name as the setting name.
@@ -437,7 +437,6 @@ def _create_constraint(
       function,
       additional_tags=None,
       action_groups=(DEFAULT_CONSTRAINTS_GROUP,),
-      subfilter=None,
       also_apply_to_parent_folders=False,
       **kwargs_and_custom_fields):
   tags = ['action', 'constraint']
@@ -455,12 +454,6 @@ def _create_constraint(
     **kwargs_and_custom_fields)
   
   constraint.add([
-    {
-      'type': 'string',
-      'name': 'subfilter',
-      'default_value': subfilter,
-      'gui_type': None,
-    },
     {
       'type': 'boolean',
       'name': 'also_apply_to_parent_folders',

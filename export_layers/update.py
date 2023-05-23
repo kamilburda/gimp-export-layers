@@ -559,6 +559,9 @@ def _update_to_3_4(settings, sources):
     
     if action['origin'].is_item('builtin'):
       action['function'].set_value('')
+    
+    if 'subfilter' in action:
+      action.remove(['subfilter'])
   
   settings['main/constraints'].save(sources)
   

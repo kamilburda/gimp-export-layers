@@ -500,9 +500,7 @@ class Batcher(object):
     
     if 'constraint' in action.tags:
       function = self._set_apply_constraint_to_folders(function, action)
-      
-      function = self._get_constraint_func(
-        function, orig_function, action['orig_name'].value, action['subfilter'].value)
+      function = self._get_constraint_func(function, orig_function, action['orig_name'].value)
     
     function = self._apply_action_only_if_enabled(function, action)
     
@@ -598,22 +596,13 @@ class Batcher(object):
     else:
       return function
   
-  def _get_constraint_func(self, func, orig_func=None, name='', subfilter=None):
+  def _get_constraint_func(self, func, orig_func=None, name=''):
     def _add_func(*args, **kwargs):
       func_args = self._get_args_for_constraint_func(
         orig_func if orig_func is not None else func,
         args)
       
-      if subfilter is None:
-        object_filter = self._item_tree.filter
-      else:
-        subfilter_ids = self._item_tree.filter.find(name=subfilter)
-        if subfilter_ids:
-          object_filter = self._item_tree.filter[subfilter_ids[0]]
-        else:
-          object_filter = self._item_tree.filter.add(pg.objectfilter.ObjectFilter(name=subfilter))
-      
-      object_filter.add(func, func_args, kwargs, name=name)
+      self._item_tree.filter.add(func, func_args, kwargs, name=name)
     
     return _add_func
   
