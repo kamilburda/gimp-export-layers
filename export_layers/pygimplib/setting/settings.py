@@ -30,6 +30,7 @@ from .presenters_gtk import SettingGuiTypes
 __all__ = [
   'SettingPdbTypes',
   'Setting',
+  'GenericSetting',
   'IntSetting',
   'FloatSetting',
   'BoolSetting',
@@ -105,22 +106,24 @@ class SettingPdbTypes(object):
 
 
 @future.utils.python_2_unicode_compatible
-class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
-  """
-  This class holds data about a plug-in setting.
+class Setting(
+    future.utils.with_metaclass(
+      abc.ABCMeta, utils_.SettingParentMixin, utils_.SettingEventsMixin)):
+  """Abstract class representing a plug-in setting.
   
   Properties and methods in settings can be used in multiple scenarios, such as:
   * using setting values as variables in the main logic of plug-ins
   * registering GIMP Procedural Database (PDB) parameters to plug-ins
   * managing GUI element properties (values, labels, etc.)
   
-  This class in particular can store any data. However, it is strongly
-  recommended to use the appropriate `Setting` subclass for a particular data
-  type, as the subclasses offer the following benefits:
-  * setting can be registered to the GIMP procedural database (PDB),
+  Use an appropriate subclass of `Setting` for a particular data type. Most
+  subclasses offer the following features:
+  * the ability to register the setting to the GIMP procedural database (PDB),
   * automatic validation of input values,
-  * readily available GUI element, keeping the GUI and the setting value in
-    sync.
+  * readily available GUI widget, keeping the GUI and the setting value in sync.
+  
+  The `GenericSetting` class can store arbitrary data. Use this subclass
+  sparingly as it lacks all the features above.
   
   Settings can contain event handlers that are triggered when a setting property
   changes, e.g. `value` (when `set_value()` is called). This way, for example,
@@ -742,6 +745,15 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         setting_sources = None
     
     return load_save_func([self], setting_sources)
+
+
+class GenericSetting(Setting):
+  """Class for settings storing arbitrary data.
+  
+  Since there are limitations on the types of values that can be saved to a
+  setting source, you must provide `value_load` and `value_save` functions when
+  instantiating settings of this class to load and save the values properly.
+  """
 
 
 class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
@@ -2210,7 +2222,7 @@ class SettingDefaultValueError(SettingValueError):
 class SettingTypes(object):
   """Mapping of `Setting` classes to more human-readable names."""
   
-  generic = Setting
+  generic = GenericSetting
   integer = IntSetting
   int = integer
   float = FloatSetting

@@ -679,6 +679,8 @@ def _fix_pickle_paths_3_3_5(sources, key):
 def _fix_pickle_paths_3_4(sources, key):
   _fix_pickle_paths(
     [
+      (b'export_layers.pygimplib.setting.settings\nSetting',
+       b'export_layers.pygimplib.setting.settings\nGenericSetting'),
       (b'builtin_constraints\nis_empty_group',
        b'export_layers.pygimplib.utils\nempty_func'),
       (b'builtin_procedures\nuse_file_extension_in_item_name',
