@@ -183,16 +183,18 @@ def create(name, initial_actions=None):
   actions.add([
     added_actions,
     {
-      'type': 'generic',
+      'type': 'list',
       'name': '_added_data',
       'default_value': _get_initial_added_data(initial_actions),
-      'setting_sources': ['session', 'persistent']
+      'setting_sources': ['session', 'persistent'],
+      'gui_type': None,
     },
     {
-      'type': 'generic',
+      'type': 'dict',
       'name': '_added_data_values',
       'default_value': {},
-      'setting_sources': ['session', 'persistent']
+      'setting_sources': ['session', 'persistent'],
+      'gui_type': None,
     },
   ])
   
@@ -350,9 +352,10 @@ def _create_action(
       'gui_type': None,
     },
     {
-      'type': 'generic',
+      'type': 'list',
       'name': 'action_groups',
       'default_value': action_groups,
+      'nullable': True,
       'gui_type': None,
     },
     {

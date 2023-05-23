@@ -23,12 +23,12 @@ def create_gui_settings():
   
   size_gui_settings.add([
     {
-      'type': 'generic',
+      'type': 'tuple',
       'name': 'dialog_position',
       'default_value': (),
     },
     {
-      'type': 'generic',
+      'type': 'tuple',
       'name': 'dialog_size',
       'default_value': (),
     },

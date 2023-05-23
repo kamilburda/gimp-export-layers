@@ -1535,6 +1535,48 @@ class TestArraySettingSize(unittest.TestCase):
       del self.setting[-1]
 
 
+class TestContainerSettings(unittest.TestCase):
+  
+  def test_set_value_nullable_allows_none(self):
+    setting = settings_.ListSetting('setting', nullable=True)
+    
+    setting.set_value(None)
+    self.assertIsNone(setting.value)
+  
+  def test_set_value_for_list_setting(self):
+    expected_value = [1, 4, 'five']
+    
+    setting = settings_.ListSetting('setting')
+    
+    setting.set_value(expected_value)
+    self.assertEqual(setting.value, expected_value)
+    
+    setting.set_value(tuple(expected_value))
+    self.assertListEqual(setting.value, expected_value)
+  
+  def test_set_value_for_tuple_setting(self):
+    expected_value = (1, 4, 'five')
+    
+    setting = settings_.TupleSetting('setting')
+    
+    setting.set_value(expected_value)
+    self.assertEqual(setting.value, expected_value)
+    
+    setting.set_value(list(expected_value))
+    self.assertTupleEqual(setting.value, expected_value)
+  
+  def test_set_value_for_set_setting(self):
+    expected_value = set([1, 4, 'five'])
+    
+    setting = settings_.SetSetting('setting')
+    
+    setting.set_value(expected_value)
+    self.assertEqual(setting.value, expected_value)
+    
+    setting.set_value(list(expected_value))
+    self.assertSetEqual(setting.value, expected_value)
+
+
 class TestSettingTypeFunctions(unittest.TestCase):
   
   def test_process_setting_type_with_name(self):

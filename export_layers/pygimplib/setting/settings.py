@@ -2054,17 +2054,17 @@ class ArraySetting(Setting):
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _('Not an array.')
     self.error_messages['negative_min_size'] = _(
-      'Minimum array size ({}) cannot be negative.')
+      'Minimum size ({}) cannot be negative.')
     self.error_messages['min_size_greater_than_max_size'] = _(
-      'Minimum array size ({}) cannot be greater than maximum array size ({}).')
+      'Minimum size ({}) cannot be greater than maximum size ({}).')
     self.error_messages['min_size_greater_than_value_length'] = _(
-      'Minimum array size ({}) cannot be greater than the length of the value ({}).')
+      'Minimum size ({}) cannot be greater than the length of the value ({}).')
     self.error_messages['max_size_less_than_value_length'] = _(
-      'Maximum array size ({}) cannot be less than the length of the value ({}).')
+      'Maximum size ({}) cannot be less than the length of the value ({}).')
     self.error_messages['delete_below_min_size'] = _(
-      'Cannot delete any more elements - array must have at least {} elements.')
+      'Cannot delete any more elements - at least {} elements must be present.')
     self.error_messages['add_above_max_size'] = _(
-      'Cannot add any more elements - array must have at most {} elements.')
+      'Cannot add any more elements - at most {} elements are allowed.')
   
   def _validate(self, value_array):
     if (not isinstance(value_array, collections.Iterable)
@@ -2149,6 +2149,92 @@ class ArraySetting(Setting):
     return tuple(setting.value for setting in self._elements)
 
 
+class ContainerSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
+  """Abstract setting class representing container types.
+  
+  Container settings can hold elements of arbitrary type.
+  
+  Optionally, when assigning, the value can be nullable (`None`) instead of
+  always a container.
+  
+  Container settings cannot be registered to the GIMP PDB and do not have a GUI
+  element. Use `ArraySetting` if you need to pass the elements to a GIMP PDB
+  procedure and allow adjusting the element values via GUI.
+  """
+  
+  _ALLOWED_PDB_TYPES = []
+  _ALLOWED_GUI_TYPES = []
+  
+  def __init__(self, name, nullable=False, **kwargs):
+    self._nullable = nullable
+    
+    super().__init__(name, **kwargs)
+  
+  @property
+  def nullable(self):
+    return self._nullable
+  
+  def _init_error_messages(self):
+    self.error_messages['value_is_none'] = _(
+      'Cannot assign a null value (None) if the setting is not nullable.')
+  
+  def _validate(self, value):
+    if value is None and not self._nullable:
+      raise SettingValueError(
+        utils_.value_to_str_prefix(value) + self.error_messages['value_is_none'])
+
+
+class ListSetting(ContainerSetting):
+  """Setting class representing lists (mutable sequence of elements)."""
+  
+  _DEFAULT_DEFAULT_VALUE = []
+  
+  def set_value(self, value):
+    if not isinstance(value, list) and value is not None:
+      value = list(value)
+    
+    super().set_value(value)
+
+
+class TupleSetting(ContainerSetting):
+  """Setting class representing tuples (immutable sequence of elements)."""
+  
+  _DEFAULT_DEFAULT_VALUE = ()
+  
+  def set_value(self, value):
+    if not isinstance(value, tuple) and value is not None:
+      value = tuple(value)
+    
+    super().set_value(value)
+
+
+class SetSetting(ContainerSetting):
+  """Setting class representing sets (mutable unordered collection of elements).
+  """
+  
+  _DEFAULT_DEFAULT_VALUE = set()
+  
+  def set_value(self, value):
+    if not isinstance(value, set) and value is not None:
+      value = set(value)
+    
+    super().set_value(value)
+
+
+class DictSetting(ContainerSetting):
+  """Setting class representing dictionaries (unordered collection of key-value
+  pairs).
+  """
+  
+  _DEFAULT_DEFAULT_VALUE = {}
+  
+  def set_value(self, value):
+    if not isinstance(value, dict) and value is not None:
+      value = dict(value)
+    
+    super().set_value(value)
+
+
 class SettingValueError(Exception):
   """Exception class raised when assigning an invalid value to a `Setting`
   object.
@@ -2209,6 +2295,13 @@ class SettingTypes(object):
   image_IDs_and_directories = ImageIDsAndDirpathsSetting
   
   array = ArraySetting
+  
+  tuple = TupleSetting
+  list = ListSetting
+  set = SetSetting
+  dictionary = DictSetting
+  dict = dictionary
+  map = dictionary
 
 
 _SETTING_TYPES_TO_NAMES_MAP = collections.defaultdict(list)

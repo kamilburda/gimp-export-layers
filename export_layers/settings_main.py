@@ -125,7 +125,7 @@ def create_settings():
       'display_name': _('Overwrite mode (non-interactive run mode only)'),
     },
     {
-      'type': 'generic',
+      'type': 'dict',
       'name': 'available_tags',
       'default_value': actions.BUILTIN_TAGS,
       'pdb_type': None,
@@ -139,7 +139,7 @@ def create_settings():
       'gui_type': None,
     },
     {
-      'type': 'generic',
+      'type': 'string',
       'name': 'plugin_version',
       'default_value': pg.config.PLUGIN_VERSION,
       'pdb_type': None,

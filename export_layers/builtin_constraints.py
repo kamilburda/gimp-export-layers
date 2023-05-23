@@ -77,9 +77,8 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'display_name': _('Selected in preview'),
     'arguments': [
       {
-        'type': 'generic',
+        'type': 'set',
         'name': 'selected_layers',
-        'default_value': set(),
         'gui_type': None,
       },
     ],
