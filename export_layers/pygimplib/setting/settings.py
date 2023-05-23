@@ -187,7 +187,8 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   
   Attributes:
   
-  * `name` (read-only) - A name (string) that uniquely identifies the setting.
+  * `name` (read-only) - A name (string) that identifies the setting. The name
+    must be unique within a setting group (`setting.Group` instance).
   
   * `value` (read-only) - The setting value. To set the value, call
     `set_value()`. `value` is initially set to `default_value`.
@@ -195,17 +196,17 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   * `default_value` (read-only) - Default value of the setting assigned upon its
     initialization or after `reset()` is called. If not specified or if
     `DEFAULT_VALUE` is passed explicitly, a default value is assigned
-    automatically. The value depends on the particular setting subclass. This
-    class uses `None` as the default value. Note that it is still a good
-    practice to specify default values explicitly.
+    automatically. This value depends on the particular setting subclass
+    (defaulting to `None` if a subclass does not specify it). Note that it is
+    still a good practice to specify default values explicitly when creating a
+    setting.
   
-  * `gui` (read-only) - `setting.presenter.Presenter` instance acting as a
-    wrapper of a GUI element. With `gui`, you may modify GUI-specific
-    attributes, such as visibility or sensitivity.
+  * `gui` (read-only) - `setting.Presenter` instance acting as a wrapper of a
+    GUI element. With `gui`, you may modify GUI-specific attributes, such as
+    visibility or sensitivity.
   
-  * `display_name` (read-only) - Setting name in human-readable format. Useful
-    e.g. as GUI labels. The display name may contain underscores, which can be
-    interpreted by the GUI as keyboard mnemonics.
+  * `display_name` (read-only) - Setting name in a human-readable format. Useful
+    e.g. as GUI labels or menu items.
   
   * `description` (read-only) - Usually `display_name` plus additional
     information in parentheses (such as boundaries for numeric values). Useful
@@ -215,15 +216,15 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     removed in the description.
   
   * `pdb_type` (read-only) - GIMP PDB parameter type, used when registering the
-    setting as a plug-in parameter to the PDB. In Setting subclasses, only
+    setting as a plug-in parameter to the PDB. In `Setting` subclasses, only
     specific PDB types are allowed. Refer to the documentation of the subclasses
     for the list of allowed PDB types.
   
-  * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as
-    a PDB parameter name.
+  * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as a PDB
+    parameter name.
   
-  * `setting_sources` (read-only) - Groups of setting sources to use
-    when loading or saving the setting. If `None`, default settings sources as
+  * `setting_sources` (read-only) - Groups of setting sources to use when
+    loading or saving the setting. If `None`, default settings sources as
     returned by `setting.persistor.Persistor.get_default_setting_sources()` are
     used.
   
@@ -258,9 +259,8 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         setting_sources=None,
         error_messages=None,
         tags=None):
-    """
-    Described are only those parameters that do not correspond to
-    any attribute in this class, or parameters requiring additional information.
+    """Described are only those parameters that do not correspond to any
+    attribute in this class, or parameters requiring additional information.
     
     Parameters:
     
@@ -397,16 +397,12 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   
   @classmethod
   def get_allowed_pdb_types(cls):
-    """
-    Return the list of allowed PDB types for this setting type.
-    """
+    """Returns the list of allowed PDB types for this setting type."""
     return list(cls._ALLOWED_PDB_TYPES)
   
   @classmethod
   def get_allowed_gui_types(cls):
-    """
-    Return the list of allowed GUI types for this setting type.
-    """
+    """Returns the list of allowed GUI types for this setting type."""
     return list(cls._ALLOWED_GUI_TYPES)
   
   def __str__(self):
@@ -416,26 +412,25 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     return pgutils.reprify_object(self, self.name)
   
   def get_path(self, relative_path_group=None):
-    """
-    This is a wrapper method for `setting.utils.get_setting_path()`. Consult the
-    method for more information.
+    """This is a wrapper method for `setting.utils.get_setting_path()`. Consult
+    the method for more information.
     """
     return utils_.get_setting_path(self, relative_path_group)
   
   def set_value(self, value):
-    """
-    Set the setting value.
+    """Sets the setting value.
     
-    Before the assignment, validate the value. If the value is invalid, raise
-    `SettingValueError`.
+    Before the assignment, the value is validated. If the value is invalid,
+    `SettingValueError` is raised.
     
-    Update the value of the GUI element. Even if the setting has no GUI element
-    assigned, the value is recorded. Once a GUI element is assigned to the
-    setting, the recorded value is copied over to the GUI element.
+    The value of the GUI element is also updated. Even if the setting has no GUI
+    element assigned, the value is recorded. Once a GUI element is assigned to
+    the setting, the recorded value is copied over to the GUI element.
     
-    Invoke event handlers of types `'before-set-value'` before assigning the
-    value and `'value-changed'` and `'after-set-value'` (in this order) after
-    assigning the value.
+    The following event handlers are invoked:
+    * `'before-set-value'` - before assigning the value,
+    * `'value-changed'` and `'after-set-value'` (in this order) - after
+      assigning the value.
     
     Note: This is a method and not a property because of the additional overhead
     introduced by validation, GUI updating and event handling. `value` still
@@ -450,8 +445,7 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     self.invoke_event('after-set-value')
   
   def reset(self):
-    """
-    Reset setting value to its default value.
+    """Resets setting value to its default value.
     
     This is different from
     
@@ -459,8 +453,9 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     
     in that `reset()` does not validate the default value.
     
-    Invoke event handlers of types `'before-reset'` before resetting and
-    `'value-changed'` and `'after-reset'` (in this order) after resetting.
+    The following event handlers are invoked:
+   * `'before-reset'` - before resetting,
+   * `'value-changed'` and `'after-reset'` (in this order) - after resetting.
     
     `reset()` also updates the GUI.
     
@@ -487,10 +482,11 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         gui_type=SettingGuiTypes.automatic,
         gui_element=None,
         auto_update_gui_to_setting=True):
-    """
-    Create a new GUI object (`Presenter` instance) for this setting or remove
-    the GUI. The state of the previous GUI object is copied to the new GUI
-    object (such as its value, visibility and sensitivity).
+    """Creates a new GUI object (`setting.Presenter` instance) for this setting
+    or removes the GUI.
+    
+    The state of the previous GUI object is copied to the new GUI object (such
+    as its value, visibility and sensitivity).
     
     Parameters:
     
@@ -544,14 +540,14 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     self.invoke_event('after-set-gui')
   
   def load(self, setting_sources=None):
-    """
-    Load setting value from the specified setting source(s). See
-    `setting.persistor.Persistor.load()` for more information about setting
+    """Loads a setting value from the specified setting source(s).
+    
+    See `setting.persistor.Persistor.load()` for more information about setting
     sources.
     
-    If `setting_sources` is `None`, use the default sources returned by
-    `setting.persistor.Persistor.get_default_setting_sources()`. If
-    specified, use a subset of sources matching the default sources. For
+    If `setting_sources` is `None`, the default sources returned by
+    `setting.persistor.Persistor.get_default_setting_sources()` are used. If
+    specified, a subset of sources matching the default sources is used. For
     example, if the default sources contain a persistent and a
     session-persistent source and `setting_sources` contains a
     session-persistent source, the setting value is loaded from the
@@ -563,15 +559,15 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     return self._load_save(setting_sources, persistor_.Persistor.load)
   
   def save(self, setting_sources=None):
-    """
-    Save setting value to the specified setting source(s). See
-    `setting.persistor.Persistor.save()` for more information about setting
+    """Saves the current setting value to the specified setting source(s).
+    
+    See `setting.persistor.Persistor.save()` for more information about setting
     sources.
     
-    If `setting_sources` is `None`, use the sources returned by
-    `setting.persistor.Persistor.get_default_setting_sources()`. If
-    specified, use a subset of sources matching the default sources. For
-    example, if default sources contain a persistent and a
+    If `setting_sources` is `None`, the sources returned by
+    `setting.persistor.Persistor.get_default_setting_sources()` are used. If
+    specified, a subset of sources matching the default sources is used. For
+    example, if the default sources contain a persistent and a
     session-persistent source and `setting_sources` contains a
     session-persistent source, the setting value is saved to the
     session-persistent source only.
@@ -582,25 +578,22 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     return self._load_save(setting_sources, persistor_.Persistor.save)
   
   def is_value_empty(self):
-    """
-    Return `True` if the setting value is one of the empty values defined for
-    the setting class, otherwise return `False`.
+    """Returns `True` if the setting value is one of the empty values defined
+    for the setting class, `False` otherwise.
     """
     return self._is_value_empty(self._value)
   
   def can_be_registered_to_pdb(self):
-    """
-    Return `True` if setting can be registered as a parameter to GIMP PDB,
-    `False` otherwise.
+    """Returns `True` if the setting can be registered as a parameter to GIMP
+    PDB, `False` otherwise.
     """
     return self._pdb_type != SettingPdbTypes.none
   
   def get_pdb_param(self):
-    """
-    Return a list of tuples, each tuple containing data describing the setting
-    as a GIMP PDB parameter - PDB type, PDB name and description.
+    """Returns a list of tuples, each tuple containing data describing the
+    setting as a GIMP PDB parameter - PDB type, PDB name and description.
     
-    If the setting does not support any PDB type, return `None`.
+    If the setting does not support any PDB type, `None` is returned.
     
     Most setting classes return a list of only one tuple, meaning the setting is
     represented by one PDB parameter.
@@ -614,22 +607,20 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       return None
   
   def _validate(self, value):
-    """
-    Check whether the specified value is valid. If the value is invalid, raise
-    `SettingValueError`.
+    """Checks whether the specified value is valid. If the value is invalid,
+    `SettingValueError` is raised.
     """
     pass
   
   def _init_error_messages(self):
-    """
-    Initialize custom error messages in the `error_messages` dictionary.
-    """
+    """Initializes custom error messages in the `error_messages` dictionary."""
     pass
   
   def _copy_value(self, value):
-    """
-    Create a shallow copy of the specified value. By default, iterables (except
-    strings) are copied, otherwise the original objects are returned.
+    """Creates a shallow copy of the specified value.
+    
+    By default, iterables (except strings) are copied, otherwise the original
+    objects are returned.
     
     Override this method in subclasses in case copying must be handled
     differently.
@@ -641,8 +632,7 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       return value
   
   def _assign_value(self, value):
-    """
-    Assign specified value to the `_value` attribute after validation.
+    """Assigns specified value to the `_value` attribute after validation.
     
     Override this method in subclasses if other modifications to the `_value`
     attribute must be made other than mere assignment.
@@ -675,9 +665,8 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     return not self._is_value_empty(self._default_value)
   
   def _validate_default_value(self):
-    """
-    Check whether the default value of the setting is valid. If the default
-    value is invalid, raise `SettingDefaultValueError`.
+    """Checks whether the default value of the setting is valid. If the default
+    value is invalid, `SettingValueError` is raised.
     """
     try:
       self._validate(self._default_value)
@@ -756,8 +745,7 @@ class Setting(utils_.SettingParentMixin, utils_.SettingEventsMixin):
 
 
 class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
-  """
-  This is an abstract class for numeric settings - integers and floats.
+  """Abstract class for numeric settings - integers and floats.
   
   When assigning a value, this class checks for the upper and lower bounds if
   they are set.
@@ -822,8 +810,7 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
 
 
 class IntSetting(NumericSetting):
-  """
-  This class can be used for integer settings.
+  """Class for integer settings.
   
   Allowed GIMP PDB types:
   
@@ -841,8 +828,7 @@ class IntSetting(NumericSetting):
 
 
 class FloatSetting(NumericSetting):
-  """
-  This class can be used for float settings.
+  """Class for float settings.
   
   Allowed GIMP PDB types:
   
@@ -857,8 +843,7 @@ class FloatSetting(NumericSetting):
 
 
 class BoolSetting(Setting):
-  """
-  This class can be used for boolean settings.
+  """Class for boolean settings.
   
   Since GIMP does not have a boolean PDB type defined, use one of the integer
   types.
@@ -890,9 +875,8 @@ class BoolSetting(Setting):
 
 
 class EnumSetting(Setting):
-  """
-  This class can be used for settings with a limited number of values,
-  accessed by their associated names.
+  """Class for settings with a limited number of values, accessed by their
+  associated names.
   
   Allowed GIMP PDB types:
   
@@ -950,8 +934,7 @@ class EnumSetting(Setting):
   _DEFAULT_DEFAULT_VALUE = lambda self: next((name for name in self._items), None)
   
   def __init__(self, name, items, empty_value=None, **kwargs):
-    """
-    Additional parameters:
+    """Additional parameters:
     
     * `items` - A list of either (item name, item display name) tuples
       or (item name, item display name, item value) tuples. For 2-element
@@ -1007,9 +990,8 @@ class EnumSetting(Setting):
     return self._empty_value
   
   def is_item(self, *item_names):
-    """
-    Return `True` if the setting value is set to one the specified items,
-    otherwise return `False`.
+    """Returns `True` if the setting value is set to one the specified items,
+    `False` otherwise.
     
     If only one item is specified, this is a more convenient and less verbose
     alternative to
@@ -1023,8 +1005,7 @@ class EnumSetting(Setting):
     return any(self.value == self.items[item_name] for item_name in item_names)
   
   def set_item(self, item_name):
-    """
-    Set the specified item as the setting value.
+    """Sets the specified item as the setting value.
     
     This is a more convenient and less verbose alternative to
       
@@ -1033,9 +1014,7 @@ class EnumSetting(Setting):
     self.set_value(self.items[item_name])
   
   def get_item_display_names_and_values(self):
-    """
-    Return a list of (item display name, item value) pairs.
-    """
+    """Returns a list of (item display name, item value) pairs."""
     display_names_and_values = []
     for item_name, item_value in zip(
           self._items_display_names.values(), self._items.values()):
@@ -1116,8 +1095,7 @@ class EnumSetting(Setting):
 
 
 class StringSetting(Setting):
-  """
-  This class can be used for string settings.
+  """Class for string settings.
   
   Allowed GIMP PDB types:
   
@@ -1138,8 +1116,7 @@ class StringSetting(Setting):
 
 
 class ImageSetting(Setting):
-  """
-  This setting class can be used for `gimp.Image` objects.
+  """Class for settings holding `gimp.Image` objects.
   
   Allowed GIMP PDB types:
   
@@ -1171,8 +1148,7 @@ class ImageSetting(Setting):
 
 
 class ItemSetting(Setting):
-  """
-  This setting class can be used for `gimp.Item` objects.
+  """Class for settings holding `gimp.Item` objects.
   
   Allowed GIMP PDB types:
   
@@ -1204,8 +1180,7 @@ class ItemSetting(Setting):
 
 
 class DrawableSetting(Setting):
-  """
-  This setting class can be used for `gimp.Drawable` objects.
+  """Class for settings holding `gimp.Drawable` objects.
   
   Allowed GIMP PDB types:
   
@@ -1237,8 +1212,7 @@ class DrawableSetting(Setting):
 
 
 class LayerSetting(Setting):
-  """
-  This setting class can be used for `gimp.Layer` or `gimp.GroupLayer` objects.
+  """Class for settings holding `gimp.Layer` or `gimp.GroupLayer` objects.
   
   Allowed GIMP PDB types:
   
@@ -1270,8 +1244,7 @@ class LayerSetting(Setting):
 
 
 class ChannelSetting(Setting):
-  """
-  This setting class can be used for `gimp.Channel` objects.
+  """Class for settings holding `gimp.Channel` objects.
   
   Allowed GIMP PDB types:
   
@@ -1303,11 +1276,11 @@ class ChannelSetting(Setting):
 
 
 class SelectionSetting(ChannelSetting):
-  """
-  This setting class can be used to store the current selection. Selection in
-  GIMP is internally represented as a `gimp.Channel` object. Unlike
-  `ChannelSetting`, this setting does not support GUI (there is no need for
-  GUI).
+  """Class for settings holding the current selection.
+  
+  A selection in GIMP is internally represented as a `gimp.Channel` object.
+  Unlike `ChannelSetting`, this setting does not support GUI (there is no need
+  for GUI).
   
   Allowed GIMP PDB types:
   
@@ -1327,8 +1300,7 @@ class SelectionSetting(ChannelSetting):
 
 
 class VectorsSetting(Setting):
-  """
-  This setting class can be used for `gimp.Vectors` objects.
+  """Class for settings holding `gimp.Vectors` objects.
   
   Allowed GIMP PDB types:
   
@@ -1361,8 +1333,7 @@ class VectorsSetting(Setting):
 
 
 class ColorSetting(Setting):
-  """
-  This setting class can be used for `gimpcolor.RGB` objects.
+  """Class for settings holding `gimpcolor.RGB` objects.
   
   Allowed GIMP PDB types:
   
@@ -1390,8 +1361,7 @@ class ColorSetting(Setting):
 
 
 class DisplaySetting(Setting):
-  """
-  This class can be used for `gimp.Display` objects.
+  """Class for settings holding `gimp.Display` objects.
   
   Allowed GIMP PDB types:
   
@@ -1423,8 +1393,7 @@ class DisplaySetting(Setting):
 
 
 class ParasiteSetting(Setting):
-  """
-  This setting class can be used for `gimp.Parasite` objects.
+  """Class for settings holding `gimp.Parasite` objects.
   
   Allowed GIMP PDB types:
   
@@ -1455,9 +1424,8 @@ class ParasiteSetting(Setting):
 
 
 class PdbStatusSetting(EnumSetting):
-  """
-  This class is an `EnumSetting` subclass with fixed items - exit statuses of
-  GIMP PDB procedures.
+  """`EnumSetting` subclass with fixed items - exit statuses of GIMP PDB
+  procedures.
   
   Allowed GIMP PDB types:
   
@@ -1486,9 +1454,8 @@ class PdbStatusSetting(EnumSetting):
 
 
 class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSetting)):
-  """
-  This class is an abstract class for string settings which are meant to be
-  validated with one of the `path.StringValidator` subclasses.
+  """Abstract class for string settings which are meant to be validated with one
+  of the `path.StringValidator` subclasses.
   
   To determine whether the string is valid, `is_valid()` from the corresponding
   subclass is called.
@@ -1508,8 +1475,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
   """
   
   def __init__(self, name, string_validator, **kwargs):
-    """
-    Additional parameters:
+    """Additional parameters:
     
     * `string_validator` - `path.StringValidator` subclass used to validate the
       value assigned to this object.
@@ -1541,8 +1507,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
   
 
 class FileExtensionSetting(ValidatableStringSetting):
-  """
-  This setting class can be used for file extensions.
+  """Class for settings storing file extensions as strings.
   
   The `path.FileExtensionValidator` subclass is used to determine whether the
   file extension is valid.
@@ -1560,8 +1525,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   _EMPTY_VALUES = ['']
   
   def __init__(self, name, adjust_value=False, **kwargs):
-    """
-    Additional parameters:
+    """Additional parameters:
     
     * `adjust_value` - if `True`, pre-process the new value when `set_value()`
       is called. This involves removing leading '.' characters and converting
@@ -1577,8 +1541,7 @@ class FileExtensionSetting(ValidatableStringSetting):
 
 
 class DirpathSetting(ValidatableStringSetting):
-  """
-  This setting class can be used for directory paths.
+  """Class for settings storing directory paths as strings.
   
   The `path.DirpathValidator` subclass is used to determine whether the
   directory path is valid.
@@ -1602,9 +1565,10 @@ class DirpathSetting(ValidatableStringSetting):
 
 
 class BrushSetting(Setting):
-  """
-  This setting class can be used for brushes. Each brush is represented by a
-  tuple `(brush name: string, opacity: float, spacing: int, layer mode: int)`.
+  """Class for settings storing brushes.
+  
+  Each brush is represented by a tuple
+  `(brush name: string, opacity: float, spacing: int, layer mode: int)`.
   
   When calling `set_value`, brush name may be passed without being wrapped in a
   tuple that gets then converted to a tuple of one element containing the brush
@@ -1650,8 +1614,7 @@ class BrushSetting(Setting):
 
 
 class FontSetting(Setting):
-  """
-  This setting class can be used for fonts. Fonts are considered strings.
+  """Class for settings storing fonts as strings.
   
   Allowed GIMP PDB types:
   
@@ -1671,9 +1634,7 @@ class FontSetting(Setting):
 
 
 class GradientSetting(Setting):
-  """
-  This setting class can be used for gradients. Gradients are considered
-  strings.
+  """Class for settings storing gradients as strings.
   
   Allowed GIMP PDB types:
   
@@ -1693,9 +1654,7 @@ class GradientSetting(Setting):
 
 
 class PaletteSetting(Setting):
-  """
-  This setting class can be used for color palettes. Palettes are considered
-  strings.
+  """Class for settings storing color palettes as strings.
   
   Allowed GIMP PDB types:
   
@@ -1715,8 +1674,7 @@ class PaletteSetting(Setting):
 
 
 class PatternSetting(Setting):
-  """
-  This setting class can be used for patterns. Patterns are considered strings.
+  """Class for settings storing patterns as strings.
   
   Allowed GIMP PDB types:
   
@@ -1736,10 +1694,11 @@ class PatternSetting(Setting):
 
 
 class ImageIDsAndDirpathsSetting(Setting):
-  """
-  This setting class stores the list of currently opened images and their import
-  directory paths as a dictionary of (image ID, import directory path) pairs.
-  The import directory path is None if the image does not have any.
+  """Class for settings the list of currently opened images and their import
+  directory paths.
+  
+  The setting value is a dictionary of (image ID, import directory path) pairs.
+  The import directory path is `None` if the image does not have any.
   
   This setting cannot be registered to the PDB as no corresponding PDB type
   exists.
@@ -1756,9 +1715,8 @@ class ImageIDsAndDirpathsSetting(Setting):
     return dict(self._value)
   
   def update_image_ids_and_dirpaths(self):
-    """
-    Remove all (image ID, import directory path) pairs for images no longer
-    opened in GIMP. Add (image ID, import directory path) pairs for new images
+    """Removes all (image ID, import directory path) pairs for images no longer
+    opened in GIMP. Adds (image ID, import directory path) pairs for new images
     opened in GIMP.
     """
     current_images, current_image_ids = self._get_currently_opened_images()
@@ -1766,10 +1724,9 @@ class ImageIDsAndDirpathsSetting(Setting):
     self._add_new_opened_images(current_images)
   
   def update_dirpath(self, image_id, dirpath):
-    """
-    Assign a new directory path to the specified image ID.
+    """Assigns a new directory path to the specified image ID.
     
-    If the image ID does not exist in the setting, raise KeyError.
+    If the image ID does not exist in the setting, `KeyError` is raised.
     """
     if image_id not in self._value:
       raise KeyError(image_id)
@@ -1800,8 +1757,10 @@ class ImageIDsAndDirpathsSetting(Setting):
 
 
 class ArraySetting(Setting):
-  """
-  This setting class can be used for PDB array types.
+  """Class for settings storing arrays of the specified type.
+  
+  Array settings can be registered to the GIMP PDB and have their own readily
+  available GUI for adding, modifying and removing elements.
   
   Values of array settings are tuples whose elements are of the specified
   setting type.
@@ -1816,7 +1775,7 @@ class ArraySetting(Setting):
   Array settings are useful for manipulating PDB array parameters or for
   storing a collection of values of the same type. For more fine-grained control
   (collection of values of different type, different GUI, etc.), use
-  `setting.group.Group` instead.
+  `setting.Group` instead.
   
   If the `element_type` specified during instantiation has a matching `array_*`
   type in `SettingPdbTypes` (e.g. `float` and `array_float`), then the array
@@ -1869,10 +1828,10 @@ class ArraySetting(Setting):
   }
   
   def __init__(self, name, element_type, min_size=0, max_size=None, **kwargs):
-    """
-    Additional parameters include all parameters that would be passed to the
-    setting class this array is composed of (i.e. array elements). These
-    parameters must be prefixed with `'element_'` (e.g.
+    """Additional parameters include all parameters that would be passed to the
+    setting class this array is composed of (i.e. array elements).
+    
+    These parameters must be prefixed with `'element_'` (e.g.
     `element_default_value`). Required parameters for the basic setting classes
     include:
     * `element_type` - setting type (or name thereof) of each array element.
@@ -1936,8 +1895,8 @@ class ArraySetting(Setting):
     return self._max_size
   
   def __getitem__(self, index):
-    """
-    Return a setting representing the the array element at the specified index.
+    """Returns a setting representing the the array element at the specified
+    index.
     """
     return self._elements[index]
   
@@ -1953,18 +1912,16 @@ class ArraySetting(Setting):
     self.invoke_event('after-delete-element')
   
   def __len__(self):
-    """
-    Return the number of elements of the array.
-    """
+    """Returns the number of elements of the array."""
     return len(self._elements)
   
   def add_element(self, index=None, value=ELEMENT_DEFAULT_VALUE):
-    """
-    Add a new element with the specified value at the specified index (starting
-    from 0).
+    """Adds a new element with the specified value at the specified index
+    (starting from 0).
     
-    If `index` is `None`, append the value. If `value` is
-    `ELEMENT_DEFAULT_VALUE`, use the default value of the underlying element.
+    If `index` is `None`, the value is appended. If `value` is
+    `ELEMENT_DEFAULT_VALUE`, the default value of the underlying element is
+    used.
     """
     if len(self._elements) == self._max_size:
       raise SettingValueError(
@@ -1989,9 +1946,8 @@ class ArraySetting(Setting):
     return element
   
   def reorder_element(self, index, new_index):
-    """
-    Change the order of an array element at `index` to a new position specified
-    by `new_index`. Both indexes start from 0.
+    """Changes the order of an array element at `index` to a new position
+    specified by `new_index`. Both indexes start from 0.
     """
     self.invoke_event('before-reorder-element', index)
     
@@ -2005,25 +1961,22 @@ class ArraySetting(Setting):
     self.invoke_event('after-reorder-element', index, new_index)
   
   def remove_element(self, index):
-    """
-    Remove an element at the specified index. This method is an alias to
-    `__delitem__`.
+    """Removes an element at the specified index.
+    
+    This method is an alias to `__delitem__`.
     """
     self.__delitem__(index)
   
   def get_elements(self):
-    """
-    Return a list of array elements in this setting.
-    """
+    """Returns a list of array elements in this setting."""
     return list(self._elements)
   
   def get_pdb_param(self, length_name=None, length_description=None):
-    """
-    Return a list of two tuples, describing the length of the array and the
+    """Returns a list of two tuples, describing the length of the array and the
     array itself, as GIMP PDB parameters - PDB type, name and description.
     
-    If the underlying `element_type` does not support any PDB type, return
-    `None`.
+    If the underlying `element_type` does not support any PDB type, `None` is
+    returned.
     
     To customize the name and description of the length parameter, pass
     `length_name` and `length_description`, respectively. Passing `None` creates
@@ -2125,9 +2078,8 @@ class ArraySetting(Setting):
     return SettingPdbTypes.none
   
   def _create_reference_element(self):
-    """
-    Create a reference element to access and validate the element default value.
-    """
+    """Creates a reference element to access and validate the element default
+    value."""
     # Rely on the underlying element setting type to perform validation of the
     # default value.
     return self._element_type(name='element', **dict(self._element_kwargs, gui_type=None))
@@ -2150,16 +2102,15 @@ class ArraySetting(Setting):
 
 
 class ContainerSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
-  """Abstract setting class representing container types.
+  """Abstract class for settings representing container types.
   
-  Container settings can hold elements of arbitrary type.
+  Container settings can hold elements of arbitrary type, but cannot be
+  registered to the GIMP PDB and do not have a GUI element. Use `ArraySetting`
+  if you need to pass the elements to a GIMP PDB procedure and allow adjusting
+  the element values via GUI.
   
   Optionally, when assigning, the value can be nullable (`None`) instead of
   always a container.
-  
-  Container settings cannot be registered to the GIMP PDB and do not have a GUI
-  element. Use `ArraySetting` if you need to pass the elements to a GIMP PDB
-  procedure and allow adjusting the element values via GUI.
   """
   
   _ALLOWED_PDB_TYPES = []
@@ -2185,7 +2136,7 @@ class ContainerSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
 
 
 class ListSetting(ContainerSetting):
-  """Setting class representing lists (mutable sequence of elements)."""
+  """Class for settings representing lists (mutable sequence of elements)."""
   
   _DEFAULT_DEFAULT_VALUE = []
   
@@ -2197,7 +2148,7 @@ class ListSetting(ContainerSetting):
 
 
 class TupleSetting(ContainerSetting):
-  """Setting class representing tuples (immutable sequence of elements)."""
+  """Class for settings representing tuples (immutable sequence of elements)."""
   
   _DEFAULT_DEFAULT_VALUE = ()
   
@@ -2209,7 +2160,8 @@ class TupleSetting(ContainerSetting):
 
 
 class SetSetting(ContainerSetting):
-  """Setting class representing sets (mutable unordered collection of elements).
+  """Class for settings representing sets (mutable unordered collection of
+  elements).
   """
   
   _DEFAULT_DEFAULT_VALUE = set()
@@ -2222,8 +2174,8 @@ class SetSetting(ContainerSetting):
 
 
 class DictSetting(ContainerSetting):
-  """Setting class representing dictionaries (unordered collection of key-value
-  pairs).
+  """Class for settings representing dictionaries (unordered collection of
+  key-value pairs).
   """
   
   _DEFAULT_DEFAULT_VALUE = {}
