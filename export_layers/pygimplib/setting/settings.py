@@ -2465,7 +2465,7 @@ def _process_type(
       types_to_names_map,
       error_message_for_name,
       error_message_for_type):
-  if isinstance(type_or_name, str):
+  if isinstance(type_or_name, types.StringTypes):
     if _is_type_registered(type_or_name, types_class, types_to_names_map):
       return getattr(types_class, type_or_name)
     else:
@@ -2486,7 +2486,7 @@ def _register_type(type_, name, types_class, types_to_names_map, error_message):
 
 
 def _is_type_registered(type_or_name, types_class, types_to_names_map):
-  if isinstance(type_or_name, str):
+  if isinstance(type_or_name, types.StringTypes):
     return hasattr(types_class, type_or_name)
   else:
     return type_or_name in types_to_names_map
