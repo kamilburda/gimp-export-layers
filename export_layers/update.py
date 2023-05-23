@@ -245,7 +245,7 @@ def _remove_actions(actions_list, actions_root, action_prefix):
   return removed_actions_and_indexes
 
 
-def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_name):
+def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_name, new_type):
   for action in actions_list:
     if orig_name in action:
       if new_name in action:
@@ -253,7 +253,7 @@ def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_nam
       else:
         action.add([
           {
-            'type': 'generic',
+            'type': new_type,
             'name': new_name,
             'default_value': action[orig_name].value,
             'gui_type': None,
@@ -386,9 +386,9 @@ def _update_to_3_3_2(settings, sources):
   )
   
   _rename_generic_setting_in_actions(
-    procedures, settings['main/procedures'], 'operation_groups', 'action_groups')
+    procedures, settings['main/procedures'], 'operation_groups', 'action_groups', 'list')
   _rename_generic_setting_in_actions(
-    constraints, settings['main/constraints'], 'operation_groups', 'action_groups')
+    constraints, settings['main/constraints'], 'operation_groups', 'action_groups', 'list')
   
   settings['main/procedures'].save(sources)
   actions_.clear(settings['main/procedures'])
