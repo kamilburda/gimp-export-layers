@@ -751,9 +751,54 @@ class GenericSetting(Setting):
   """Class for settings storing arbitrary data.
   
   Since there are limitations on the types of values that can be saved to a
-  setting source, you must provide `value_load` and `value_save` functions when
+  setting source, you must provide `value_set` and `value_save` functions when
   instantiating settings of this class to load and save the values properly.
   """
+  
+  def __init__(self, name, value_set, value_save, **kwargs):
+    """Additional parameters:
+    
+    * `value_set` - Function invoked at the beginning of `set_value()`. The
+      function allows converting values of other types or formats, particularly
+      when loading value for this setting from a source that allows storing only
+      several value types.
+      The function accepts one or two positional parameters - the input value
+      and this setting instance (the latter can be omitted if not needed).
+    
+    * `value_save` - Function invoked at the beginning of `to_dict()`. The
+      function should ensure that the setting value is converted to a type
+      supported by setting sources.
+      The function accepts one or two positional parameters - the current
+      setting value and this setting instance (the latter can be omitted if not
+      needed).
+    """
+    self._before_value_set = value_set
+    self._before_value_save = value_save
+    
+    self._validate_functions()
+    
+    super().__init__(name, **kwargs)
+  
+  def set_value(self, value):
+    if len(inspect.getargspec(self._before_value_set).args) == 1:
+      value = self._before_value_set(value)
+    else:
+      value = self._before_value_set(value, self)
+    
+    super().set_value(value)
+  
+  def _validate_functions(self):
+    if not callable(self._before_value_set):
+      raise TypeError('value_set must be callable')
+    
+    if len(inspect.getargspec(self._before_value_set).args) not in [1, 2]:
+      raise TypeError('value_set function must have 1 or 2 positional parameters')
+    
+    if not callable(self._before_value_save):
+      raise TypeError('value_save must be callable')
+    
+    if len(inspect.getargspec(self._before_value_save).args) not in [1, 2]:
+      raise TypeError('value_save function must have 1 or 2 positional parameters')
 
 
 class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):

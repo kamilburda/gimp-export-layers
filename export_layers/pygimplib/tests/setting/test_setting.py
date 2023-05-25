@@ -239,7 +239,7 @@ class TestSetting(unittest.TestCase):
         self.assertIn(source, call_args)
       else:
         self.assertNotIn(source, call_args)
-  
+
 
 class TestSettingEvents(unittest.TestCase):
   
@@ -591,6 +591,56 @@ class TestSettingGui(unittest.TestCase):
 
 
 #===============================================================================
+
+
+class TestGenericSetting(unittest.TestCase):
+  
+  def test_value_functions_with_one_parameter(self):
+    setting = settings_.GenericSetting(
+      'selected_layers',
+      value_set=lambda value: tuple(value),
+      value_save=lambda value: list(value))
+
+    setting.set_value([4, 6, 2])
+    self.assertEqual(setting.value, (4, 6, 2))
+  
+  def test_value_functions_with_two_parameters(self):
+    setting = settings_.GenericSetting(
+      'selected_layers',
+      value_set=lambda value, setting: tuple(setting.name + '_' + str(item) for item in value),
+      value_save=lambda value, setting: list(setting.name + '_' + str(item) for item in value))
+    
+    setting.set_value([4, 6, 2])
+    self.assertEqual(
+      setting.value, ('selected_layers_4', 'selected_layers_6', 'selected_layers_2'))
+  
+  def test_value_set_with_invalid_number_of_parameters_raises_error(self):
+    with self.assertRaises(TypeError):
+      settings_.GenericSetting(
+        'selected_layers',
+        value_set=lambda value, setting, redundant: tuple(value),
+        value_save=lambda value, setting: list(value))
+  
+  def test_value_set_not_being_callable_raises_error(self):
+    with self.assertRaises(TypeError):
+      settings_.GenericSetting(
+        'selected_layers',
+        value_set='not_a_callable',
+        value_save=lambda value, setting: list(value))
+  
+  def test_value_save_with_invalid_number_of_parameters_raises_error(self):
+    with self.assertRaises(TypeError):
+      settings_.GenericSetting(
+        'selected_layers',
+        value_set=lambda value, setting: tuple(value),
+        value_save=lambda value, setting, redundant: list(value))
+  
+  def test_value_save_not_being_callable_raises_error(self):
+    with self.assertRaises(TypeError):
+      settings_.GenericSetting(
+        'selected_layers',
+        value_set=lambda value, setting: tuple(value),
+        value_save='not_a_callable')
 
 
 class TestBoolSetting(unittest.TestCase):
@@ -1079,18 +1129,15 @@ class TestCreateArraySetting(unittest.TestCase):
      'float',
      settings_.SettingPdbTypes.array_float),
     
-    ('element_pdb_type_is_not_registrable',
-     settings_.SettingPdbTypes.automatic,
-     'generic',
-     settings_.SettingPdbTypes.none),
-    
     ('registration_is_disabled_explicitly',
      None,
      'float',
      settings_.SettingPdbTypes.none),
   ])
   def test_create_with_pdb_type(
-        self, test_case_name_suffix, pdb_type, element_type, expected_pdb_type):
+        self, test_case_name_suffix,
+        pdb_type, element_type, expected_pdb_type,
+        value_set_func=None, value_save_func=None):
     setting = settings_.ArraySetting(
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
@@ -1099,6 +1146,17 @@ class TestCreateArraySetting(unittest.TestCase):
       element_default_value=0.0)
     
     self.assertEqual(setting.pdb_type, expected_pdb_type)
+  
+  def test_create_with_pdb_type_element_pdb_type_is_not_registrable(self):
+    setting = settings_.ArraySetting(
+      'coordinates',
+      default_value=(1.0, 5.0, 10.0),
+      element_type='generic',
+      element_default_value=0.0,
+      element_value_set=lambda value: value,
+      element_value_save=lambda value: value)
+    
+    self.assertEqual(setting.pdb_type, settings_.SettingPdbTypes.none)
   
   def test_create_with_explicit_valid_element_pdb_type(self):
     setting = settings_.ArraySetting(
@@ -1300,7 +1358,9 @@ class TestArraySetting(unittest.TestCase):
       'coordinates',
       default_value=(),
       element_type='generic',
-      element_default_value=0)
+      element_default_value=0,
+      element_value_set=lambda value: value,
+      element_value_save=lambda value: value)
     
     setting.add_element(value=None)
     self.assertEqual(setting[-1].value, None)
@@ -1431,7 +1491,9 @@ class TestArraySetting(unittest.TestCase):
       'coordinates',
       default_value=(1.0, 5.0, 10.0),
       element_type='generic',
-      element_default_value=0.0)
+      element_default_value=0.0,
+      element_value_set=lambda value: value,
+      element_value_save=lambda value: value)
     
     self.assertEqual(setting.get_pdb_param(), None)
 

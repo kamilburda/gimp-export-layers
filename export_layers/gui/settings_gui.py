@@ -99,12 +99,16 @@ def create_gui_settings():
       # key: image ID
       # value: set of layer IDs collapsed in the name preview
       'default_value': collections.defaultdict(set),
+      'value_set': lambda value: collections.defaultdict(set, value),
+      'value_save': lambda value: dict(value),
     },
     {
       'type': 'generic',
       'name': 'image_preview_displayed_layers',
       # key: image ID; value: ID of the layer displayed in the preview
       'default_value': collections.defaultdict(pg.utils.return_none_func),
+      'value_set': lambda value: collections.defaultdict(pg.utils.return_none_func, value),
+      'value_save': lambda value: dict(value),
     },
     {
       # Needs to be string type to avoid strict directory validation.
@@ -126,14 +130,18 @@ def create_gui_settings():
       'name': 'name_preview_layers_collapsed_state',
       # key: image file path
       # value: set of layer names collapsed in the name preview
-      'default_value': collections.defaultdict(set)
+      'default_value': collections.defaultdict(set),
+      'value_set': lambda value: collections.defaultdict(set, value),
+      'value_save': lambda value: dict(value),
     },
     {
       'type': 'generic',
       'name': 'image_preview_displayed_layers',
       # key: image file path
       # value: name of the layer displayed in the preview
-      'default_value': collections.defaultdict(pg.utils.return_none_func)
+      'default_value': collections.defaultdict(pg.utils.return_none_func),
+      'value_set': lambda value: collections.defaultdict(pg.utils.return_none_func, value),
+      'value_save': lambda value: dict(value),
     },
   ])
   
