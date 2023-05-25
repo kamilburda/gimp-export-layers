@@ -290,7 +290,7 @@ def _create_action(
       more_options_expanded=False,
       enabled_for_previews=True,
       display_options_on_create=False,
-      **custom_fields):
+      orig_name=None):
   
   def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
     setting_display_name.set_gui(
@@ -379,25 +379,14 @@ def _create_action(
     },
   ])
   
-  orig_name_value = custom_fields.pop('orig_name', name)
   action.add([
     {
       'type': 'string',
       'name': 'orig_name',
-      'default_value': orig_name_value,
+      'default_value': orig_name if orig_name is not None else name,
       'gui_type': None,
     },
   ])
-  
-  for field_name, field_value in custom_fields.items():
-    action.add([
-      {
-        'type': 'generic',
-        'name': field_name,
-        'default_value': field_value,
-        'gui_type': None,
-      },
-    ])
   
   action['enabled'].connect_event(
     'after-set-gui',
@@ -416,7 +405,7 @@ def _create_procedure(
       function,
       additional_tags=None,
       action_groups=(DEFAULT_PROCEDURES_GROUP,),
-      **kwargs_and_custom_fields):
+      **kwargs):
   tags = ['action', 'procedure']
   if additional_tags is not None:
     tags += additional_tags
@@ -429,7 +418,7 @@ def _create_procedure(
     function,
     action_groups=action_groups,
     tags=tags,
-    **kwargs_and_custom_fields)
+    **kwargs)
 
 
 def _create_constraint(
@@ -438,7 +427,7 @@ def _create_constraint(
       additional_tags=None,
       action_groups=(DEFAULT_CONSTRAINTS_GROUP,),
       also_apply_to_parent_folders=False,
-      **kwargs_and_custom_fields):
+      **kwargs):
   tags = ['action', 'constraint']
   if additional_tags is not None:
     tags += additional_tags
@@ -451,7 +440,7 @@ def _create_constraint(
     function,
     action_groups=action_groups,
     tags=tags,
-    **kwargs_and_custom_fields)
+    **kwargs)
   
   constraint.add([
     {

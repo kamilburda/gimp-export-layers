@@ -269,23 +269,11 @@ class TestManageActions(unittest.TestCase):
     action['arguments/offset_y'].set_value(10)
     
     self.assertNotEqual(action['enabled'], self.autocrop_dict['enabled'])
-    self.assertNotEqual(
-      action['arguments/offset_x'], self.autocrop_dict['arguments'][0])
-    self.assertNotEqual(
-      action['arguments/offset_y'], self.autocrop_dict['arguments'][1])
+    self.assertNotEqual(action['arguments/offset_x'], self.autocrop_dict['arguments'][0])
+    self.assertNotEqual(action['arguments/offset_y'], self.autocrop_dict['arguments'][1])
     
     self.assertNotEqual(
       action['enabled'], _find_in_added_data(self.procedures, 'autocrop')['enabled'])
-  
-  def test_add_creates_separate_settings_for_custom_fields(self):
-    self.autocrop_dict['custom_field'] = 'value'
-    
-    action = actions.add(self.procedures, self.autocrop_dict)
-    
-    self.assertEqual(action['custom_field'].value, 'value')
-    self.assertEqual(self.procedures['added/autocrop/custom_field'].value, 'value')
-    self.assertEqual(
-      _find_in_added_data(self.procedures, 'autocrop')['custom_field'], 'value')
   
   @parameterized.parameterized.expand([
     ('first',
@@ -491,19 +479,6 @@ class TestWalkActions(unittest.TestCase):
     self.assertListEqual(
       list(actions.walk(self.actions, action_type, setting_name)),
       [self.actions['added/' + path] for path in expected_setting_paths])
-  
-  def test_walk_added_with_same_setting_name_as_action_type(self):
-    for action_dict in self.test_procedures.values():
-      action_dict['procedure'] = 'value'
-      actions.add(self.actions, action_dict)
-    
-    self.assertListEqual(
-      list(actions.walk(self.actions, 'procedure', 'procedure')),
-      [self.actions['added/' + path]
-       for path in [
-         'autocrop/procedure',
-         'autocrop_background/procedure',
-         'autocrop_foreground/procedure']])
   
   @parameterized.parameterized.expand([
     ('reorder_first',
