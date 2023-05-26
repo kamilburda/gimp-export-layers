@@ -261,7 +261,8 @@ class Setting(
         auto_update_gui_to_setting=True,
         setting_sources=None,
         error_messages=None,
-        tags=None):
+        tags=None,
+        dict_on_init=None):
     """Described are only those parameters that do not correspond to any
     attribute in this class, or parameters requiring additional information.
     
@@ -310,6 +311,11 @@ class Setting(
     * `tags` - An iterable container (list, set, etc.) of arbitrary tags
       attached to the setting. Tags can be used to e.g. iterate over a specific
       subset of settings.
+    
+    * `dict_on_init` - If not `None`, this is a dictionary of (parameter name,
+      parameter value) pairs used to instantiate this setting via
+      `setting.create_groups()` or `setting.Group.add()`. The contents of this
+      dictionary are copied to the dictionary returned by `to_dict()`.
     """
     super().__init__()
     
@@ -350,6 +356,8 @@ class Setting(
       self._error_messages.update(error_messages)
     
     self._tags = set(tags) if tags is not None else set()
+    
+    self._dict_on_init = dict_on_init
     
     if self._should_validate_default_value():
       self._validate_default_value()
@@ -397,6 +405,10 @@ class Setting(
   @property
   def tags(self):
     return self._tags
+  
+  @property
+  def dict_on_init(self):
+    return self._dict_on_init
   
   @classmethod
   def get_allowed_pdb_types(cls):
@@ -609,6 +621,31 @@ class Setting(
     else:
       return None
   
+  def to_dict(self):
+    """Returns setting name, value and data in `dict_on_init` as a dictionary.
+    
+    The dictionary is used to save the setting to setting sources.
+    
+    The dictionary can only contain keys as strings and values of one of the
+    following types: `int`, `float`, `bool`, `str`, `list`, `dict`, `None`.
+    
+    By default, the dictionary contains two key-value pairs:
+    `{'name': <setting name>, 'value': <setting value converted to a supported
+    type>}`. Additional data can only be passed during instantiation of the
+    setting via the `dict_on_init` parameter. The additional data can
+    likewise contain only values of one of the types specified above. The
+    additional data must contain all fields required to instantiate the setting
+    directly from the setting source, without the need to define the setting in
+    the code (including the `'type'` field).
+    """
+    settings_dict = {'name': self.name, 'value': self.value}
+    
+    if self.dict_on_init is None:
+      return settings_dict
+    else:
+      settings_dict.update(self.dict_on_init)
+      return settings_dict
+  
   def _validate(self, value):
     """Checks whether the specified value is valid. If the value is invalid,
     `SettingValueError` is raised.
@@ -786,6 +823,16 @@ class GenericSetting(Setting):
       value = self._before_value_set(value, self)
     
     super().set_value(value)
+  
+  def to_dict(self):
+    settings_dict = super().to_dict()
+    
+    if len(inspect.getargspec(self._before_value_set).args) == 1:
+      settings_dict['value'] = self._before_value_save(settings_dict['value'])
+    else:
+      settings_dict['value'] = self._before_value_save(settings_dict['value'], self)
+    
+    return settings_dict
   
   def _validate_functions(self):
     if not callable(self._before_value_set):

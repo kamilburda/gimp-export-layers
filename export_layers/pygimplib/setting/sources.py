@@ -153,7 +153,8 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   def _settings_to_dict(self, settings):
     settings_dict = collections.OrderedDict()
     for setting in settings:
-      settings_dict[setting.get_path('root')] = setting.value
+      setting_dict = setting.to_dict()
+      settings_dict[setting.get_path('root')] = setting_dict['value']
     
     return settings_dict
 

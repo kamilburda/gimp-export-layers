@@ -239,6 +239,30 @@ class TestSetting(unittest.TestCase):
         self.assertIn(source, call_args)
       else:
         self.assertNotIn(source, call_args)
+  
+  def test_to_dict_without_dict_on_init(self):
+    self.assertDictEqual(
+      self.setting.to_dict(), {'name': self.setting.name, 'value': self.setting.value})
+  
+  def test_to_dict_with_dict_on_init(self):
+    setting = stubs_setting.SettingStub(
+      'file_extension', 'png',
+      dict_on_init={
+        'type': 'stub',
+        'name': 'file_extension',
+        'default_value': 'png',
+        'gui_type': None,
+      })
+    
+    self.assertDictEqual(
+      setting.to_dict(),
+      {
+        'name': setting.name,
+        'value': setting.value,
+        'type': 'stub',
+        'default_value': 'png',
+        'gui_type': None,
+      })
 
 
 class TestSettingEvents(unittest.TestCase):
@@ -602,17 +626,24 @@ class TestGenericSetting(unittest.TestCase):
       value_save=lambda value: list(value))
 
     setting.set_value([4, 6, 2])
+    
     self.assertEqual(setting.value, (4, 6, 2))
+    self.assertDictEqual(setting.to_dict(), {'name': setting.name, 'value': [4, 6, 2]})
   
   def test_value_functions_with_two_parameters(self):
     setting = settings_.GenericSetting(
       'selected_layers',
       value_set=lambda value, setting: tuple(setting.name + '_' + str(item) for item in value),
-      value_save=lambda value, setting: list(setting.name + '_' + str(item) for item in value))
+      value_save=lambda value, setting: list(value))
     
     setting.set_value([4, 6, 2])
+    
     self.assertEqual(
       setting.value, ('selected_layers_4', 'selected_layers_6', 'selected_layers_2'))
+    self.assertDictEqual(
+      setting.to_dict(),
+      {'name': setting.name,
+       'value': ['selected_layers_4', 'selected_layers_6', 'selected_layers_2']})
   
   def test_value_set_with_invalid_number_of_parameters_raises_error(self):
     with self.assertRaises(TypeError):
