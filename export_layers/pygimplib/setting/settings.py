@@ -1443,7 +1443,7 @@ class ColorSetting(Setting):
   
   * `SettingPdbTypes.color`
   
-  Default value: `gimpcolor.RGB` instance with black color (`(0, 0, 0)`).
+  Default value: `gimpcolor.RGB` instance with color `(0, 0, 0)`.
   
   Error messages:
   
