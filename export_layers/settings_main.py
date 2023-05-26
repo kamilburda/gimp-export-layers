@@ -102,8 +102,9 @@ def create_settings():
       'display_name': _('Selected layers'),
       'pdb_type': None,
       'setting_sources': ['session'],
-      'value_set': lambda value: collections.defaultdict(set, value),
-      'value_save': lambda value: dict(value),
+      'value_set': lambda value: collections.defaultdict(
+        set, {key: set(val) for key, val in value.items()}),
+      'value_save': lambda value: {key: list(val) for key, val in value.items()},
     },
     {
       'type': 'generic',
@@ -113,8 +114,9 @@ def create_settings():
       'display_name': _('Selected layers'),
       'pdb_type': None,
       'setting_sources': ['persistent'],
-      'value_set': lambda value: collections.defaultdict(set, value),
-      'value_save': lambda value: dict(value),
+      'value_set': lambda value: collections.defaultdict(
+        set, {key: set(val) for key, val in value.items()}),
+      'value_save': lambda value: {key: list(val) for key, val in value.items()},
     },
     {
       'type': 'enumerated',

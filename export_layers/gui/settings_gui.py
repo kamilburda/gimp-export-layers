@@ -99,8 +99,9 @@ def create_gui_settings():
       # key: image ID
       # value: set of layer IDs collapsed in the name preview
       'default_value': collections.defaultdict(set),
-      'value_set': lambda value: collections.defaultdict(set, value),
-      'value_save': lambda value: dict(value),
+      'value_set': lambda value: collections.defaultdict(
+        set, {key: set(val) for key, val in value.items()}),
+      'value_save': lambda value: {key: list(val) for key, val in value.items()},
     },
     {
       'type': 'generic',
@@ -131,8 +132,9 @@ def create_gui_settings():
       # key: image file path
       # value: set of layer names collapsed in the name preview
       'default_value': collections.defaultdict(set),
-      'value_set': lambda value: collections.defaultdict(set, value),
-      'value_save': lambda value: dict(value),
+      'value_set': lambda value: collections.defaultdict(
+        set, {key: set(val) for key, val in value.items()}),
+      'value_save': lambda value: {key: list(val) for key, val in value.items()},
     },
     {
       'type': 'generic',
