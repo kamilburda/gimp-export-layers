@@ -188,6 +188,12 @@ class VectorsStub(ItemStub):
   pass
 
 
+class DisplayStub(ParasiteFunctionsStubMixin):
+  
+  def __init__(self, id_=None):
+    self.ID = id_
+
+
 class GimpModuleStub(ParasiteFunctionsStubMixin):
   
   pdb = PdbStub
@@ -198,6 +204,7 @@ class GimpModuleStub(ParasiteFunctionsStubMixin):
   GroupLayer = LayerGroupStub
   Channel = ChannelStub
   Vectors = VectorsStub
+  Display = DisplayStub
 
 
 class ShelfStub(object):

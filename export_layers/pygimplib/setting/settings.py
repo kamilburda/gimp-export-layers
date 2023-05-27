@@ -1584,6 +1584,21 @@ class ColorSetting(Setting):
   # Create default value dynamically to avoid potential errors on GIMP startup.
   _DEFAULT_DEFAULT_VALUE = lambda self: gimpcolor.RGB(0, 0, 0)
   
+  def set_value(self, value):
+    if isinstance(value, list):
+      value = gimpcolor.RGB(*value)
+    
+    super().set_value(value)
+  
+  def to_dict(self):
+    setting_dict = super().to_dict()
+    
+    color = setting_dict['value']
+    setting_dict['value'] = [
+      int(color.r * 255), int(color.g * 255), int(color.b * 255), int(color.a * 255)]
+    
+    return setting_dict
+  
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _('Invalid color.')
   
@@ -1595,6 +1610,9 @@ class ColorSetting(Setting):
 
 class DisplaySetting(Setting):
   """Class for settings holding `gimp.Display` objects.
+  
+  `gimp.Display` objects cannot be loaded or saved. Therefore, `to_dict()`
+  returns a dictionary whose `'value'` key is `None`.
   
   Allowed GIMP PDB types:
   
@@ -1612,6 +1630,13 @@ class DisplaySetting(Setting):
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.display]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.display_spin_button]
   _EMPTY_VALUES = [None]
+  
+  def to_dict(self):
+    setting_dict = super().to_dict()
+    
+    setting_dict['value'] = None
+    
+    return setting_dict
   
   def _copy_value(self, value):
     return value
@@ -1642,7 +1667,22 @@ class ParasiteSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.parasite]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.parasite_box]
+  # Create default value dynamically to avoid potential errors on GIMP startup.
   _DEFAULT_DEFAULT_VALUE = lambda self: gimp.Parasite(self.name, 0, '')
+  
+  def set_value(self, value):
+    if isinstance(value, list):
+      value = gimp.Parasite(*value)
+    
+    super().set_value(value)
+  
+  def to_dict(self):
+    setting_dict = super().to_dict()
+    
+    parasite = setting_dict['value']
+    setting_dict['value'] = [parasite.name, parasite.flags, parasite.data]
+    
+    return setting_dict
   
   def _copy_value(self, value):
     return value
@@ -1832,8 +1872,17 @@ class BrushSetting(Setting):
   def set_value(self, value):
     if isinstance(value, types.StringTypes):
       value = (value,)
+    elif isinstance(value, list):
+      value = tuple(value)
     
     super().set_value(value)
+  
+  def to_dict(self):
+    setting_dict = super().to_dict()
+    
+    setting_dict['value'] = list(setting_dict['value'])
+    
+    return setting_dict
   
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _(
@@ -2077,7 +2126,8 @@ class ArraySetting(Setting):
     
     All parameters prefixed with `'element_'` will be created in the array
     setting as read-only properties. `element_default_value` will always be
-    created.
+    created. `element_dict_on_init` is accepted, but will be ignored when
+    calling `to_dict()`.
     
     Array-specific additional parameters:
     * `min_size` - minimum array size (0 by default).
@@ -2126,6 +2176,26 @@ class ArraySetting(Setting):
   @property
   def max_size(self):
     return self._max_size
+  
+  def set_value(self, value_array):
+    if isinstance(value_array, list):
+      new_value_array = []
+      for value in value_array:
+        self._reference_element.set_value(value)
+        new_value_array.append(self._reference_element.value)
+      
+      self._reference_element.reset()
+      
+      super().set_value(new_value_array)
+    else:
+      super().set_value(value_array)
+  
+  def to_dict(self):
+    setting_dict = super().to_dict()
+    
+    setting_dict['value'] = list(setting.to_dict()['value'] for setting in self._elements)
+    
+    return setting_dict
   
   def __getitem__(self, index):
     """Returns a setting representing the the array element at the specified
@@ -2342,6 +2412,10 @@ class ContainerSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   if you need to pass the elements to a GIMP PDB procedure and allow adjusting
   the element values via GUI.
   
+  If you intend to save container settings to a setting source, make sure each
+  item is of one of the types specified in the description of `to_dict()`.
+  Otherwise, saving may fail.
+  
   Optionally, when assigning, the value can be nullable (`None`) instead of
   always a container.
   """
@@ -2390,6 +2464,13 @@ class TupleSetting(ContainerSetting):
       value = tuple(value)
     
     super().set_value(value)
+  
+  def to_dict(self):
+    setting_dict = super().to_dict()
+    
+    setting_dict['value'] = list(setting_dict['value'])
+    
+    return setting_dict
 
 
 class SetSetting(ContainerSetting):
@@ -2404,6 +2485,13 @@ class SetSetting(ContainerSetting):
       value = set(value)
     
     super().set_value(value)
+  
+  def to_dict(self):
+    setting_dict = super().to_dict()
+    
+    setting_dict['value'] = list(setting_dict['value'])
+    
+    return setting_dict
 
 
 class DictSetting(ContainerSetting):

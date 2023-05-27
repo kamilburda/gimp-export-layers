@@ -1050,10 +1050,60 @@ class TestGimpItemSetting(unittest.TestCase):
 class TestColorSetting(unittest.TestCase):
   
   def test_create_with_default_default_value(self):
-    self.assertEqual(
-      settings_.ColorSetting('color').default_value, gimpcolor.RGB(0, 0, 0))
+    self.assertEqual(settings_.ColorSetting('color').default_value, gimpcolor.RGB(0, 0, 0))
+  
+  def test_set_value_with_object(self):
+    color = gimpcolor.RGB(5, 5, 5)
+    
+    setting = settings_.ColorSetting('color')
+    setting.set_value(color)
+    
+    self.assertEqual(setting.value, color)
+  
+  def test_set_value_with_list(self):
+    setting = settings_.ColorSetting('color')
+    setting.set_value([5, 2, 8])
+    
+    self.assertEqual(setting.value, gimpcolor.RGB(5, 2, 8))
+  
+  def test_set_value_with_list_with_four_values(self):
+    setting = settings_.ColorSetting('color')
+    setting.set_value([5, 2, 8, 4])
+    
+    self.assertEqual(setting.value, gimpcolor.RGB(5, 2, 8, 4))
+  
+  def test_to_dict(self):
+    setting = settings_.ColorSetting('color')
+    setting.set_value(gimpcolor.RGB(5, 2, 8))
+    
+    self.assertEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 255]})
+  
+  def test_to_dict_with_four_values(self):
+    setting = settings_.ColorSetting('color')
+    setting.set_value(gimpcolor.RGB(5, 2, 8, 4))
+    
+    self.assertEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 4]})
 
 
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
+class TestDisplaySetting(unittest.TestCase):
+  
+  def test_to_dict(self):
+    setting = settings_.DisplaySetting('display')
+    display = stubs_gimp.DisplayStub(id_=1)
+    
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.setting.settings.pdb') as temp_mock_pdb:
+      temp_mock_pdb.gimp_display_is_valid.return_value = True
+      
+      setting.set_value(display)
+    
+    self.assertEqual(setting.to_dict(), {'name': 'display', 'value': None})
+
+
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.setting.settings.gimp', new=stubs_gimp.GimpModuleStub())
 class TestParasiteSetting(unittest.TestCase):
   
   def test_create_with_default_default_value(self):
@@ -1062,6 +1112,34 @@ class TestParasiteSetting(unittest.TestCase):
     self.assertEqual(setting.value.name, 'parasite')
     self.assertEqual(setting.value.flags, 0)
     self.assertEqual(setting.value.data, '')
+  
+  def test_set_value_by_object(self):
+    setting = settings_.ParasiteSetting('parasite')
+    
+    parasite = stubs_gimp.ParasiteStub('parasite_stub', 1, 'data')
+    
+    setting.set_value(parasite)
+    
+    self.assertEqual(setting.value, parasite)
+  
+  def test_set_value_by_list(self):
+    setting = settings_.ParasiteSetting('parasite')
+    
+    setting.set_value(['parasite_stub', 1, 'data'])
+    
+    self.assertEqual(setting.value.name, 'parasite_stub')
+    self.assertEqual(setting.value.flags, 1)
+    self.assertEqual(setting.value.data, 'data')
+  
+  def test_to_dict(self):
+    setting = settings_.ParasiteSetting('parasite')
+    
+    parasite = stubs_gimp.ParasiteStub('parasite_stub', 1, 'data')
+    
+    setting.set_value(parasite)
+    
+    self.assertEqual(
+      setting.to_dict(), {'name': 'parasite', 'value': ['parasite_stub', 1, 'data']})
 
 
 class TestFileExtensionSetting(unittest.TestCase):
@@ -1127,9 +1205,19 @@ class TestBrushSetting(unittest.TestCase):
     with self.assertRaises(settings_.SettingValueError):
       self.setting.set_value(('', -1, -1, -1, -1))
   
-  def test_set_value_accepts_brush_name_and_converts_to_tuple(self):
+  def test_set_value_converts_brush_name_to_tuple(self):
     self.setting.set_value('Clipboard')
     self.assertEqual(self.setting.value, ('Clipboard',))
+  
+  def test_set_value_converts_list_to_tuple(self):
+    self.setting.set_value(['Clipboard', 50.0, 10.0, -1])
+    self.assertEqual(self.setting.value, ('Clipboard', 50.0, 10.0, -1))
+  
+  def test_to_dict(self):
+    self.setting.set_value(('Clipboard', 50.0, 10.0, -1))
+    
+    self.assertEqual(
+      self.setting.to_dict(), {'name': 'brush', 'value': ['Clipboard', 50.0, 10.0, -1]})
 
 
 class TestImageIDsAndDirpathsSetting(unittest.TestCase):
@@ -1432,7 +1520,7 @@ class TestArraySetting(unittest.TestCase):
   
   @parameterized.parameterized.expand([
     ('with_tuple', (20.0, 50.0, 40.0), (20.0, 50.0, 40.0)),
-    ('converts_value_to_tuple', [20.0, 50.0, 40.0], (20.0, 50.0, 40.0)),
+    ('with_list', [20.0, 50.0, 40.0], (20.0, 50.0, 40.0)),
   ])
   def test_set_value(self, test_case_name_suffix, input_value, expected_value):
     self.setting.set_value(input_value)
@@ -1440,6 +1528,17 @@ class TestArraySetting(unittest.TestCase):
     self.assertEqual(self.setting.value, expected_value)
     for i, expected_element_value in enumerate(expected_value):
       self.assertEqual(self.setting[i].value, expected_element_value)
+  
+  def test_set_value_with_list_of_type_having_custom_set_value(self):
+    setting = settings_.ArraySetting(
+      'coordinates',
+      default_value=(),
+      element_type='brush',
+      element_default_value=())
+    
+    setting.set_value(['Clipboard', 'Clipboard2'])
+    
+    self.assertEqual(setting.value, (('Clipboard',), ('Clipboard2',)))
   
   def test_set_value_validates_if_value_is_iterable(self):
     with self.assertRaises(settings_.SettingValueError):
@@ -1462,6 +1561,21 @@ class TestArraySetting(unittest.TestCase):
     self.setting.reset()
     self.assertEqual(self.setting.value, (1.0, 5.0, 10.0))
     self.assertEqual(self.setting.default_value, (1.0, 5.0, 10.0))
+  
+  def test_to_dict(self):
+    self.assertEqual(self.setting.to_dict(), {'name': 'coordinates', 'value': [1.0, 5.0, 10.0]})
+  
+  def test_to_dict_with_type_having_custom_to_dict(self):
+    setting = settings_.ArraySetting(
+      'coordinates',
+      default_value=(),
+      element_type='brush',
+      element_default_value=())
+    
+    setting.set_value(['Clipboard', 'Clipboard2'])
+    
+    self.assertEqual(
+      setting.to_dict(), {'name': 'coordinates', 'value': [['Clipboard'], ['Clipboard2']]})
   
   @parameterized.parameterized.expand([
     ('first', 0, 1.0),
@@ -1814,6 +1928,15 @@ class TestContainerSettings(unittest.TestCase):
     setting.set_value(list(expected_value))
     self.assertTupleEqual(setting.value, expected_value)
   
+  def test_to_dict_for_tuple_setting(self):
+    expected_value = (1, 4, 'five')
+    
+    setting = settings_.TupleSetting('setting')
+    
+    setting.set_value(expected_value)
+    
+    self.assertEqual(setting.to_dict(), {'name': 'setting', 'value': [1, 4, 'five']})
+  
   def test_set_value_for_set_setting(self):
     expected_value = set([1, 4, 'five'])
     
@@ -1824,6 +1947,15 @@ class TestContainerSettings(unittest.TestCase):
     
     setting.set_value(list(expected_value))
     self.assertSetEqual(setting.value, expected_value)
+  
+  def test_to_dict_for_set_setting(self):
+    expected_value = set([1, 4, 'five'])
+    
+    setting = settings_.SetSetting('setting')
+
+    setting.set_value(expected_value)
+    
+    self.assertEqual(setting.to_dict(), {'name': 'setting', 'value': list(expected_value)})
 
 
 class TestSettingTypeFunctions(unittest.TestCase):
