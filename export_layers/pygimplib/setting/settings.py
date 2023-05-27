@@ -112,19 +112,45 @@ class Setting(
       abc.ABCMeta, utils_.SettingParentMixin, utils_.SettingEventsMixin)):
   """Abstract class representing a plug-in setting.
   
-  Properties and methods in settings can be used in multiple scenarios, such as:
-  * using setting values as variables in the main logic of plug-ins
-  * registering GIMP Procedural Database (PDB) parameters to plug-ins
-  * managing GUI element properties (values, labels, etc.)
+  A `Setting` allows you to:
+  * store and use setting values as variables in the main logic of plug-ins,
+  * create and manage a GUI element tied to the setting,
+  * load and save setting values,
+  * connect to events offered in the setting to trigger changes in your
+    application code.
   
   Use an appropriate subclass of `Setting` for a particular data type. Most
-  subclasses offer the following features:
-  * the ability to register the setting to the GIMP procedural database (PDB),
+  subclasses offer the following additional features:
+  * the ability to register the setting to the GIMP procedural database (PDB) as
+    a plug-in parameter,
   * automatic validation of input values,
-  * readily available GUI widget, keeping the GUI and the setting value in sync.
+  * a readily available GUI widget, keeping the GUI and the setting value in
+    sync.
   
-  The `GenericSetting` class can store arbitrary data. Use this subclass
-  sparingly as it lacks all the features above.
+  To support saving setting values to a setting source (e.g. to a file), the
+  `to_dict()` method must return a dictionary whose keys are always strings and
+  values are one of the following types: `int`, `float`, `bool`, `str`, `list`,
+  `dict` or `None`.
+  
+  When loading settings from a setting source, the settings are first
+  instantiated with their default values and then `set_value()` is called to
+  override the default values with the loaded values. Likewise, `set_value()`
+  must also accept one of the types specified above, in addition to a type
+  supported by a particular subclass. For example, `ImageSetting.set_value()`
+  must support passing a string (representing the image file path) and
+  additionally supports passing a `gimp.Image` instance.
+  
+  The `GenericSetting` class can store a value of an arbitrary type. Use this
+  subclass sparingly as it lacks the additional features available for other
+  `Setting` subclasses mentioned above.
+  
+  Settings can be saved to a setting source with just their `name` and `value`
+  attributes as other attributes are defined in the code and they usually cannot
+  be modified (`display_name`, `pdb_type`, etc.). However, if you create
+  settings dynamically via `setting.Group.add()` and you want to recreate
+  these settings when loading from a setting source, you must specify
+  `dict_on_init`, which should be the same dictionary used to instantiate the
+  setting via `setting.Group.add()`.
   
   Settings can contain event handlers that are triggered when a setting property
   changes, e.g. `value` (when `set_value()` is called). This way, for example,
@@ -315,8 +341,8 @@ class Setting(
     
     * `dict_on_init` - If not `None`, this is a dictionary of (parameter name,
       parameter value) pairs used to instantiate this setting via
-      `setting.create_groups()` or `setting.Group.add()`. The contents of this
-      dictionary are copied to the dictionary returned by `to_dict()`.
+      `setting.Group.add()`. The contents of this dictionary are copied to the
+      dictionary returned by `to_dict()`.
     """
     super().__init__()
     
