@@ -267,6 +267,11 @@ class Setting(
   
   * `tags` - A set of arbitrary tags attached to the setting. Tags can be used
     to e.g. iterate over a specific subset of settings.
+  
+  * `dict_on_init` - If not `None`, this should be a dictionary of (parameter
+    name, parameter value) pairs used to instantiate this setting via
+    `setting.Group.add()`. The contents of this dictionary are copied to the
+    dictionary returned by `to_dict()`.
   """
   
   DEFAULT_VALUE = type(b'DefaultValue', (), {})()
@@ -339,10 +344,7 @@ class Setting(
       attached to the setting. Tags can be used to e.g. iterate over a specific
       subset of settings.
     
-    * `dict_on_init` - If not `None`, this is a dictionary of (parameter name,
-      parameter value) pairs used to instantiate this setting via
-      `setting.Group.add()`. The contents of this dictionary are copied to the
-      dictionary returned by `to_dict()`.
+    * `dict_on_init` - See the description of attributes of the `Setting` class.
     """
     super().__init__()
     
