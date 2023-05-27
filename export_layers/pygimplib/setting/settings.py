@@ -644,7 +644,30 @@ class Setting(
     if self.dict_on_init is None:
       return settings_dict
     else:
-      settings_dict.update(self.dict_on_init)
+      dict_on_init_processed = {}
+      
+      for key, val in self.dict_on_init.items():
+        if key == 'type' and val is not None and not isinstance(val, types.StringTypes):
+          if val not in _SETTING_TYPES_TO_NAMES_MAP or len(_SETTING_TYPES_TO_NAMES_MAP[val]) < 1:
+            raise TypeError(
+              ('invalid value for field "type" in dict_on_init: "{}";'
+               ' the value must be one of the setting.Setting classes').format(val))
+          
+          dict_on_init_processed['type'] = pgutils.safe_decode(
+            _SETTING_TYPES_TO_NAMES_MAP[val][0], 'utf-8')
+        elif key == 'gui_type' and val is not None and not isinstance(val, types.StringTypes):
+          if (val not in _SETTING_GUI_TYPES_TO_NAMES_MAP
+              or len(_SETTING_GUI_TYPES_TO_NAMES_MAP[val]) < 1):
+            raise TypeError(
+              ('invalid value for field "gui_type" in dict_on_init: "{}";'
+               ' the value must be one of the setting.Presenter classes').format(val))
+          
+          dict_on_init_processed['gui_type'] = pgutils.safe_decode(
+            _SETTING_GUI_TYPES_TO_NAMES_MAP[val][0], 'utf-8')
+        else:
+          dict_on_init_processed[key] = val
+      
+      settings_dict.update(dict_on_init_processed)
       return settings_dict
   
   def _validate(self, value):
@@ -1777,7 +1800,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
       raise SettingValueError(
         utils_.value_to_str_prefix(string_)
         + '\n'.join([message for message in new_status_messages]))
-  
+
 
 class FileExtensionSetting(ValidatableStringSetting):
   """Class for settings storing file extensions as strings.

@@ -248,7 +248,7 @@ class TestSetting(unittest.TestCase):
     setting = stubs_setting.SettingStub(
       'file_extension', 'png',
       dict_on_init={
-        'type': 'stub',
+        'type': 'file_extension',
         'name': 'file_extension',
         'default_value': 'png',
         'gui_type': None,
@@ -259,10 +259,55 @@ class TestSetting(unittest.TestCase):
       {
         'name': setting.name,
         'value': setting.value,
-        'type': 'stub',
+        'type': 'file_extension',
         'default_value': 'png',
         'gui_type': None,
       })
+  
+  def test_to_dict_with_dict_on_init_with_types_as_objects(self):
+    setting = stubs_setting.SettingStub(
+      'file_extension', 'png',
+      dict_on_init={
+        'type': settings_.SettingTypes.file_extension,
+        'name': 'file_extension',
+        'default_value': 'png',
+        'gui_type': settings_.SettingGuiTypes.file_extension_entry,
+      })
+    
+    self.assertDictEqual(
+      setting.to_dict(),
+      {
+        'name': setting.name,
+        'value': setting.value,
+        'type': 'file_extension',
+        'default_value': 'png',
+        'gui_type': 'file_extension_entry',
+      })
+  
+  def test_to_dict_with_dict_on_init_with_type_as_invalid_object(self):
+    setting = stubs_setting.SettingStub(
+      'file_extension', 'png',
+      dict_on_init={
+        'type': object,
+        'name': 'file_extension',
+        'default_value': 'png',
+      })
+    
+    with self.assertRaises(TypeError):
+      setting.to_dict()
+  
+  def test_to_dict_with_dict_on_init_with_gui_type_as_invalid_object(self):
+    setting = stubs_setting.SettingStub(
+      'file_extension', 'png',
+      dict_on_init={
+        'type': 'file_extension',
+        'name': 'file_extension',
+        'default_value': 'png',
+        'gui_type': object,
+      })
+    
+    with self.assertRaises(TypeError):
+      setting.to_dict()
 
 
 class TestSettingEvents(unittest.TestCase):
