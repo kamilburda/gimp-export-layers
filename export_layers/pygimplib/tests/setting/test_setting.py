@@ -1076,13 +1076,13 @@ class TestColorSetting(unittest.TestCase):
     setting = settings_.ColorSetting('color')
     setting.set_value(gimpcolor.RGB(5, 2, 8))
     
-    self.assertEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 255]})
+    self.assertDictEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 255]})
   
   def test_to_dict_with_four_values(self):
     setting = settings_.ColorSetting('color')
     setting.set_value(gimpcolor.RGB(5, 2, 8, 4))
     
-    self.assertEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 4]})
+    self.assertDictEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 4]})
 
 
 @mock.patch(
@@ -1099,7 +1099,7 @@ class TestDisplaySetting(unittest.TestCase):
       
       setting.set_value(display)
     
-    self.assertEqual(setting.to_dict(), {'name': 'display', 'value': None})
+    self.assertDictEqual(setting.to_dict(), {'name': 'display', 'value': None})
 
 
 @mock.patch(
@@ -1138,7 +1138,7 @@ class TestParasiteSetting(unittest.TestCase):
     
     setting.set_value(parasite)
     
-    self.assertEqual(
+    self.assertDictEqual(
       setting.to_dict(), {'name': 'parasite', 'value': ['parasite_stub', 1, 'data']})
 
 
@@ -1216,7 +1216,7 @@ class TestBrushSetting(unittest.TestCase):
   def test_to_dict(self):
     self.setting.set_value(('Clipboard', 50.0, 10.0, -1))
     
-    self.assertEqual(
+    self.assertDictEqual(
       self.setting.to_dict(), {'name': 'brush', 'value': ['Clipboard', 50.0, 10.0, -1]})
 
 
@@ -1563,7 +1563,8 @@ class TestArraySetting(unittest.TestCase):
     self.assertEqual(self.setting.default_value, (1.0, 5.0, 10.0))
   
   def test_to_dict(self):
-    self.assertEqual(self.setting.to_dict(), {'name': 'coordinates', 'value': [1.0, 5.0, 10.0]})
+    self.assertDictEqual(
+      self.setting.to_dict(), {'name': 'coordinates', 'value': [1.0, 5.0, 10.0]})
   
   def test_to_dict_with_type_having_custom_to_dict(self):
     setting = settings_.ArraySetting(
@@ -1574,7 +1575,7 @@ class TestArraySetting(unittest.TestCase):
     
     setting.set_value(['Clipboard', 'Clipboard2'])
     
-    self.assertEqual(
+    self.assertDictEqual(
       setting.to_dict(), {'name': 'coordinates', 'value': [['Clipboard'], ['Clipboard2']]})
   
   @parameterized.parameterized.expand([
@@ -1935,7 +1936,7 @@ class TestContainerSettings(unittest.TestCase):
     
     setting.set_value(expected_value)
     
-    self.assertEqual(setting.to_dict(), {'name': 'setting', 'value': [1, 4, 'five']})
+    self.assertDictEqual(setting.to_dict(), {'name': 'setting', 'value': [1, 4, 'five']})
   
   def test_set_value_for_set_setting(self):
     expected_value = set([1, 4, 'five'])
@@ -1955,7 +1956,7 @@ class TestContainerSettings(unittest.TestCase):
 
     setting.set_value(expected_value)
     
-    self.assertEqual(setting.to_dict(), {'name': 'setting', 'value': list(expected_value)})
+    self.assertDictEqual(setting.to_dict(), {'name': 'setting', 'value': list(expected_value)})
 
 
 class TestSettingTypeFunctions(unittest.TestCase):
