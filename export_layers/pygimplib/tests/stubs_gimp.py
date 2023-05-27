@@ -28,6 +28,7 @@ class PdbStub(object):
     image.width = width
     image.height = height
     image.image_type = image_type
+    image.filename = None
     
     return image
   
@@ -53,6 +54,10 @@ class PdbStub(object):
   @staticmethod
   def gimp_item_get_children(item):
     return len(item.children), item.children
+  
+  @staticmethod
+  def gimp_image_set_filename(image, filename):
+    image.filename = filename
 
 
 class PdbProcedureStub(object):
@@ -142,7 +147,7 @@ class ItemStub(ParasiteFunctionsStubMixin):
   
   _item_id_counter = itertools.count(start=1)
   
-  def __init__(self, name=None, visible=True):
+  def __init__(self, name=None, visible=True, parent=None):
     super().__init__()
     
     self.ID = self._item_id_counter.next()
@@ -154,14 +159,11 @@ class ItemStub(ParasiteFunctionsStubMixin):
     self.name = pgutils.safe_encode_gimp(name)
     self.image = None
     self.children = []
+    self.parent = parent
 
 
 class LayerStub(ItemStub):
-  
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    
-    self.parent = None
+  pass
 
 
 class LayerGroupStub(LayerStub):
@@ -178,6 +180,14 @@ class LayerGroupStub(LayerStub):
     self.children = val
 
 
+class ChannelStub(ItemStub):
+  pass
+
+
+class VectorsStub(ItemStub):
+  pass
+
+
 class GimpModuleStub(ParasiteFunctionsStubMixin):
   
   pdb = PdbStub
@@ -186,6 +196,8 @@ class GimpModuleStub(ParasiteFunctionsStubMixin):
   Item = ItemStub
   Layer = LayerStub
   GroupLayer = LayerGroupStub
+  Channel = ChannelStub
+  Vectors = VectorsStub
 
 
 class ShelfStub(object):

@@ -867,28 +867,184 @@ class TestEnumSetting(unittest.TestCase):
       setting.set_value(setting.items['choose'])
 
 
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.pdbutils.gimp', new=stubs_gimp.GimpModuleStub())
 class TestImageSetting(unittest.TestCase):
-  
+    
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
-  def test_set_invalid_image(self):
-    pdb = stubs_gimp.PdbStub()
-    image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
+  def setUp(self):
+    self.pdb = stubs_gimp.PdbStub()
     
-    setting = settings_.ImageSetting('image', image)
+    self.image = self.pdb.gimp_image_new(2, 2, gimpenums.RGB)
     
-    pdb.gimp_image_delete(image)
+    self.setting = settings_.ImageSetting('image', self.image)
+  
+  def test_set_value_with_object(self):
+    image = self.pdb.gimp_image_new(2, 2, gimpenums.RGB)
+    
+    self.setting.set_value(image)
+    
+    self.assertEqual(self.setting.value, image)
+  
+  def test_set_value_with_file_path(self):
+    self.pdb.gimp_image_set_filename(self.image, 'file_path')
+    
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+    
+      self.setting.set_value('file_path')
+    
+    self.assertEqual(self.setting.value, self.image)
+  
+  def test_set_value_with_non_matching_file_path(self):
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = []
+      
+      with self.assertRaises(settings_.SettingValueError):
+        self.setting.set_value('file_path')
+  
+  def test_set_value_invalid_image_raises_error(self):
+    self.pdb.gimp_image_delete(self.image)
     with self.assertRaises(settings_.SettingValueError):
-      setting.set_value(image)
+      self.setting.set_value(self.image)
   
-  @mock.patch(
-    pgutils.get_pygimplib_module_path() + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
   def test_empty_value_as_default_value(self):
     try:
       settings_.ImageSetting('image', None)
     except settings_.SettingDefaultValueError:
       self.fail(
         'SettingDefaultValueError should not be raised - default value is an empty value')
+  
+  def test_to_dict(self):
+    self.pdb.gimp_image_set_filename(self.image, 'file_path')
+    
+    self.assertDictEqual(self.setting.to_dict(), {'name': 'image', 'value': 'file_path'})
+  
+  def test_to_dict_with_missing_filename(self):
+    self.pdb.gimp_image_set_filename(self.image, None)
+    
+    self.assertDictEqual(self.setting.to_dict(), {'name': 'image', 'value': None})
+
+
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.setting.settings.gimp', new=stubs_gimp.GimpModuleStub())
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.pdbutils.gimp', new=stubs_gimp.GimpModuleStub())
+class TestGimpItemSetting(unittest.TestCase):
+  
+  class StubItemSetting(settings_.GimpItemSetting):
+    pass
+  
+  def setUp(self):
+    pdb = stubs_gimp.PdbStub()
+    
+    self.image = pdb.gimp_image_new(2, 2, gimpenums.RGB)
+    
+    self.parent_of_parent = stubs_gimp.LayerGroupStub(name='group1')
+    
+    self.parent = stubs_gimp.LayerGroupStub(name='group2')
+    self.parent.parent = self.parent_of_parent
+    
+    self.layer = stubs_gimp.LayerStub(name='layer')
+    self.layer.parent = self.parent
+    self.layer.image = self.image
+    self.layer.image.filename = 'image_filepath'
+    
+    self.image.layers = [self.parent_of_parent]
+    self.parent_of_parent.children = [self.parent]
+    self.parent.children = [self.layer]
+    
+    self.setting = self.StubItemSetting('item', self.layer)
+  
+  def test_set_value_with_object(self):
+    layer = stubs_gimp.LayerStub(name='layer2')
+    
+    self.setting.set_value(layer)
+    self.assertEqual(self.setting.value, layer)
+  
+  def test_set_value_with_list(self):
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+      
+      self.setting.set_value(['image_filepath', 'Layer', 'group1/group2/layer'])
+    
+    self.assertEqual(self.setting.value, self.layer)
+  
+  def test_set_value_with_list_and_top_level_layer(self):
+    self.layer.parent = None
+    self.image.layers = [self.layer]
+    
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+      
+      self.setting.set_value(['image_filepath', 'Layer', 'layer'])
+    
+    self.assertEqual(self.setting.value, self.layer)
+  
+  def test_set_value_with_list_invalid_length_raises_error(self):
+    with self.assertRaises(ValueError):
+      self.setting.set_value(['image_filepath', 'group1/group2/layer'])
+  
+  def test_set_value_with_list_no_matching_image_returns_none(self):
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = []
+      
+      self.setting.set_value(['image_filepath', 'Layer', 'group1/group2/layer'])
+    
+    self.assertEqual(self.setting.value, None)
+  
+  def test_set_value_with_list_no_matching_layer_returns_none(self):
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+      
+      self.setting.set_value(['image_filepath', 'Layer', 'group1/group2/some_other_layer'])
+    
+    self.assertEqual(self.setting.value, None)
+  
+  def test_set_value_with_list_no_matching_parent_returns_none(self):
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+      
+      self.setting.set_value(['image_filepath', 'Layer', 'group1/some_other_group2/layer'])
+    
+    self.assertEqual(self.setting.value, None)
+  
+  def test_set_value_with_invalid_item_type_raises_error(self):
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+      
+      with self.assertRaises(TypeError):
+        self.setting.set_value(['image_filepath', 'Item', 'group1/group2/layer'])
+  
+  def test_to_dict(self):
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {'name': 'item', 'value': ['image_filepath', 'LayerStub', 'group1/group2/layer']})
+  
+  def test_to_dict_without_image_filename(self):
+    self.image.filename = None
+    
+    self.assertDictEqual(self.setting.to_dict(), {'name': 'item', 'value': None})
+  
+  def test_to_dict_without_parents(self):
+    self.layer.parent = None
+    
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {'name': 'item', 'value': ['image_filepath', 'LayerStub', 'layer']})
 
 
 class TestColorSetting(unittest.TestCase):

@@ -10,6 +10,9 @@ import inspect
 from . import constants as pgconstants
 
 
+GIMP_ITEM_PATH_SEPARATOR = '/'
+
+
 class EmptyContext(object):
   """
   This class provides an empty context manager that can be used in `with`

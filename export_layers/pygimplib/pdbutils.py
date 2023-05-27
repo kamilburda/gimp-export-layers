@@ -82,6 +82,16 @@ def create_image_from_metadata(image_to_copy_metadata_from):
   return new_image
 
 
+def find_images_by_filepath(image_filepath):
+  """Returns a list of currently opened images in GIMP whose `filename`
+  attribute matches the given file path.
+  """
+  return [
+    image for image in gimp.image_list()
+    if pgutils.safe_decode_gimp(image.filename) == image_filepath
+  ]
+
+
 def remove_all_layers(image):
   """
   Remove all layers from the specified image.

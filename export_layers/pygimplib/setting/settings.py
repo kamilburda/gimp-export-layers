@@ -19,6 +19,7 @@ import gimpcolor
 import gimpenums
 
 from .. import path as pgpath
+from .. import pdbutils as pgpdbutils
 from .. import utils as pgutils
 
 from . import persistor as persistor_
@@ -1239,6 +1240,29 @@ class ImageSetting(Setting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.image_combo_box]
   _EMPTY_VALUES = [None]
   
+  def set_value(self, value):
+    if isinstance(value, types.StringTypes):
+      images = pgpdbutils.find_images_by_filepath(value)
+      if images:
+        # Take the first image matching the file path. There may be multiple
+        # opened images from the same file path, but there is no way to tell which
+        # image is the one the user desires to work with.
+        value = images[0]
+      else:
+        value = None
+    
+    super().set_value(value)
+  
+  def to_dict(self):
+    setting_dict = super().to_dict()
+    
+    if setting_dict['value'].filename is not None:
+      setting_dict['value'] = pgutils.safe_decode_gimp(setting_dict['value'].filename)
+    else:
+      setting_dict['value'] = None
+    
+    return setting_dict
+  
   def _copy_value(self, value):
     return value
   
@@ -1251,16 +1275,121 @@ class ImageSetting(Setting):
         utils_.value_to_str_prefix(image) + self.error_messages['invalid_value'])
 
 
-class ItemSetting(Setting):
+class GimpItemSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
+  """Abstract class for settings storing GIMP items - layers, channels, etc.
+  
+  This class overrides `set_value()` to allow setting a GIMP item as a value
+  loaded from a setting source, and `to_dict()` to allow saving GIMP objects to
+  setting sources.
+  
+  For session-wide setting sources, the item ID is used for setting value or
+  saving. For persistent setting sources, a list containing the image file path,
+  item type name and item path (from topmost parent to the item name) is used.
+  """
+  
+  def set_value(self, value):
+    if isinstance(value, list):
+      if len(value) != 3:
+        raise ValueError(
+          ('lists as values for GIMP item settings must contain'
+           ' exactly 3 elements - image file path, item type name, item path'
+           ' (has {})').format(len(value)))
+      
+      value = self._get_item_from_image_and_item_path(*value)
+    
+    super().set_value(value)
+  
+  def to_dict(self):
+    setting_dict = super().to_dict()
+    
+    item = setting_dict['value']
+    
+    if item.image is not None and item.image.filename is not None:
+      parents = self._get_item_parents(item)
+      
+      item_path = pgutils.GIMP_ITEM_PATH_SEPARATOR.join(
+        pgutils.safe_decode_gimp(parent_or_item.name) for parent_or_item in parents + [item])
+      
+      item_type_name = pgutils.safe_decode(item.__class__.__name__, 'utf-8')
+      
+      setting_dict['value'] = [item.image.filename, item_type_name, item_path]
+    else:
+      setting_dict['value'] = None
+    
+    return setting_dict
+  
+  def _get_item_from_image_and_item_path(self, image_filepath, item_type_name, item_path):
+    images = pgpdbutils.find_images_by_filepath(image_filepath)
+    if images:
+      # Take the first image matching the file path. There may be multiple
+      # opened images from the same file path, but there is no way to tell which
+      # image is the one the user desires to work with.
+      image = images[0]
+    else:
+      return None
+    
+    item_path_components = item_path.split(pgutils.GIMP_ITEM_PATH_SEPARATOR)
+    
+    if len(item_path_components) < 1:
+      return None
+    
+    matching_image_child = self._find_item_by_name_in_children(
+      item_path_components[0], self._get_children_from_image(image, item_type_name))
+    if matching_image_child is None:
+      return None
+    
+    if len(item_path_components) == 1:
+      return matching_image_child
+    
+    parent = matching_image_child
+    matching_item = None
+    for parent_or_item_name in item_path_components[1:]:
+      matching_item = self._find_item_by_name_in_children(parent_or_item_name, parent.children)
+      
+      if matching_item is None:
+        return None
+      
+      parent = matching_item
+    
+    return matching_item
+  
+  def _find_item_by_name_in_children(self, item_name, children):
+    for child in children:
+      if child.name == item_name:
+        return child
+    
+    return None
+  
+  def _get_children_from_image(self, image, item_type_name):
+    item_type = getattr(gimp, item_type_name)
+    
+    if item_type in (gimp.Layer, gimp.GroupLayer):
+      return image.layers
+    elif item_type == gimp.Channel:
+      return image.channels
+    elif item_type == gimp.Vectors:
+      return image.vectors
+    else:
+      raise TypeError(
+        ('invalid item type "{}";'
+         ' must be Layer, GroupLayer, Channel or Vectors').format(item_type_name))
+  
+  def _get_item_parents(self, item):
+    parents = []
+    current_parent = item.parent
+    while current_parent is not None:
+      parents.insert(0, current_parent)
+      current_parent = current_parent.parent
+    
+    return parents
+
+
+class ItemSetting(GimpItemSetting):
   """Class for settings holding `gimp.Item` objects.
   
   Allowed GIMP PDB types:
   
   * `SettingPdbTypes.item`
-  
-  Empty values:
-  
-  * `None`
   
   Error messages:
   
@@ -1283,7 +1412,7 @@ class ItemSetting(Setting):
         utils_.value_to_str_prefix(item) + self.error_messages['invalid_value'])
 
 
-class DrawableSetting(Setting):
+class DrawableSetting(GimpItemSetting):
   """Class for settings holding `gimp.Drawable` objects.
   
   Allowed GIMP PDB types:
@@ -1315,7 +1444,7 @@ class DrawableSetting(Setting):
         utils_.value_to_str_prefix(drawable) + self.error_messages['invalid_value'])
 
 
-class LayerSetting(Setting):
+class LayerSetting(GimpItemSetting):
   """Class for settings holding `gimp.Layer` or `gimp.GroupLayer` objects.
   
   Allowed GIMP PDB types:
@@ -1347,7 +1476,7 @@ class LayerSetting(Setting):
         utils_.value_to_str_prefix(layer) + self.error_messages['invalid_value'])
 
 
-class ChannelSetting(Setting):
+class ChannelSetting(GimpItemSetting):
   """Class for settings holding `gimp.Channel` objects.
   
   Allowed GIMP PDB types:
@@ -1403,7 +1532,7 @@ class SelectionSetting(ChannelSetting):
   _ALLOWED_GUI_TYPES = []
 
 
-class VectorsSetting(Setting):
+class VectorsSetting(GimpItemSetting):
   """Class for settings holding `gimp.Vectors` objects.
   
   Allowed GIMP PDB types:
