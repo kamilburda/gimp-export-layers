@@ -421,9 +421,6 @@ To exclude certain layers from processing and export, press the `Add Constraint.
 As with procedures, you can enable, disable, reorder, edit or remove constraints as needed.
 Adding the same constraint multiple times is also possible.
 
-Currently, only several built-in constraints are supported.
-Future versions will allow specifying custom constraints.
-
 
 ### Built-in Constraints
 
