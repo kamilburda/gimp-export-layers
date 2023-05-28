@@ -17,6 +17,14 @@ try:
 except ImportError:
   import pickle
 
+try:
+  import json
+except ImportError:
+  # Ignore errors if the `json` module is not present in some Python
+  # distributions. Let the missing `json` module be handled in the application
+  # code.
+  pass
+
 import gimp
 import gimpenums
 import gimpshelf
@@ -32,6 +40,8 @@ __all__ = [
   'Source',
   'GimpShelfSource',
   'GimpParasiteSource',
+  'PickleFileSource',
+  'JsonFileSource',
 ]
 
 
@@ -305,7 +315,8 @@ class PickleFileSource(Source):
     self.write_data(data)
   
   def read_data(self):
-    """Reads the entire file into a dictionary of (source name, contents) pairs.
+    """Reads the contents of the entire file into a dictionary of
+    (source name, contents) pairs.
     
     The dictionary also contains contents from other source names if they exist.
     """
@@ -349,3 +360,94 @@ class PickleFileSource(Source):
       return repr(pickle.dumps(settings))
     except Exception as e:
       raise SourceInvalidFormatError(str(e))
+
+
+class JsonFileSource(Source):
+  """Class reading and writing settings to a JSON file.
+  
+  This class is useful as a persistent source (i.e. permanent storage) of
+  settings. This class is appropriate to use when saving settings to a file path
+  chosen by the user.
+  
+  Compared to `PickleFileSource`, JSON files are more readable and, if need be,
+  easy to modify by hand.
+  """
+  
+  def __init__(self, source_name, filepath, source_type='persistent'):
+    super().__init__(source_name, source_type)
+    
+    self._filepath = filepath
+  
+  @property
+  def filepath(self):
+    return self._filepath
+  
+  def clear(self):
+    data = self.read_data()
+    if data is not None and self.source_name in data:
+      del data[self.source_name]
+      
+      self.write_data(data)
+  
+  def has_data(self):
+    """Returns `True` if the source contains data and the data have a valid
+    format, `'invalid_format'` if the source contains some data, but the data
+    have an invalid format, and `False` otherwise.
+    
+    `'invalid_format'` represents an ambiguous value since there is no way to
+    determine if there are data under `source_name` or not.
+    """
+    try:
+      settings_from_source = self.read_dict()
+    except SourceError:
+      return 'invalid_format'
+    else:
+      return settings_from_source is not None
+  
+  def read_dict(self):
+    data = self.read_data()
+    if data is not None and self.source_name in data:
+      return data[self.source_name]
+    else:
+      return None
+  
+  def write_dict(self, setting_names_and_values):
+    data = self.read_data()
+    if data is None:
+      data = collections.OrderedDict([(self.source_name, setting_names_and_values)])
+    else:
+      data[self.source_name] = setting_names_and_values
+    
+    self.write_data(data)
+  
+  def read_data(self):
+    """Reads the contents of the entire file into a dictionary of
+    (source name, contents) pairs.
+    
+    The dictionary also contains contents from other source names if they exist.
+    """
+    if not os.path.isfile(self._filepath):
+      return None
+    
+    data = collections.OrderedDict()
+    
+    try:
+      with io.open(self._filepath, 'r', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
+        data = json.load(f)
+    except Exception as e:
+      raise SourceReadError(str(e))
+    else:
+      return data
+  
+  def write_data(self, data):
+    """Writes `data` into the file, overwriting the entire file contents.
+    
+    `data` is a dictionary of (source name, contents) pairs.
+    """
+    try:
+      with io.open(self._filepath, 'w', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
+        # Workaround for Python 2 code to properly handle Unicode strings
+        raw_data = json.dumps(data, f, sort_keys=False, indent=4, separators=(',', ': '))
+        f.write(unicode(raw_data))
+    except Exception as e:
+      raise SourceWriteError(str(e))
