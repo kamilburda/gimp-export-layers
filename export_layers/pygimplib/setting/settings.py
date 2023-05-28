@@ -1318,7 +1318,7 @@ class ImageSetting(Setting):
     if source_type == 'session':
       setting_dict['value'] = setting_dict['value'].ID
     else:
-      if setting_dict['value'].filename is not None:
+      if setting_dict['value'] is not None and setting_dict['value'].filename is not None:
         setting_dict['value'] = pgutils.safe_decode_gimp(setting_dict['value'].filename)
       else:
         setting_dict['value'] = None

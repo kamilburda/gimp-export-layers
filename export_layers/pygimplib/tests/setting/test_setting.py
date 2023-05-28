@@ -991,6 +991,11 @@ class TestImageSetting(unittest.TestCase):
     
     self.assertDictEqual(self.setting.to_dict(), {'name': 'image', 'value': 'file_path'})
   
+  def test_to_dict_if_image_is_none(self):
+    setting = settings_.ImageSetting('image', None)
+    
+    self.assertDictEqual(setting.to_dict(), {'name': 'image', 'value': None})
+  
   def test_to_dict_with_missing_filename(self):
     self.pdb.gimp_image_set_filename(self.image, None)
     
