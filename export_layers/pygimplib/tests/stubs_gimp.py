@@ -160,6 +160,10 @@ class ItemStub(ParasiteFunctionsStubMixin):
     self.image = None
     self.children = []
     self.parent = parent
+  
+  @classmethod
+  def from_id(cls, id_):
+    return None
 
 
 class LayerStub(ItemStub):

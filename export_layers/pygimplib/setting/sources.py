@@ -30,8 +30,8 @@ from ._sources_errors import *
 
 __all__ = [
   'Source',
-  'GimpSessionSource',
-  'GimpPersistentSource',
+  'GimpShelfSource',
+  'GimpParasiteSource',
 ]
 
 
@@ -42,10 +42,16 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   * `source_name` - A unique identifier to distinguish entries from different
     GIMP plug-ins or procedures.
+  
+  * `source_type` - If `'persistent'`, this indicates that the setting source
+    should store settings permanently. If `'session'`, this indicates that the
+    source should store settings within a single GIMP session (i.e. until the
+    currently running GIMP instance is closed).
   """
   
-  def __init__(self, source_name):
+  def __init__(self, source_name, source_type):
     self.source_name = source_name
+    self.source_type = source_type
   
   def read(self, settings):
     """Reads setting values and assigns them to the settings specified in the
@@ -153,19 +159,21 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   def _settings_to_dict(self, settings):
     settings_dict = collections.OrderedDict()
     for setting in settings:
-      setting_dict = setting.to_dict()
+      setting_dict = setting.to_dict(source_type=self.source_type)
       settings_dict[setting.get_path('root')] = setting_dict['value']
     
     return settings_dict
 
 
-class GimpSessionSource(Source):
-  """Class reading and writing settings to a source that persists within a
-  single GIMP session.
+class GimpShelfSource(Source):
+  """Class for reading and writing settings to the GIMP shelf.
   
-  Internally, the GIMP shelf is used as the session-wide source and contains the
-  name and the last used value of each setting.
+  This class is appropriate to maintain settings within a single GIMP session
+  as the GIMP shelf is reset when closing GIMP.
   """
+  
+  def __init__(self, source_name, source_type='session'):
+    super().__init__(source_name, source_type)
   
   def clear(self):
     gimpshelf.shelf[self._get_key()] = None
@@ -192,16 +200,16 @@ class GimpSessionSource(Source):
     return pgutils.safe_encode_gimp(self.source_name)
 
 
-class GimpPersistentSource(Source):
-  """Class reading and writing settings to a persistent source (i.e. permanent
-  storage) maintained by GIMP.
+class GimpParasiteSource(Source):
+  """Class reading and writing settings to the `parasiterc` file maintained by
+  GIMP.
   
-  The persistent source in this case is the the `parasiterc` file maintained by
-  GIMP. The file contains the name and the last used value of each setting.
+  This class is useful as a persistent source (i.e. permanent storage) of
+  settings.
   """
   
-  def __init__(self, source_name):
-    super().__init__(source_name)
+  def __init__(self, source_name, source_type='persistent'):
+    super().__init__(source_name, source_type)
     
     self._parasite_filepath = os.path.join(gimp.directory, 'parasiterc')
   
@@ -237,14 +245,18 @@ class GimpPersistentSource(Source):
 
 
 class PickleFileSource(Source):
-  """Class reading and writing settings permanently to a filename, formatted
-  with the Python `pickle` module.
+  """Class reading and writing settings to a file, formatted using the Python
+  `pickle` module.
+  
+  This class is useful as a persistent source (i.e. permanent storage) of
+  settings. This class is appropriate to use when saving settings to a file path
+  chosen by the user.
   """
   
   _SOURCE_NAME_CONTENTS_SEPARATOR = ' '
   
-  def __init__(self, source_name, filepath):
-    super().__init__(source_name)
+  def __init__(self, source_name, filepath, source_type='persistent'):
+    super().__init__(source_name, source_type)
     
     self._filepath = filepath
   

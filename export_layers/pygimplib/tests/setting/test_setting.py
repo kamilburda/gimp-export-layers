@@ -359,7 +359,7 @@ class TestSettingLoadSaveEvents(unittest.TestCase):
   def setUp(self):
     self.setting = stubs_setting.SettingWithGuiStub('file_extension', 'png')
     self.flatten = settings_.BoolSetting('flatten', False)
-    self.session_source = sources_.GimpSessionSource('')
+    self.session_source = sources_.GimpShelfSource('')
     
     self.session_source_dict = {'session': self.session_source}
   
@@ -917,7 +917,7 @@ class TestEnumSetting(unittest.TestCase):
 @mock.patch(
   pgutils.get_pygimplib_module_path() + '.pdbutils.gimp', new=stubs_gimp.GimpModuleStub())
 class TestImageSetting(unittest.TestCase):
-    
+  
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
   def setUp(self):
@@ -953,6 +953,27 @@ class TestImageSetting(unittest.TestCase):
       with self.assertRaises(settings_.SettingValueError):
         self.setting.set_value('file_path')
   
+  def test_set_value_with_id(self):
+    self.image.ID = 2
+    
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+      
+      self.setting.set_value(2)
+    
+    self.assertEqual(self.setting.value, self.image)
+  
+  def test_set_value_with_invalid_id(self):
+    self.image.ID = 2
+    
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+      
+      with self.assertRaises(settings_.SettingValueError):
+        self.setting.set_value(3)
+  
   def test_set_value_invalid_image_raises_error(self):
     self.pdb.gimp_image_delete(self.image)
     with self.assertRaises(settings_.SettingValueError):
@@ -974,6 +995,12 @@ class TestImageSetting(unittest.TestCase):
     self.pdb.gimp_image_set_filename(self.image, None)
     
     self.assertDictEqual(self.setting.to_dict(), {'name': 'image', 'value': None})
+  
+  def test_to_dict_with_session_source_type(self):
+    self.image.ID = 2
+    
+    self.assertDictEqual(
+      self.setting.to_dict(source_type='session'), {'name': 'image', 'value': 2})
 
 
 @mock.patch(
@@ -1037,7 +1064,7 @@ class TestGimpItemSetting(unittest.TestCase):
   
   def test_set_value_with_list_invalid_length_raises_error(self):
     with self.assertRaises(ValueError):
-      self.setting.set_value(['image_filepath', 'group1/group2/layer'])
+      self.setting.set_value(['image_filepath'])
   
   def test_set_value_with_list_no_matching_image_returns_none(self):
     with mock.patch(
@@ -1066,13 +1093,25 @@ class TestGimpItemSetting(unittest.TestCase):
     
     self.assertEqual(self.setting.value, None)
   
-  def test_set_value_with_invalid_item_type_raises_error(self):
+  def test_set_value_with_list_with_id(self):
     with mock.patch(
-          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
-      temp_mock_gimp_module.image_list.return_value = [self.image]
-      
-      with self.assertRaises(TypeError):
-        self.setting.set_value(['image_filepath', 'Item', 'group1/group2/layer'])
+          pgutils.get_pygimplib_module_path()
+          + '.tests.stubs_gimp.ItemStub.from_id') as from_id_function:
+      from_id_function.return_value = self.layer
+    
+      self.setting.set_value(['Layer', 2])
+    
+    self.assertEqual(self.setting.value, self.layer)
+  
+  def test_set_value_with_list_with_invalid_id(self):
+    with mock.patch(
+          pgutils.get_pygimplib_module_path()
+          + '.tests.stubs_gimp.ItemStub.from_id') as from_id_function:
+      from_id_function.return_value = None
+    
+      self.setting.set_value(['Layer', 2])
+    
+    self.assertEqual(self.setting.value, None)
   
   def test_to_dict(self):
     self.assertDictEqual(
@@ -1090,6 +1129,13 @@ class TestGimpItemSetting(unittest.TestCase):
     self.assertDictEqual(
       self.setting.to_dict(),
       {'name': 'item', 'value': ['image_filepath', 'LayerStub', 'layer']})
+  
+  def test_to_dict_via_item_id(self):
+    self.layer.ID = 2
+    
+    self.assertDictEqual(
+      self.setting.to_dict(source_type='session'),
+      {'name': 'item', 'value': ['LayerStub', 2]})
 
 
 class TestColorSetting(unittest.TestCase):

@@ -83,13 +83,22 @@ def create_image_from_metadata(image_to_copy_metadata_from):
 
 
 def find_images_by_filepath(image_filepath):
-  """Returns a list of currently opened images in GIMP whose `filename`
-  attribute matches the given file path.
+  """Returns a list of currently opened images in GIMP as `gimp.Image` instances
+  with the `filename` attribute matching the given file path.
   """
   return [
     image for image in gimp.image_list()
     if pgutils.safe_decode_gimp(image.filename) == image_filepath
   ]
+
+
+def find_image_by_id(image_id):
+  """Returns a currently opened image in GIMP as a `gimp.Image` instance whose
+  `id` attribute matches the given image ID.
+  
+  If there is no match, `None` is returned.
+  """
+  return next((image for image in gimp.image_list() if image.ID == image_id), None)
 
 
 def remove_all_layers(image):

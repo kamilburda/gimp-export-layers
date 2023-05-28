@@ -650,7 +650,7 @@ class Setting(
     else:
       return None
   
-  def to_dict(self):
+  def to_dict(self, source_type='persistent'):
     """Returns setting name, value and data in `dict_on_init` as a dictionary.
     
     The dictionary is used to save the setting to setting sources.
@@ -666,6 +666,10 @@ class Setting(
     additional data must contain all fields required to instantiate the setting
     directly from the setting source, without the need to define the setting in
     the code (including the `'type'` field).
+    
+    A `Setting` subclass may return different values of the some setting
+    attributes depending on the value of `source_type`. If a subclass uses
+    `source_type`, it is mentioned in the documentation for `to_dict()`.
     """
     settings_dict = {'name': self.name, 'value': self.value}
     
@@ -876,8 +880,8 @@ class GenericSetting(Setting):
     
     super().set_value(value)
   
-  def to_dict(self):
-    settings_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    settings_dict = super().to_dict(*args, **kwargs)
     
     if len(inspect.getargspec(self._before_value_set).args) == 1:
       settings_dict['value'] = self._before_value_save(settings_dict['value'])
@@ -1292,7 +1296,9 @@ class ImageSetting(Setting):
   _EMPTY_VALUES = [None]
   
   def set_value(self, value):
-    if isinstance(value, types.StringTypes):
+    if isinstance(value, int):
+      value = pgpdbutils.find_image_by_id(value)
+    elif isinstance(value, types.StringTypes):
       images = pgpdbutils.find_images_by_filepath(value)
       if images:
         # Take the first image matching the file path. There may be multiple
@@ -1304,13 +1310,18 @@ class ImageSetting(Setting):
     
     super().set_value(value)
   
-  def to_dict(self):
-    setting_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    setting_dict = super().to_dict(*args, **kwargs)
     
-    if setting_dict['value'].filename is not None:
-      setting_dict['value'] = pgutils.safe_decode_gimp(setting_dict['value'].filename)
+    source_type = kwargs.pop('source_type', 'persistent')
+    
+    if source_type == 'session':
+      setting_dict['value'] = setting_dict['value'].ID
     else:
-      setting_dict['value'] = None
+      if setting_dict['value'].filename is not None:
+        setting_dict['value'] = pgutils.safe_decode_gimp(setting_dict['value'].filename)
+      else:
+        setting_dict['value'] = None
     
     return setting_dict
   
@@ -1340,34 +1351,31 @@ class GimpItemSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   
   def set_value(self, value):
     if isinstance(value, list):
-      if len(value) != 3:
+      if len(value) == 2:
+        value = self._get_item_from_item_type_and_id(*value)
+      elif len(value) == 3:
+        value = self._get_item_from_image_and_item_path(*value)
+      else:
         raise ValueError(
           ('lists as values for GIMP item settings must contain'
-           ' exactly 3 elements - image file path, item type name, item path'
-           ' (has {})').format(len(value)))
-      
-      value = self._get_item_from_image_and_item_path(*value)
+           ' exactly 2 or 3 elements (has {})').format(len(value)))
     
     super().set_value(value)
   
-  def to_dict(self):
-    setting_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    setting_dict = super().to_dict(*args, **kwargs)
     
-    item = setting_dict['value']
+    source_type = kwargs.pop('source_type', 'persistent')
     
-    if item.image is not None and item.image.filename is not None:
-      parents = self._get_item_parents(item)
-      
-      item_path = pgutils.GIMP_ITEM_PATH_SEPARATOR.join(
-        pgutils.safe_decode_gimp(parent_or_item.name) for parent_or_item in parents + [item])
-      
-      item_type_name = pgutils.safe_decode(item.__class__.__name__, 'utf-8')
-      
-      setting_dict['value'] = [item.image.filename, item_type_name, item_path]
+    if source_type == 'session':
+      setting_dict['value'] = self._get_item_as_id(setting_dict['value'])
     else:
-      setting_dict['value'] = None
+      setting_dict['value'] = self._get_item_as_path(setting_dict['value'])
     
     return setting_dict
+  
+  def _get_item_from_item_type_and_id(self, item_type_name, item_id):
+    return getattr(gimp, item_type_name).from_id(item_id)
   
   def _get_item_from_image_and_item_path(self, image_filepath, item_type_name, item_path):
     images = pgpdbutils.find_images_by_filepath(image_filepath)
@@ -1424,6 +1432,22 @@ class GimpItemSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
       raise TypeError(
         ('invalid item type "{}";'
          ' must be Layer, GroupLayer, Channel or Vectors').format(item_type_name))
+  
+  def _get_item_as_id(self, item):
+    return [pgutils.safe_decode(item.__class__.__name__, 'utf-8'), item.ID]
+  
+  def _get_item_as_path(self, item):
+    if item.image is not None and item.image.filename is not None:
+      parents = self._get_item_parents(item)
+      
+      item_path = pgutils.GIMP_ITEM_PATH_SEPARATOR.join(
+        pgutils.safe_decode_gimp(parent_or_item.name) for parent_or_item in parents + [item])
+      
+      item_type_name = pgutils.safe_decode(item.__class__.__name__, 'utf-8')
+      
+      return [item.image.filename, item_type_name, item_path]
+    else:
+      return None
   
   def _get_item_parents(self, item):
     parents = []
@@ -1641,8 +1665,8 @@ class ColorSetting(Setting):
     
     super().set_value(value)
   
-  def to_dict(self):
-    setting_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    setting_dict = super().to_dict(*args, **kwargs)
     
     color = setting_dict['value']
     setting_dict['value'] = [
@@ -1682,8 +1706,8 @@ class DisplaySetting(Setting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.display_spin_button]
   _EMPTY_VALUES = [None]
   
-  def to_dict(self):
-    setting_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    setting_dict = super().to_dict(*args, **kwargs)
     
     setting_dict['value'] = None
     
@@ -1727,8 +1751,8 @@ class ParasiteSetting(Setting):
     
     super().set_value(value)
   
-  def to_dict(self):
-    setting_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    setting_dict = super().to_dict(*args, **kwargs)
     
     parasite = setting_dict['value']
     setting_dict['value'] = [parasite.name, parasite.flags, parasite.data]
@@ -1928,8 +1952,8 @@ class BrushSetting(Setting):
     
     super().set_value(value)
   
-  def to_dict(self):
-    setting_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    setting_dict = super().to_dict(*args, **kwargs)
     
     setting_dict['value'] = list(setting_dict['value'])
     
@@ -2241,8 +2265,8 @@ class ArraySetting(Setting):
     else:
       super().set_value(value_array)
   
-  def to_dict(self):
-    setting_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    setting_dict = super().to_dict(*args, **kwargs)
     
     setting_dict['value'] = list(setting.to_dict()['value'] for setting in self._elements)
     
@@ -2516,8 +2540,8 @@ class TupleSetting(ContainerSetting):
     
     super().set_value(value)
   
-  def to_dict(self):
-    setting_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    setting_dict = super().to_dict(*args, **kwargs)
     
     setting_dict['value'] = list(setting_dict['value'])
     
@@ -2537,8 +2561,8 @@ class SetSetting(ContainerSetting):
     
     super().set_value(value)
   
-  def to_dict(self):
-    setting_dict = super().to_dict()
+  def to_dict(self, *args, **kwargs):
+    setting_dict = super().to_dict(*args, **kwargs)
     
     setting_dict['value'] = list(setting_dict['value'])
     

@@ -600,9 +600,9 @@ def _remove_obsolete_plugin_files_3_3_2():
 
 def _fix_pickle_paths(paths_to_rename, sources, key):
   for source in sources.values():
-    if isinstance(source, pg.setting.sources.GimpSessionSource):
+    if isinstance(source, pg.setting.sources.GimpShelfSource):
       _fix_pickle_paths_in_session_source(paths_to_rename, key)
-    elif isinstance(source, pg.setting.sources.GimpPersistentSource):
+    elif isinstance(source, pg.setting.sources.GimpParasiteSource):
       _fix_pickle_paths_in_persistent_source(paths_to_rename, key)
     elif isinstance(source, pg.setting.sources.PickleFileSource):
       _fix_pickle_paths_in_pickle_file_source(paths_to_rename, key, source)
