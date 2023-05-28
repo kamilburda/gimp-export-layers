@@ -20,10 +20,9 @@ except ImportError:
 try:
   import json
 except ImportError:
-  # Ignore errors if the `json` module is not present in some Python
-  # distributions. Let the missing `json` module be handled in the application
-  # code.
-  pass
+  _json_module_found = False
+else:
+  _json_module_found = True
 
 import gimp
 import gimpenums
@@ -374,6 +373,9 @@ class JsonFileSource(Source):
   """
   
   def __init__(self, source_name, filepath, source_type='persistent'):
+    if not _json_module_found:
+      raise RuntimeError('"json" module not found')
+    
     super().__init__(source_name, source_type)
     
     self._filepath = filepath
