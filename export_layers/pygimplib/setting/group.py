@@ -208,6 +208,9 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   def __len__(self):
     return len(self._settings)
   
+  def __reversed__(self):
+    return reversed(self._settings.values())
+  
   def get_path(self, relative_path_group=None):
     """
     This is a wrapper method for `setting.utils.get_setting_path()`. Consult the
