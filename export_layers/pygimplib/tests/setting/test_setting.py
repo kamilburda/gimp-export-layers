@@ -675,6 +675,14 @@ class TestGenericSetting(unittest.TestCase):
     self.assertEqual(setting.value, (4, 6, 2))
     self.assertDictEqual(setting.to_dict(), {'name': setting.name, 'value': [4, 6, 2]})
   
+  def test_value_functions_as_none(self):
+    setting = settings_.GenericSetting('selected_layers')
+    
+    setting.set_value([4, 6, 2])
+    
+    self.assertEqual(setting.value, [4, 6, 2])
+    self.assertDictEqual(setting.to_dict(), {'name': setting.name, 'value': repr([4, 6, 2])})
+  
   def test_value_functions_with_two_parameters(self):
     setting = settings_.GenericSetting(
       'selected_layers',

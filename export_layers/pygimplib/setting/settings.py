@@ -844,11 +844,16 @@ class GenericSetting(Setting):
   """Class for settings storing arbitrary data.
   
   Since there are limitations on the types of values that can be saved to a
-  setting source, you must provide `value_set` and `value_save` functions when
-  instantiating settings of this class to load and save the values properly.
+  setting source (see the description for `Setting` for the supported types),
+  it is strongly recommended that you provide `value_set` and `value_save`
+  functions when creating a `GenericSetting` instance. The functions must ensure
+  the setting value will be loaded and saved properly. If `value_save` is
+  `None`, the value is converted to a string via `repr()` as fallback. Such a
+  string will very likely not be usable in your application when loading the
+  setting.
   """
   
-  def __init__(self, name, value_set, value_save, **kwargs):
+  def __init__(self, name, value_set=None, value_save=None, **kwargs):
     """Additional parameters:
     
     * `value_set` - Function invoked at the beginning of `set_value()`. The
@@ -868,40 +873,42 @@ class GenericSetting(Setting):
     self._before_value_set = value_set
     self._before_value_save = value_save
     
-    self._validate_functions()
+    self._validate_function(self._before_value_set, 'value_set')
+    self._validate_function(self._before_value_save, 'value_save')
     
     super().__init__(name, **kwargs)
   
   def set_value(self, value):
-    if len(inspect.getargspec(self._before_value_set).args) == 1:
-      value = self._before_value_set(value)
-    else:
-      value = self._before_value_set(value, self)
+    if self._before_value_set is not None:
+      if len(inspect.getargspec(self._before_value_set).args) == 1:
+        value = self._before_value_set(value)
+      else:
+        value = self._before_value_set(value, self)
     
     super().set_value(value)
   
   def to_dict(self, *args, **kwargs):
     settings_dict = super().to_dict(*args, **kwargs)
     
-    if len(inspect.getargspec(self._before_value_set).args) == 1:
-      settings_dict['value'] = self._before_value_save(settings_dict['value'])
+    if self._before_value_save is not None:
+      if len(inspect.getargspec(self._before_value_save).args) == 1:
+        settings_dict['value'] = self._before_value_save(settings_dict['value'])
+      else:
+        settings_dict['value'] = self._before_value_save(settings_dict['value'], self)
     else:
-      settings_dict['value'] = self._before_value_save(settings_dict['value'], self)
+      settings_dict['value'] = repr(settings_dict['value'])
     
     return settings_dict
   
-  def _validate_functions(self):
-    if not callable(self._before_value_set):
-      raise TypeError('value_set must be callable')
+  def _validate_function(self, func, name):
+    if func is None:
+      return
     
-    if len(inspect.getargspec(self._before_value_set).args) not in [1, 2]:
-      raise TypeError('value_set function must have 1 or 2 positional parameters')
+    if not callable(func):
+      raise TypeError('{} must be callable'.format(name))
     
-    if not callable(self._before_value_save):
-      raise TypeError('value_save must be callable')
-    
-    if len(inspect.getargspec(self._before_value_save).args) not in [1, 2]:
-      raise TypeError('value_save function must have 1 or 2 positional parameters')
+    if len(inspect.getargspec(func).args) not in [1, 2]:
+      raise TypeError('{} function must have 1 or 2 positional parameters'.format(name))
 
 
 class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
