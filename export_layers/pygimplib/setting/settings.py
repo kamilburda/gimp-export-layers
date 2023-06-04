@@ -898,6 +898,9 @@ class GenericSetting(Setting):
     else:
       settings_dict['value'] = repr(settings_dict['value'])
     
+    settings_dict.pop('value_set', None)
+    settings_dict.pop('value_save', None)
+    
     return settings_dict
   
   def _validate_function(self, func, name):
