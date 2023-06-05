@@ -17,4 +17,6 @@ Version of GIMP:
 
 Operating system: 
 
+Procedures and constraints added in Export Layers (in the Export Layers dialog, choose Settings → Show More Settings to display them): 
+
 <!-- If you use an unofficial GIMP installation, specify the installer here (name, URL). -->
