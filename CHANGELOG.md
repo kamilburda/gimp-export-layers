@@ -1,3 +1,9 @@
+3.3.6
+=====
+
+* Fixed file format dialog appearing for every layer group (instead of just once for the first layer).
+
+
 3.3.5
 =====
 

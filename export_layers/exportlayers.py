@@ -593,14 +593,16 @@ class LayerExporter(object):
     raw_item_copy = self._process_item_with_actions(item, self._image_copy, raw_item)
     self._export_item(item, self._image_copy, raw_item_copy)
     self._postprocess_item(self._image_copy, raw_item_copy)
-    self._postprocess_item_name(item)
+    orig_item_name = self._postprocess_item_name(item)
     
     self.progress_updater.update_tasks()
     
     if self._current_overwrite_mode != pg.overwrite.OverwriteModes.SKIP:
       self._exported_raw_items.append(raw_item)
       self._exported_raw_items_ids.add(raw_item.ID)
-      self._file_extension_properties[item.get_file_extension()].processed_count += 1
+      
+      name = orig_item_name if orig_item_name is not None else item.name
+      self._file_extension_properties[pg.path.get_file_extension(name)].processed_count += 1
   
   def _process_empty_group(self, item):
     self._preprocess_empty_group_name(item)
@@ -735,8 +737,12 @@ class LayerExporter(object):
         item.name, item.get_file_extension()))
   
   def _postprocess_item_name(self, item):
+    orig_item_name = item.name
+    
     if item.item_type == item.NONEMPTY_GROUP:
       self._item_tree.reset_name(item)
+    
+    return orig_item_name
   
   def _get_uniquifier_position(self, str_, file_extension):
     return len(str_) - len('.' + file_extension)
