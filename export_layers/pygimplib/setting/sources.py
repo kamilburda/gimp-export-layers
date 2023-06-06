@@ -31,6 +31,7 @@ import gimpshelf
 from .. import constants as pgconstants
 from .. import utils as pgutils
 
+from . import group as group_
 from . import settings as settings_
 
 from ._sources_errors import *
@@ -62,9 +63,10 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     self.source_name = source_name
     self.source_type = source_type
   
-  def read(self, settings):
-    """Reads setting values and assigns them to the settings specified in the
-    `settings` iterable.
+  def read(self, settings_or_groups):
+    """Reads setting attributes from data and assigns them to existing settings
+    specified in the `settings_or_groups` iterable, or creates settings within
+    groups specified in `settings_or_groups`.
     
     If a setting value from the source is invalid, the setting will be reset to
     its default value.
@@ -80,23 +82,23 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     * `SourceInvalidFormatError` - The source has an invalid format. This could
       happen if the source was directly edited manually.
     """
-    settings_from_source = self.read_dict()
+    settings_from_source = self.read_data_from_source()
     if settings_from_source is None:
       raise SourceNotFoundError(
         _('Could not find setting source "{}".').format(self.source_name))
     
     settings_not_found = []
     
-    for setting in settings:
+    for setting_or_group in settings_or_groups:
       try:
-        value = settings_from_source[setting.get_path('root')]
+        value = settings_from_source[setting_or_group.get_path('root')]
       except KeyError:
-        settings_not_found.append(setting)
+        settings_not_found.append(setting_or_group)
       else:
         try:
-          setting.set_value(value)
+          setting_or_group.set_value(value)
         except settings_.SettingValueError:
-          setting.reset()
+          setting_or_group.reset()
     
     if settings_not_found:
       raise SettingsNotFoundInSourceError(
@@ -104,19 +106,87 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
           '\n'.join(setting.get_path() for setting in settings_not_found)),
         settings_not_found=settings_not_found)
   
-  def write(self, settings):
-    """Writes setting values from settings specified in the `settings` iterable.
+  def write(self, settings_or_groups):
+    """Writes data representing settings specified in the `settings_or_groups`
+    iterable.
     
-    Settings in the source but not specified in `settings` are kept intact.
+    Settings in the source but not specified in `settings_or_groups` are kept
+    intact.
     """
-    settings_from_source = self.read_dict()
-    if settings_from_source is not None:
-      setting_names_and_values = settings_from_source
-      setting_names_and_values.update(self._settings_to_dict(settings))
-    else:
-      setting_names_and_values = self._settings_to_dict(settings)
+    data = self.read_data_from_source()
+    if data is None:
+      data = collections.OrderedDict()
     
-    self.write_dict(setting_names_and_values)
+    if self.source_name not in data:
+      data[self.source_name] = []
+    
+    self._update_data_for_source(settings_or_groups, data[self.source_name])
+    
+    self.write_data_to_source(data)
+  
+  def _update_data_for_source(self, settings_or_groups, data_for_source):
+    for setting_or_group in settings_or_groups:
+      # Create all parent groups if they do not exist.
+      # `current_list` at the end of the loop will hold the immediate parent of
+      # `setting_or_group`.
+      current_list = data_for_source
+      for parent in setting_or_group.parents:
+        parent_dict = self._find_dict(current_list, parent)[0]
+        
+        if parent_dict is None:
+          parent_dict = {'name': parent.name, 'settings': []}
+          current_list.append(parent_dict)
+        
+        current_list = parent_dict['settings']
+      
+      if isinstance(setting_or_group, settings_.Setting):
+        self._setting_to_data(current_list, setting_or_group)
+      elif isinstance(setting_or_group, group_.Group):
+        self._group_to_data(current_list, setting_or_group)
+      else:
+        raise TypeError('settings_or_groups must contain only Setting or Group instances')
+  
+  def _setting_to_data(self, group_list, setting):
+    setting_dict, index = self._find_dict(group_list, setting)
+    
+    if setting_dict is not None:
+      # Overwrite the original setting dict
+      group_list[index] = setting.to_dict(source_type=self.source_type)
+    else:
+      group_list.append(setting.to_dict(source_type=self.source_type))
+  
+  def _group_to_data(self, group_list, group):
+    settings_or_groups_and_dicts = [(group, group_list)]
+    
+    while settings_or_groups_and_dicts:
+      setting_or_group, parent_list = settings_or_groups_and_dicts.pop(0)
+      
+      if isinstance(setting_or_group, settings_.Setting):
+        self._setting_to_data(parent_list, setting_or_group)
+      elif isinstance(setting_or_group, group_.Group):
+        current_group_dict = self._find_dict(parent_list, setting_or_group)[0]
+        
+        if current_group_dict is None:
+          current_group_dict = {'name': setting_or_group.name, 'settings': []}
+          parent_list.append(current_group_dict)
+        
+        for child_setting_or_group in reversed(setting_or_group):
+          settings_or_groups_and_dicts.insert(
+            0, (child_setting_or_group, current_group_dict['settings']))
+      else:
+        raise TypeError('only Setting or Group instances are allowed as the first element')
+  
+  def _find_dict(self, data_list, setting_or_group):
+    if isinstance(setting_or_group, settings_.Setting):
+      key = 'value'
+    else:
+      key = 'settings'
+    
+    for i, dict_ in enumerate(data_list):
+      if dict_.get('name', None) == setting_or_group.name and key in dict_:
+        return dict_, i
+    
+    return None, None
   
   @abc.abstractmethod
   def clear(self):
@@ -135,43 +205,33 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     pass
   
   @abc.abstractmethod
-  def read_dict(self):
-    """Reads all setting values from the source to a dictionary of
-    `(setting name, setting value)` pairs and returns the dictionary.
+  def read_data_from_source(self):
+    """Reads data representing settings from the source.
+    
+    Usually you do not need to call this method. Use `read()` instead which
+    assigns values to existing settings or creates settings dynamically from the
+    data.
     
     If the source does not exist, `None` is returned.
     
-    This method is useful in the unlikely case it is more convenient to directly
-    modify or remove settings from the source.
-    
     Raises:
     
-    * `SourceInvalidFormatError` - Data could not be read due to likely being
-      corrupt.
+    * `SourceInvalidFormatError` - Data could not be read due to being corrupt.
     """
     pass
   
   @abc.abstractmethod
-  def write_dict(self, setting_names_and_values):
-    """Writes setting names and values to the source specified in the
-    `setting_names_and_values` dictionary containing
-    `(setting name, setting value)` pairs.
+  def write_data_to_source(self, data):
+    """Writes data representing settings to the source.
     
-    The entire setting source is overwritten by the specified dictionary.
-    Settings not specified in `setting_names_and_values` thus will be removed.
+    The entire setting source is overwritten by the specified data.
+    Settings not specified thus will be removed.
     
-    This method is useful in the unlikely case it is more convenient to directly
-    modify or remove settings from the source.
+    Usually you do not need to call this method. Use `write()` instead which
+    creates an appropriate persistent representation of the settings that can
+    later be loaded via `read()`.
     """
     pass
-  
-  def _settings_to_dict(self, settings):
-    settings_dict = collections.OrderedDict()
-    for setting in settings:
-      setting_dict = setting.to_dict(source_type=self.source_type)
-      settings_dict[setting.get_path('root')] = setting_dict['value']
-    
-    return settings_dict
 
 
 class GimpShelfSource(Source):
@@ -192,7 +252,7 @@ class GimpShelfSource(Source):
       gimpshelf.shelf.has_key(self._get_key())
       and gimpshelf.shelf[self._get_key()] is not None)
   
-  def read_dict(self):
+  def read_data_from_source(self):
     try:
       return gimpshelf.shelf[self._get_key()]
     except KeyError:
@@ -202,8 +262,8 @@ class GimpShelfSource(Source):
         _('Session-wide settings for this plug-in may be corrupt.\n'
           'To fix this, save the settings again or reset them.'))
   
-  def write_dict(self, setting_names_and_values):
-    gimpshelf.shelf[self._get_key()] = setting_names_and_values
+  def write_data_to_source(self, data):
+    gimpshelf.shelf[self._get_key()] = data
   
   def _get_key(self):
     return pgutils.safe_encode_gimp(self.source_name)
@@ -231,7 +291,7 @@ class GimpParasiteSource(Source):
   def has_data(self):
     return gimp.parasite_find(self.source_name) is not None
   
-  def read_dict(self):
+  def read_data_from_source(self):
     parasite = gimp.parasite_find(self.source_name)
     if parasite is None:
       return None
@@ -247,10 +307,9 @@ class GimpParasiteSource(Source):
     
     return settings_from_source
   
-  def write_dict(self, setting_names_and_values):
-    data = pickle.dumps(setting_names_and_values)
+  def write_data_to_source(self, data):
     gimp.parasite_attach(
-      gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, data))
+      gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, pickle.dumps(data)))
 
 
 class PickleFileSource(Source):
@@ -274,11 +333,11 @@ class PickleFileSource(Source):
     return self._filepath
   
   def clear(self):
-    data = self.read_data()
-    if data is not None and self.source_name in data:
-      del data[self.source_name]
+    all_data = self.read_all_data()
+    if all_data is not None and self.source_name in all_data:
+      del all_data[self.source_name]
       
-      self.write_data(data)
+      self.write_all_data(all_data)
   
   def has_data(self):
     """Returns `True` if the source contains data and the data have a valid
@@ -289,31 +348,31 @@ class PickleFileSource(Source):
     determine if there are data under `source_name` or not.
     """
     try:
-      settings_from_source = self.read_dict()
+      settings_from_source = self.read_data_from_source()
     except SourceError:
       return 'invalid_format'
     else:
       return settings_from_source is not None
   
-  def read_dict(self):
-    data = self.read_data()
-    if data is not None and self.source_name in data:
-      return self._get_settings_from_pickled_data(data[self.source_name])
+  def read_data_from_source(self):
+    all_data = self.read_all_data()
+    if all_data is not None and self.source_name in all_data:
+      return self._get_settings_from_pickled_data(all_data[self.source_name])
     else:
       return None
   
-  def write_dict(self, setting_names_and_values):
-    data_for_source = self._pickle_settings(setting_names_and_values)
+  def write_data_to_source(self, data):
+    raw_data = self._pickle_settings(data)
     
-    data = self.read_data()
-    if data is None:
-      data = collections.OrderedDict([(self.source_name, data_for_source)])
+    all_data = self.read_all_data()
+    if all_data is None:
+      all_data = collections.OrderedDict([(self.source_name, raw_data)])
     else:
-      data[self.source_name] = data_for_source
+      all_data[self.source_name] = raw_data
     
-    self.write_data(data)
+    self.write_all_data(all_data)
   
-  def read_data(self):
+  def read_all_data(self):
     """Reads the contents of the entire file into a dictionary of
     (source name, contents) pairs.
     
@@ -322,7 +381,7 @@ class PickleFileSource(Source):
     if not os.path.isfile(self._filepath):
       return None
     
-    data = collections.OrderedDict()
+    all_data = collections.OrderedDict()
     
     try:
       with io.open(self._filepath, 'r', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
@@ -330,20 +389,20 @@ class PickleFileSource(Source):
           split = line.split(self._SOURCE_NAME_CONTENTS_SEPARATOR, 1)
           if len(split) == 2:
             source_name, contents = split
-            data[source_name] = contents
+            all_data[source_name] = contents
     except Exception as e:
       raise SourceReadError(str(e))
     else:
-      return data
+      return all_data
   
-  def write_data(self, data):
-    """Writes `data` into the file, overwriting the entire file contents.
+  def write_all_data(self, all_data):
+    """Writes `all_data` into the file, overwriting the entire file contents.
     
-    `data` is a dictionary of (source name, contents) pairs.
+    `all_data` is a dictionary of (source name, contents) pairs.
     """
     try:
       with io.open(self._filepath, 'w', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
-        for source_name, contents in data.items():
+        for source_name, contents in all_data.items():
           f.write(source_name + self._SOURCE_NAME_CONTENTS_SEPARATOR + contents + '\n')
     except Exception as e:
       raise SourceWriteError(str(e))
@@ -385,11 +444,11 @@ class JsonFileSource(Source):
     return self._filepath
   
   def clear(self):
-    data = self.read_data()
-    if data is not None and self.source_name in data:
-      del data[self.source_name]
+    all_data = self.read_all_data()
+    if all_data is not None and self.source_name in all_data:
+      del all_data[self.source_name]
       
-      self.write_data(data)
+      self.write_all_data(all_data)
   
   def has_data(self):
     """Returns `True` if the source contains data and the data have a valid
@@ -400,29 +459,29 @@ class JsonFileSource(Source):
     determine if there are data under `source_name` or not.
     """
     try:
-      settings_from_source = self.read_dict()
+      settings_from_source = self.read_data_from_source()
     except SourceError:
       return 'invalid_format'
     else:
       return settings_from_source is not None
   
-  def read_dict(self):
-    data = self.read_data()
-    if data is not None and self.source_name in data:
-      return data[self.source_name]
+  def read_data_from_source(self):
+    all_data = self.read_all_data()
+    if all_data is not None and self.source_name in all_data:
+      return all_data[self.source_name]
     else:
       return None
   
-  def write_dict(self, setting_names_and_values):
-    data = self.read_data()
-    if data is None:
-      data = collections.OrderedDict([(self.source_name, setting_names_and_values)])
+  def write_data_to_source(self, data):
+    all_data = self.read_all_data()
+    if all_data is None:
+      all_data = collections.OrderedDict([(self.source_name, data)])
     else:
-      data[self.source_name] = setting_names_and_values
+      all_data[self.source_name] = data
     
-    self.write_data(data)
+    self.write_all_data(all_data)
   
-  def read_data(self):
+  def read_all_data(self):
     """Reads the contents of the entire file into a dictionary of
     (source name, contents) pairs.
     
@@ -431,25 +490,25 @@ class JsonFileSource(Source):
     if not os.path.isfile(self._filepath):
       return None
     
-    data = collections.OrderedDict()
+    all_data = collections.OrderedDict()
     
     try:
       with io.open(self._filepath, 'r', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
-        data = json.load(f)
+        all_data = json.load(f)
     except Exception as e:
       raise SourceReadError(str(e))
     else:
-      return data
+      return all_data
   
-  def write_data(self, data):
-    """Writes `data` into the file, overwriting the entire file contents.
+  def write_all_data(self, all_data):
+    """Writes `all_data` into the file, overwriting the entire file contents.
     
-    `data` is a dictionary of (source name, contents) pairs.
+    `all_data` is a dictionary of (source name, contents) pairs.
     """
     try:
       with io.open(self._filepath, 'w', encoding=pgconstants.TEXT_FILE_ENCODING) as f:
         # Workaround for Python 2 code to properly handle Unicode strings
-        raw_data = json.dumps(data, f, sort_keys=False, indent=4, separators=(',', ': '))
+        raw_data = json.dumps(all_data, f, sort_keys=False, indent=4, separators=(',', ': '))
         f.write(unicode(raw_data))
     except Exception as e:
       raise SourceWriteError(str(e))

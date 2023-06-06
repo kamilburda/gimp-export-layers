@@ -10,11 +10,242 @@ import mock
 
 from ... import utils as pgutils
 
+from ...setting import group as group_
 from ...setting import settings as settings_
 from ...setting import sources as sources_
 
 from .. import stubs_gimp
 from . import stubs_group
+
+
+def _test_settings_for_read_write():
+  settings = group_.create_groups({
+    'name': 'all_settings',
+    'groups': [
+      {
+        'name': 'main',
+        'setting_attributes': {'gui_type': None},
+      },
+      {
+        'name': 'special',
+        'setting_attributes': {'gui_type': None},
+      },
+    ],
+  })
+  
+  settings['main'].add([
+    {
+      'type': 'str',
+      'name': 'file_extension',
+      'default_value': 'png',
+    },
+    {
+      'type': 'dict',
+      'name': 'selected_layers',
+    },
+  ])
+  
+  procedures = group_.create_groups({
+    'name': 'procedures',
+    'groups': [
+      {
+        'name': 'use_layer_size',
+        'setting_attributes': {'gui_type': None},
+      },
+      {
+        'name': 'insert_background_layers',
+        'setting_attributes': {'gui_type': None},
+      },
+    ]
+  })
+  
+  procedures['use_layer_size'].add([
+    {
+      'type': 'bool',
+      'name': 'enabled',
+      'default_value': True,
+    },
+    {
+      'type': 'str',
+      'name': 'display_name',
+      'default_value': 'Use layer size',
+    },
+    group_.Group(name='arguments', setting_attributes={'gui_type': None}),
+  ])
+  
+  procedures['insert_background_layers'].add([
+    {
+      'type': 'bool',
+      'name': 'enabled',
+      'default_value': True,
+    },
+    {
+      'type': 'str',
+      'name': 'display_name',
+      'default_value': 'Insert background layers',
+    },
+    group_.Group(name='arguments', setting_attributes={'gui_type': None}),
+  ])
+  
+  procedures['insert_background_layers/arguments'].add([
+    {
+      'type': 'str',
+      'name': 'tag',
+      'default_value': 'background',
+    }
+  ])
+  
+  settings['main'].add([procedures])
+  
+  constraints = group_.Group(name='constraints')
+  
+  settings['main'].add([constraints])
+  
+  settings['special'].add([
+    {
+      'type': 'bool',
+      'name': 'first_plugin_run',
+      'default_value': False,
+    },
+  ])
+  
+  settings.add([
+    {
+      'type': 'str',
+      'name': 'standalone_setting',
+      'default_value': 'something',
+      'gui_type': None,
+    }
+  ])
+  
+  return settings
+
+
+def _test_data_for_read_write():
+  return [
+    {
+      'name': 'all_settings',
+      'settings': [
+        {
+          'name': 'main',
+          'settings': [
+            {
+              'type': 'str',
+              'name': 'file_extension',
+              'value': 'png',
+              'default_value': 'png',
+              'gui_type': None,
+            },
+            {
+              'type': 'dict',
+              'name': 'selected_layers',
+              'value': {},
+              'gui_type': None,
+            },
+            {
+              'name': 'procedures',
+              'settings': [
+                {
+                  'name': 'use_layer_size',
+                  'settings': [
+                    {
+                      'type': 'bool',
+                      'name': 'enabled',
+                      'value': True,
+                      'default_value': True,
+                      'gui_type': None,
+                    },
+                    {
+                      'type': 'str',
+                      'name': 'display_name',
+                      'value': 'Use layer size',
+                      'default_value': 'Use layer size',
+                      'gui_type': None,
+                    },
+                    {
+                      'name': 'arguments',
+                      'settings': [],
+                    },
+                  ],
+                },
+                {
+                  'name': 'insert_background_layers',
+                  'settings': [
+                    {
+                      'type': 'bool',
+                      'name': 'enabled',
+                      'value': True,
+                      'default_value': True,
+                      'gui_type': None,
+                    },
+                    {
+                      'type': 'str',
+                      'name': 'display_name',
+                      'value': 'Insert background layers',
+                      'default_value': 'Insert background layers',
+                      'gui_type': None,
+                    },
+                    {
+                      'name': 'arguments',
+                      'settings': [
+                        {
+                          'type': 'str',
+                          'name': 'tag',
+                          'value': 'background',
+                          'default_value': 'background',
+                          'gui_type': None,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              'name': 'constraints',
+              'settings': [],
+            },
+          ],
+        },
+        {
+          'name': 'special',
+          'settings': [
+            {
+              'type': 'bool',
+              'name': 'first_plugin_run',
+              'value': False,
+              'default_value': False,
+              'gui_type': None,
+            },
+          ],
+        },
+        {
+          'type': 'str',
+          'name': 'standalone_setting',
+          'value': 'something',
+          'default_value': 'something',
+          'gui_type': None,
+        },
+      ],
+    },
+  ]
+
+
+class TestUpdateDataForSource(unittest.TestCase):
+  
+  def setUp(self):
+    self.source_name = 'test_settings'
+    self.source = sources_.PickleFileSource(self.source_name, filepath='filepath')
+  
+  def test_update_data_for_source_empty_data(self):
+    settings = _test_settings_for_read_write()
+    expected_data = _test_data_for_read_write()
+    
+    data = []
+    
+    self.source._update_data_for_source([settings], data)
+    
+    self.assertListEqual(data, expected_data)
 
 
 @mock.patch(
@@ -198,73 +429,6 @@ class TestGimpParasiteSource(unittest.TestCase):
     self.assertTrue(self.source.has_data())
 
 
-@mock.patch(
-  pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
-  new_callable=stubs_gimp.ShelfStub)
-@mock.patch(
-  pgutils.get_pygimplib_module_path() + '.setting.sources.gimp',
-  new_callable=stubs_gimp.GimpModuleStub)
-class TestSourceReadWriteDict(unittest.TestCase):
-  
-  @mock.patch(
-    pgutils.get_pygimplib_module_path() + '.setting.sources.gimp.directory',
-    new='gimp_directory')
-  def setUp(self):
-    self.source_name = 'test_settings'
-    self.source_session = sources_.GimpShelfSource(self.source_name)
-    self.source_persistent = sources_.GimpParasiteSource(self.source_name)
-    self.settings = stubs_group.create_test_settings()
-  
-  def test_read_dict(self, mock_persistent_source, mock_session_source):
-    for source in [self.source_session, self.source_persistent]:
-      self._test_read_dict(source)
-  
-  def test_read_dict_nonexistent_source(
-        self, mock_persistent_source, mock_session_source):
-    for source in [self.source_session, self.source_persistent]:
-      self._test_read_dict_nonexistent_source(source)
-  
-  def test_write_dict(self, mock_persistent_source, mock_session_source):
-    for source in [self.source_session, self.source_persistent]:
-      self._test_write_dict(source)
-  
-  def _test_read_dict(self, source):
-    source.write(self.settings)
-    
-    settings_from_source = source.read_dict()
-    self.assertDictEqual(
-      settings_from_source,
-      {
-        'file_extension': self.settings['file_extension'].value,
-        'flatten': self.settings['flatten'].value,
-        'overwrite_mode': self.settings['overwrite_mode'].value,
-      })
-  
-  def _test_read_dict_nonexistent_source(self, source):
-    self.assertIsNone(source.read_dict())
-  
-  def _test_write_dict(self, source):
-    settings_from_source = {
-      'file_extension': self.settings['file_extension'].default_value,
-      'flatten': self.settings['flatten'].default_value,
-    }
-    
-    self.settings['file_extension'].set_value('jpg')
-    self.settings['flatten'].set_value(True)
-    
-    source.write_dict(settings_from_source)
-    
-    source.read(
-      [self.settings['file_extension'], self.settings['flatten']])
-    
-    self.assertEqual(
-      self.settings['file_extension'].value,
-      self.settings['file_extension'].default_value)
-    self.assertEqual(
-      self.settings['flatten'].value,
-      self.settings['flatten'].default_value)
-
-
 class _FileSourceTests(object):
   
   def __init__(self, source_name, filepath, source_class):
@@ -316,8 +480,8 @@ class _FileSourceTests(object):
     self._set_up_mock_open(mock_io_open)
     
     source_2 = self._source_class('test_settings_2', self.filepath)
-    self.source.write_dict = mock.Mock(wraps=self.source.write_dict)
-    source_2.write_dict = mock.Mock(wraps=source_2.write_dict)
+    self.source.write_data_to_source = mock.Mock(wraps=self.source.write_data_to_source)
+    source_2.write_data_to_source = mock.Mock(wraps=source_2.write_data_to_source)
     
     self.settings['file_extension'].set_value('jpg')
     self.settings['flatten'].set_value(True)
@@ -333,8 +497,8 @@ class _FileSourceTests(object):
     self.assertEqual(self.settings['file_extension'].value, 'jpg')
     self.assertEqual(self.settings['flatten'].value, True)
     
-    self.assertEqual(self.source.write_dict.call_count, 1)
-    self.assertEqual(source_2.write_dict.call_count, 1)
+    self.assertEqual(self.source.write_data_to_source.call_count, 1)
+    self.assertEqual(source_2.write_data_to_source.call_count, 1)
   
   def test_has_data_no_data(self, mock_os_path_isfile, mock_io_open):
     self._set_up_mock_open(mock_io_open)
@@ -364,12 +528,12 @@ class _FileSourceTests(object):
   
   def test_clear_no_data(self, mock_os_path_isfile, mock_io_open):
     self._set_up_mock_open(mock_io_open)
-    self.source.write_dict = mock.Mock(wraps=self.source.write_dict)
+    self.source.write_data_to_source = mock.Mock(wraps=self.source.write_data_to_source)
     
     self.source.clear()
     
     self.assertFalse(self.source.has_data())
-    self.assertEqual(self.source.write_dict.call_count, 0)
+    self.assertEqual(self.source.write_data_to_source.call_count, 0)
   
   def test_clear_data_in_different_source(self, mock_os_path_isfile, mock_io_open):
     def _truncate_and_write(data):
@@ -379,8 +543,8 @@ class _FileSourceTests(object):
     string_io = self._set_up_mock_open(mock_io_open)
     
     source_2 = self._source_class('test_settings_2', self.filepath)
-    self.source.write_dict = mock.Mock(wraps=self.source.write_dict)
-    source_2.write_dict = mock.Mock(wraps=source_2.write_dict)
+    self.source.write_data_to_source = mock.Mock(wraps=self.source.write_data_to_source)
+    source_2.write_data_to_source = mock.Mock(wraps=source_2.write_data_to_source)
     
     self.source.write([self.settings['file_extension']])
     mock_os_path_isfile.return_value = True
@@ -395,8 +559,8 @@ class _FileSourceTests(object):
     self.assertFalse(self.source.has_data())
     self.assertTrue(source_2.has_data())
     
-    self.assertEqual(self.source.write_dict.call_count, 1)
-    self.assertEqual(source_2.write_dict.call_count, 1)
+    self.assertEqual(self.source.write_data_to_source.call_count, 1)
+    self.assertEqual(source_2.write_data_to_source.call_count, 1)
   
   def _set_up_mock_open(self, mock_io_open):
     string_io = io.StringIO()
