@@ -46,6 +46,12 @@ Bug fixes:
 * Fixed array widgets in edit dialog for custom procedures having incorrect height when pressing Reset and then Cancel.
 
 
+3.3.6
+=====
+
+* Fixed file format dialog appearing for every layer group (instead of just once for the first layer).
+
+
 3.3.5
 =====
 
