@@ -32,7 +32,7 @@ class TestGetProcessedSettingAttribute(unittest.TestCase):
 
 
 def _create_test_settings_for_path():
-  setting = settings_.Setting('file_extension', 'png')
+  setting = settings_.Setting('file_extension', default_value='png')
   main_settings = group_.Group('main')
   advanced_settings = group_.Group('advanced')
   
@@ -49,7 +49,7 @@ class TestSettingParentMixin(unittest.TestCase):
       _create_test_settings_for_path())
   
   def test_get_parent_empty(self):
-    setting = settings_.Setting('file_extension', 'png')
+    setting = settings_.Setting('file_extension', default_value='png')
     
     self.assertEqual(setting.parent, None)
   
@@ -67,8 +67,8 @@ class TestSettingParentMixin(unittest.TestCase):
 class TestSettingEventsMixin(unittest.TestCase):
   
   def setUp(self):
-    self.file_extension = stubs_setting.SettingStub('file_extension', 'png')
-    self.flatten = settings_.BoolSetting('flatten', False)
+    self.file_extension = stubs_setting.SettingStub('file_extension', default_value='png')
+    self.flatten = settings_.BoolSetting('flatten', default_value=False)
   
   def test_connect_event_argument_is_not_callable(self):
     with self.assertRaises(TypeError):
@@ -103,7 +103,7 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.assertFalse(self.flatten.value)
   
   def test_connect_event_with_keyword_arguments(self):
-    use_layer_size = settings_.BoolSetting('use_layer_size', False)
+    use_layer_size = settings_.BoolSetting('use_layer_size', default_value=False)
     use_layer_size.connect_event(
       'test-event',
       stubs_setting.on_use_layer_size_changed,
@@ -116,7 +116,7 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.assertEqual(self.file_extension.value, 'tiff')
   
   def test_invoke_event_with_keyword_arguments(self):
-    use_layer_size = settings_.BoolSetting('use_layer_size', False)
+    use_layer_size = settings_.BoolSetting('use_layer_size', default_value=False)
     use_layer_size.connect_event(
       'test-event',
       stubs_setting.on_use_layer_size_changed,
@@ -128,7 +128,7 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.assertEqual(self.file_extension.value, 'tiff')
   
   def test_invoke_event_places_invoke_event_arguments_first(self):
-    use_layer_size = settings_.BoolSetting('use_layer_size', False)
+    use_layer_size = settings_.BoolSetting('use_layer_size', default_value=False)
     use_layer_size.connect_event(
       'test-event',
       stubs_setting.on_use_layer_size_changed,
@@ -143,7 +143,7 @@ class TestSettingEventsMixin(unittest.TestCase):
     self.file_extension.connect_event(
       'test-event', stubs_setting.on_file_extension_changed, self.flatten)
     
-    use_layer_size = settings_.BoolSetting('use_layer_size', False)
+    use_layer_size = settings_.BoolSetting('use_layer_size', default_value=False)
     self.file_extension.connect_event(
       'test-event',
       stubs_setting.on_file_extension_changed_with_use_layer_size,
@@ -171,7 +171,7 @@ class TestSettingEventsMixin(unittest.TestCase):
     event_id = self.file_extension.connect_event(
       'test-event', stubs_setting.on_file_extension_changed, self.flatten)
     
-    use_layer_size = settings_.BoolSetting('use_layer_size', False)
+    use_layer_size = settings_.BoolSetting('use_layer_size', default_value=False)
     self.file_extension.connect_event(
       'test-event',
       stubs_setting.on_file_extension_changed_with_use_layer_size,
@@ -226,7 +226,7 @@ class TestSettingPath(unittest.TestCase):
       _create_test_settings_for_path())
   
   def test_get_path_no_parent(self):
-    setting = settings_.Setting('file_extension', 'png')
+    setting = settings_.Setting('file_extension', default_value='png')
     self.assertEqual(utils_.get_setting_path(setting), 'file_extension')
   
   def test_get_path(self):

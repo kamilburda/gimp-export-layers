@@ -281,7 +281,74 @@ class Setting(
   _DEFAULT_DEFAULT_VALUE = None
   _EMPTY_VALUES = []
   
-  def __init__(
+  def __init__(self, name, **kwargs):
+    """Instantiates a setting with the name and the keyword arguments supplied.
+    
+    The accepted keyword arguments along with their default values are described
+    below. A subclass may introduce additional positional or keyword arguments
+    which are described that subclass' `__init__()` method.
+    
+    Parameters:
+    
+    * `default_value` - Default setting value. During instantiation, the default
+      value is validated. If one of the so called "empty values" (specific to
+      each setting class) is passed as the default value, default value
+      validation is not performed. If omitted, a subclass-specific default value
+      for `default_value` is assigned.
+    
+    * `display_name` (default: `None`) - See the `display_name` attribute.
+    
+    * `description` (default: `None`) - See the `description` attribute.
+    
+    * `pdb_type` (default: `SettingPdbTypes.automatic`) - One of the
+      `SettingPdbTypes` items. If set to the default value, the first PDB type
+      in the list of allowed PDB types for a particular `Setting` subclass is
+      chosen. If no allowed PDB types are defined for that subclass, the setting
+      cannot be registered (`None` is assigned).
+    
+    * `gui_type` (default: `SettingGuiTypes.automatic`) - Type of GUI element to
+      be created by `set_gui()`. Use the members of the `SettingGuiTypes` class
+      to specify the desired GUI type.
+      
+      If `gui_type` is `SettingGuiTypes.automatic` (the default), the first GUI
+      type is chosen from the list of allowed GUI type for the corresponding
+      `Setting` subclass. If there are no allowed GUI types for that subclass,
+      no GUI is created for this setting.
+      
+      If an explicit GUI type is specified, it must be one of the types from the
+      list of allowed GUI types for the corresponding `Setting` subclass. If
+      not, `ValueError` is raised.
+      
+      If the `gui_type` is `None`, no GUI is created for this setting.
+    
+    * `allow_empty_values` (default: `False`) - If `False` and an empty value is
+      passed to `set_value()`, then the value is considered invalid. Otherwise,
+      the value is considered valid.
+    
+    * `auto_update_gui_to_setting` (default: `True`) - If `True`, automatically
+      update the setting value if the GUI value is updated. If `False`, the
+      setting must be updated manually by calling
+      `Setting.gui.update_setting_value()` when needed.
+      
+      This parameter does not have any effect if the GUI type used in
+      this setting cannot provide automatic GUI-to-setting update.
+    
+    * `error_messages` (default: `None`) - A dictionary containing
+      (message name, message contents) pairs. Use this to pass custom error
+      messages. This way, you may also override default error messages defined
+      in classes.
+    
+    * `tags` (default: `None`) - An iterable container (list, set, etc.) of
+      arbitrary tags attached to the setting. Tags can be used to e.g. iterate
+      over a specific subset of settings.
+    """
+    super().__init__()
+    
+    self._dict_on_init = dict(kwargs)
+    
+    self._init(name, **kwargs)
+  
+  def _init(
         self,
         name,
         default_value=DEFAULT_VALUE,
@@ -293,61 +360,7 @@ class Setting(
         auto_update_gui_to_setting=True,
         setting_sources=None,
         error_messages=None,
-        tags=None,
-        dict_on_init=None):
-    """Described are only those parameters that do not correspond to any
-    attribute in this class, or parameters requiring additional information.
-    
-    Parameters:
-    
-    * `default_value` - During Setting initialization, the default value is
-      validated. If one of the so called "empty values" (specific to each
-      setting class) is passed as the default value, default value validation is
-      not performed.
-    
-    * `pdb_type` - one of the `SettingPdbTypes` items. If set to
-      `SettingPdbTypes.automatic` (the default), the first PDB type in the list
-      of allowed PDB types for a particular Setting subclass is chosen. If no
-      allowed PDB types are defined for that subclass, the setting cannot be
-      registered (`None` is assigned).
-    
-    * `gui_type` - Type of GUI element to be created by `set_gui()`. Use the
-      members of the `SettingGuiTypes` class to specify the desired GUI type.
-    
-      If `gui_type` is `SettingGuiTypes.automatic`, choose the first GUI type
-      from the list of allowed GUI type for the corresponding `Setting`
-      subclass. If there are no allowed GUI types for that subclass, no GUI is
-      created for this setting.
-      
-      If an explicit GUI type is specified, it must be one of the types from the
-      list of allowed GUI types for the corresponding `Setting` subclass. If
-      not, `ValueError` is raised.
-      
-      If the `gui_type` is `None`, no GUI is created for this setting.
-    
-    * `allow_empty_values` - If `False` and an empty value is passed to
-      `set_value()`, then the value is considered invalid. Otherwise, the value
-      is considered valid.
-    
-    * `auto_update_gui_to_setting` - If `True`, automatically update the setting
-      value if the GUI value is updated. If `False`, the setting must be updated
-      manually by calling `Setting.gui.update_setting_value()` when needed.
-      
-      This parameter does not have any effect if the GUI type used in
-      this setting cannot provide automatic GUI-to-setting update.
-    
-    * `error_messages` - A dictionary containing (message name, message
-      contents) pairs. Use this to pass custom error messages. This way, you may
-      also override default error messages defined in classes.
-    
-    * `tags` - An iterable container (list, set, etc.) of arbitrary tags
-      attached to the setting. Tags can be used to e.g. iterate over a specific
-      subset of settings.
-    
-    * `dict_on_init` - See the description of attributes of the `Setting` class.
-    """
-    super().__init__()
-    
+        tags=None):
     self._name = name
     utils_.check_setting_name(self._name)
     
@@ -385,8 +398,6 @@ class Setting(
       self._error_messages.update(error_messages)
     
     self._tags = set(tags) if tags is not None else set()
-    
-    self._dict_on_init = dict_on_init
     
     if self._should_validate_default_value():
       self._validate_default_value()
