@@ -28,6 +28,18 @@ from . import stubs_setting
 
 class TestSetting(unittest.TestCase):
   
+  @classmethod
+  def setUpClass(self):
+    settings_.register_setting_type(stubs_setting.SettingStub, 'stub')
+    settings_.register_setting_type(stubs_setting.SettingWithGuiStub, 'stub_with_gui')
+    settings_.register_setting_gui_type(stubs_setting.PresenterStub, 'stub_presenter')
+  
+  @classmethod
+  def tearDownClass(cls):
+    settings_.unregister_setting_type('stub')
+    settings_.unregister_setting_type('stub_with_gui')
+    settings_.unregister_setting_gui_type('stub_presenter')
+  
   def setUp(self):
     self.setting = stubs_setting.SettingStub('file_extension', default_value='png')
   
@@ -252,80 +264,27 @@ class TestSetting(unittest.TestCase):
     self.assertDictEqual(
       self.setting.to_dict(),
       {
-        'type': 'stub',
         'name': self.setting.name,
         'value': self.setting.value,
-        'default_value': self.setting.value,
+        'type': 'stub',
+        'default_value': 'png',
       })
   
-  def test_to_dict_with_dict_on_init(self):
-    setting = stubs_setting.SettingStub(
+  def test_to_dict_with_gui_type_as_object(self):
+    setting = stubs_setting.SettingWithGuiStub(
       'file_extension',
       default_value='png',
-      dict_on_init={
-        'type': 'file_extension',
-        'name': 'file_extension',
-        'default_value': 'png',
-        'gui_type': None,
-      })
+      gui_type=stubs_setting.PresenterStub)
     
     self.assertDictEqual(
       setting.to_dict(),
       {
         'name': setting.name,
         'value': setting.value,
-        'type': 'file_extension',
+        'type': 'stub_with_gui',
         'default_value': 'png',
-        'gui_type': None,
+        'gui_type': 'stub_presenter',
       })
-  
-  def test_to_dict_with_dict_on_init_with_types_as_objects(self):
-    setting = stubs_setting.SettingStub(
-      'file_extension',
-      default_value='png',
-      dict_on_init={
-        'type': settings_.SettingTypes.file_extension,
-        'name': 'file_extension',
-        'default_value': 'png',
-        'gui_type': settings_.SettingGuiTypes.file_extension_entry,
-      })
-    
-    self.assertDictEqual(
-      setting.to_dict(),
-      {
-        'name': setting.name,
-        'value': setting.value,
-        'type': 'file_extension',
-        'default_value': 'png',
-        'gui_type': 'file_extension_entry',
-      })
-  
-  def test_to_dict_with_dict_on_init_with_type_as_invalid_object(self):
-    setting = stubs_setting.SettingStub(
-      'file_extension',
-      default_value='png',
-      dict_on_init={
-        'type': object,
-        'name': 'file_extension',
-        'default_value': 'png',
-      })
-    
-    with self.assertRaises(TypeError):
-      setting.to_dict()
-  
-  def test_to_dict_with_dict_on_init_with_gui_type_as_invalid_object(self):
-    setting = stubs_setting.SettingStub(
-      'file_extension',
-      default_value='png',
-      dict_on_init={
-        'type': 'file_extension',
-        'name': 'file_extension',
-        'default_value': 'png',
-        'gui_type': object,
-      })
-    
-    with self.assertRaises(TypeError):
-      setting.to_dict()
 
 
 class TestSettingEvents(unittest.TestCase):
@@ -370,6 +329,14 @@ class TestSettingEvents(unittest.TestCase):
   pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
 class TestSettingLoadSaveEvents(unittest.TestCase):
+  
+  @classmethod
+  def setUpClass(self):
+    settings_.register_setting_type(stubs_setting.SettingWithGuiStub, 'stub_with_gui')
+  
+  @classmethod
+  def tearDownClass(cls):
+    settings_.unregister_setting_type('stub_with_gui')
   
   @mock.patch(
     pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
@@ -691,7 +658,8 @@ class TestGenericSetting(unittest.TestCase):
     setting.set_value([4, 6, 2])
     
     self.assertEqual(setting.value, (4, 6, 2))
-    self.assertDictEqual(setting.to_dict(), {'name': setting.name, 'value': [4, 6, 2]})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': setting.name, 'value': [4, 6, 2], 'type': 'generic'})
   
   def test_value_functions_as_none(self):
     setting = settings_.GenericSetting('selected_layers')
@@ -699,7 +667,8 @@ class TestGenericSetting(unittest.TestCase):
     setting.set_value([4, 6, 2])
     
     self.assertEqual(setting.value, [4, 6, 2])
-    self.assertDictEqual(setting.to_dict(), {'name': setting.name, 'value': repr([4, 6, 2])})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': setting.name, 'value': repr([4, 6, 2]), 'type': 'generic'})
   
   def test_value_functions_with_two_parameters(self):
     setting = settings_.GenericSetting(
@@ -713,8 +682,11 @@ class TestGenericSetting(unittest.TestCase):
       setting.value, ('selected_layers_4', 'selected_layers_6', 'selected_layers_2'))
     self.assertDictEqual(
       setting.to_dict(),
-      {'name': setting.name,
-       'value': ['selected_layers_4', 'selected_layers_6', 'selected_layers_2']})
+      {
+        'name': setting.name,
+        'value': ['selected_layers_4', 'selected_layers_6', 'selected_layers_2'],
+        'type': 'generic',
+      })
   
   def test_value_set_with_invalid_number_of_parameters_raises_error(self):
     with self.assertRaises(TypeError):
@@ -828,7 +800,7 @@ class TestCreateEnumSetting(unittest.TestCase):
   def test_inconsistent_number_of_elements_raises_error(self):
     with self.assertRaises(ValueError):
       settings_.EnumSetting(
-        'overwrite_mode', 'replace', [('skip', 'Skip', 4), ('replace', 'Replace')])
+        'overwrite_mode', [('skip', 'Skip', 4), ('replace', 'Replace')], default_value='replace')
     
   def test_same_explicit_item_value_multiple_times_raises_error(self):
     with self.assertRaises(ValueError):
@@ -926,7 +898,7 @@ class TestEnumSetting(unittest.TestCase):
     self.assertFalse(setting.is_value_empty())
     setting.set_value(setting.items['choose'])
     self.assertTrue(setting.is_value_empty())
-    
+  
   def test_set_empty_value_not_allowed(self):
     setting = settings_.EnumSetting(
       'overwrite_mode',
@@ -1015,23 +987,50 @@ class TestImageSetting(unittest.TestCase):
   def test_to_dict(self):
     self.pdb.gimp_image_set_filename(self.image, 'file_path')
     
-    self.assertDictEqual(self.setting.to_dict(), {'name': 'image', 'value': 'file_path'})
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {
+        'name': 'image',
+        'value': 'file_path',
+        'type': 'image',
+        'default_value': 'file_path',
+      })
   
   def test_to_dict_if_image_is_none(self):
     setting = settings_.ImageSetting('image', default_value=None)
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'image', 'value': None})
+    self.assertDictEqual(
+      setting.to_dict(),
+      {
+        'name': 'image',
+        'value': None,
+        'type': 'image',
+        'default_value': None,
+      })
   
   def test_to_dict_with_missing_filename(self):
     self.pdb.gimp_image_set_filename(self.image, None)
     
-    self.assertDictEqual(self.setting.to_dict(), {'name': 'image', 'value': None})
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {
+        'name': 'image',
+        'value': None,
+        'type': 'image',
+        'default_value': None,
+      })
   
   def test_to_dict_with_session_source_type(self):
     self.image.ID = 2
     
     self.assertDictEqual(
-      self.setting.to_dict(source_type='session'), {'name': 'image', 'value': 2})
+      self.setting.to_dict(source_type='session'),
+      {
+        'name': 'image',
+        'value': 2,
+        'type': 'image',
+        'default_value': 2,
+      })
 
 
 @mock.patch(
@@ -1044,6 +1043,14 @@ class TestGimpItemSetting(unittest.TestCase):
   
   class StubItemSetting(settings_.GimpItemSetting):
     pass
+  
+  @classmethod
+  def setUpClass(self):
+    settings_.register_setting_type(TestGimpItemSetting.StubItemSetting, 'stub_item')
+  
+  @classmethod
+  def tearDownClass(cls):
+    settings_.unregister_setting_type('stub_item')
   
   def setUp(self):
     pdb = stubs_gimp.PdbStub()
@@ -1147,26 +1154,68 @@ class TestGimpItemSetting(unittest.TestCase):
   def test_to_dict(self):
     self.assertDictEqual(
       self.setting.to_dict(),
-      {'name': 'item', 'value': ['image_filepath', 'LayerStub', 'group1/group2/layer']})
+      {
+        'name': 'item',
+        'value': ['image_filepath', 'LayerStub', 'group1/group2/layer'],
+        'type': 'stub_item',
+        'default_value': ['image_filepath', 'LayerStub', 'group1/group2/layer'],
+      })
+  
+  def test_to_dict_value_is_none(self):
+    self.assertDictEqual(
+      self.StubItemSetting('item', default_value=None).to_dict(),
+      {
+        'name': 'item',
+        'value': None,
+        'type': 'stub_item',
+        'default_value': None,
+      })
+  
+  def test_to_dict_value_is_none_and_source_type_is_session(self):
+    self.assertDictEqual(
+      self.StubItemSetting('item', default_value=None).to_dict(source_type='session'),
+      {
+        'name': 'item',
+        'value': None,
+        'type': 'stub_item',
+        'default_value': None,
+      })
   
   def test_to_dict_without_image_filename(self):
     self.image.filename = None
     
-    self.assertDictEqual(self.setting.to_dict(), {'name': 'item', 'value': None})
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {
+        'name': 'item',
+        'value': None,
+        'type': 'stub_item',
+        'default_value': None,
+      })
   
   def test_to_dict_without_parents(self):
     self.layer.parent = None
     
     self.assertDictEqual(
       self.setting.to_dict(),
-      {'name': 'item', 'value': ['image_filepath', 'LayerStub', 'layer']})
+      {
+        'name': 'item',
+        'value': ['image_filepath', 'LayerStub', 'layer'],
+        'type': 'stub_item',
+        'default_value': ['image_filepath', 'LayerStub', 'layer'],
+      })
   
   def test_to_dict_via_item_id(self):
     self.layer.ID = 2
     
     self.assertDictEqual(
       self.setting.to_dict(source_type='session'),
-      {'name': 'item', 'value': ['LayerStub', 2]})
+      {
+        'name': 'item',
+        'value': ['LayerStub', 2],
+        'type': 'stub_item',
+        'default_value': ['LayerStub', 2],
+      })
 
 
 class TestColorSetting(unittest.TestCase):
@@ -1198,13 +1247,15 @@ class TestColorSetting(unittest.TestCase):
     setting = settings_.ColorSetting('color')
     setting.set_value(gimpcolor.RGB(5, 2, 8))
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 255]})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 255], 'type': 'color'})
   
   def test_to_dict_with_four_values(self):
     setting = settings_.ColorSetting('color')
     setting.set_value(gimpcolor.RGB(5, 2, 8, 4))
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 4]})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 4], 'type': 'color'})
 
 
 @mock.patch(
@@ -1221,7 +1272,8 @@ class TestDisplaySetting(unittest.TestCase):
       
       setting.set_value(display)
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'display', 'value': None})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'display', 'value': None, 'type': 'display'})
 
 
 @mock.patch(
@@ -1261,7 +1313,8 @@ class TestParasiteSetting(unittest.TestCase):
     setting.set_value(parasite)
     
     self.assertDictEqual(
-      setting.to_dict(), {'name': 'parasite', 'value': ['parasite_stub', 1, 'data']})
+      setting.to_dict(),
+      {'name': 'parasite', 'value': ['parasite_stub', 1, 'data'], 'type': 'parasite'})
 
 
 class TestFileExtensionSetting(unittest.TestCase):
@@ -1339,7 +1392,13 @@ class TestBrushSetting(unittest.TestCase):
     self.setting.set_value(('Clipboard', 50.0, 10.0, -1))
     
     self.assertDictEqual(
-      self.setting.to_dict(), {'name': 'brush', 'value': ['Clipboard', 50.0, 10.0, -1]})
+      self.setting.to_dict(),
+      {
+        'name': 'brush',
+        'value': ['Clipboard', 50.0, 10.0, -1],
+        'type': 'brush',
+        'default_value': ('', -1, -1, -1),
+      })
 
 
 class TestImageIDsAndDirpathsSetting(unittest.TestCase):
@@ -1686,7 +1745,17 @@ class TestArraySetting(unittest.TestCase):
   
   def test_to_dict(self):
     self.assertDictEqual(
-      self.setting.to_dict(), {'name': 'coordinates', 'value': [1.0, 5.0, 10.0]})
+      self.setting.to_dict(),
+      {
+        'name': 'coordinates',
+        'value': [1.0, 5.0, 10.0],
+        'type': 'array',
+        'default_value': (1.0, 5.0, 10.0),
+        'element_type': 'float',
+        'element_default_value': 0.0,
+        'element_max_value': 100.0,
+        'element_min_value': -100.0,
+      })
   
   def test_to_dict_with_type_having_custom_to_dict(self):
     setting = settings_.ArraySetting(
@@ -1698,7 +1767,15 @@ class TestArraySetting(unittest.TestCase):
     setting.set_value(['Clipboard', 'Clipboard2'])
     
     self.assertDictEqual(
-      setting.to_dict(), {'name': 'coordinates', 'value': [['Clipboard'], ['Clipboard2']]})
+      setting.to_dict(),
+      {
+        'name': 'coordinates',
+        'value': [['Clipboard'], ['Clipboard2']],
+        'type': 'array',
+        'default_value': (),
+        'element_type': 'brush',
+        'element_default_value': (),
+      })
   
   @parameterized.parameterized.expand([
     ('first', 0, 1.0),
@@ -2058,7 +2135,8 @@ class TestContainerSettings(unittest.TestCase):
     
     setting.set_value(expected_value)
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'setting', 'value': [1, 4, 'five']})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'setting', 'value': [1, 4, 'five'], 'type': 'tuple'})
   
   def test_set_value_for_set_setting(self):
     expected_value = set([1, 4, 'five'])
@@ -2078,7 +2156,8 @@ class TestContainerSettings(unittest.TestCase):
 
     setting.set_value(expected_value)
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'setting', 'value': list(expected_value)})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'setting', 'value': list(expected_value), 'type': 'set'})
 
 
 class TestSettingTypeFunctions(unittest.TestCase):

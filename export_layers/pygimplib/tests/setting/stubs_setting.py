@@ -114,7 +114,8 @@ class SettingRegistrableToPdbStub(SettingStub):
 class SettingWithGuiStub(SettingStub):
   
   _ALLOWED_GUI_TYPES = [
-    CheckButtonPresenterStub, PresenterStub,
+    CheckButtonPresenterStub,
+    PresenterStub,
     PresenterWithValueChangedSignalStub,
     PresenterWithoutGuiElementCreationStub]
 
