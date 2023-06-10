@@ -186,7 +186,7 @@ class Setting(
   `Setting.set_value()` must accept one of the types specified above, in
   addition to a type supported by a particular subclass. For example,
   `ImageSetting.set_value()` must support passing a string (representing the
-  image file path) beside a `gimp.Image` instance.
+  image file path) or an ID (assigned by GIMP) beside a `gimp.Image` instance.
   
   The `GenericSetting` class can store a value of an arbitrary type. Use this
   subclass sparingly as it lacks the additional features available for other
@@ -343,19 +343,18 @@ class Setting(
       validation is not performed. If omitted, a subclass-specific default value
       for `default_value` is assigned.
     
-    * `display_name` (default: `None`) - See the `display_name` attribute.
+    * `display_name` - See the `display_name` attribute.
     
-    * `description` (default: `None`) - See the `description` attribute.
+    * `description` - See the `description` attribute.
     
-    * `pdb_type` (default: `SettingPdbTypes.automatic`) - One of the
-      `SettingPdbTypes` items. If set to the default value, the first PDB type
-      in the list of allowed PDB types for a particular `Setting` subclass is
-      chosen. If no allowed PDB types are defined for that subclass, the setting
-      cannot be registered (`None` is assigned).
+    * `pdb_type` - One of the `SettingPdbTypes` items. If set to the default
+      value, the first PDB type in the list of allowed PDB types for a
+      particular `Setting` subclass is chosen. If no allowed PDB types are
+      defined for that subclass, the setting cannot be registered (`None` is
+      assigned).
     
-    * `gui_type` (default: `SettingGuiTypes.automatic`) - Type of GUI element to
-      be created by `set_gui()`. Use the members of the `SettingGuiTypes` class
-      to specify the desired GUI type.
+    * `gui_type` - Type of GUI element to be created by `set_gui()`. Use the
+      members of the `SettingGuiTypes` class to specify the desired GUI type.
       
       If `gui_type` is `SettingGuiTypes.automatic` (the default), the first GUI
       type is chosen from the list of allowed GUI type for the corresponding
@@ -368,26 +367,24 @@ class Setting(
       
       If the `gui_type` is `None`, no GUI is created for this setting.
     
-    * `allow_empty_values` (default: `False`) - If `False` and an empty value is
-      passed to `set_value()`, then the value is considered invalid. Otherwise,
-      the value is considered valid.
+    * `allow_empty_values` - If `False` and an empty value is passed to
+      `set_value()`, then the value is considered invalid. Otherwise, the value
+      is considered valid.
     
-    * `auto_update_gui_to_setting` (default: `True`) - If `True`, automatically
-      update the setting value if the GUI value is updated. If `False`, the
-      setting must be updated manually by calling
-      `Setting.gui.update_setting_value()` when needed.
+    * `auto_update_gui_to_setting` - If `True`, automatically update the setting
+      value if the GUI value is updated. If `False`, the setting must be updated
+      manually by calling `Setting.gui.update_setting_value()` when needed.
       
       This parameter does not have any effect if the GUI type used in
       this setting cannot provide automatic GUI-to-setting update.
     
-    * `error_messages` (default: `None`) - A dictionary containing
-      (message name, message contents) pairs. Use this to pass custom error
-      messages. This way, you may also override default error messages defined
-      in classes.
+    * `error_messages`- A dictionary containing (message name, message contents)
+      pairs. Use this to pass custom error messages. This way, you may also
+      override default error messages defined in classes.
     
-    * `tags` (default: `None`) - An iterable container (list, set, etc.) of
-      arbitrary tags attached to the setting. Tags can be used to e.g. iterate
-      over a specific subset of settings.
+    * `tags` - An iterable container (list, set, etc.) of arbitrary tags
+      attached to the setting. Tags can be used to e.g. iterate over a specific
+      subset of settings.
     """
     utils_.SettingParentMixin.__init__(self)
     utils_.SettingEventsMixin.__init__(self)
@@ -708,8 +705,7 @@ class Setting(
     
     A `Setting` subclass may return different values of the some setting
     attributes depending on the value of `source_type`. If a subclass uses
-    `source_type`, it is mentioned in the subclass' documentation for
-    `to_dict()`.
+    `source_type`, it is mentioned in the subclass' documentation.
     """
     settings_dict = {
       'name': self.name,
@@ -1377,6 +1373,12 @@ class StringSetting(Setting):
 class ImageSetting(Setting):
   """Class for settings holding `gimp.Image` objects.
   
+  This class accepts as a value a file path to the image or image ID.
+  If calling `to_dict(source_type='session')`, image ID is returned for `value`
+  and `default_value`.
+  If calling `to_dict()` with any other value for `source_type`, the image file
+  path is returned or `None` if the image does not exist in the file system.
+  
   Allowed GIMP PDB types:
   
   * `SettingPdbTypes.image`
@@ -1439,13 +1441,19 @@ class ImageSetting(Setting):
 class GimpItemSetting(Setting):
   """Abstract class for settings storing GIMP items - layers, channels, etc.
   
-  This class overrides `set_value()` to allow setting a GIMP item as a value
-  loaded from a setting source, and `to_dict()` to allow saving GIMP objects to
-  setting sources.
+  This class accepts as a value one of the following:
   
-  For session-wide setting sources, the item ID is used for setting value or
-  saving. For persistent setting sources, a list containing the image file path,
-  item type name and item path (from topmost parent to the item name) is used.
+  * a tuple (image file path, item type, item path) where item type is the name
+    of the item's GIMP class (e.g. `Layer`).
+  
+  * a tuple (item type, item ID). Item ID is are assigned by GIMP.
+  
+  * a `gimp.Item` instance.
+  
+  If calling `to_dict(source_type='session')`, a tuple (item type, item ID) is
+  returned for `value` and `default_value`.
+  If calling `to_dict()` with any other value for `source_type`, a tuple
+  (image file path, item type, item path) is returned.
   """
   
   _ABSTRACT = True
