@@ -128,11 +128,14 @@ class SettingMeta(type):
     
     @functools.wraps(orig_init)
     def init_wrapper(self, *args, **kwargs):
-      self._dict_on_init = dict(kwargs)
-      # Excludes `self` as the first argument
-      arg_names = inspect.getargspec(orig_init)[0][1:]
-      for arg_name, arg in zip(arg_names, args):
-        self._dict_on_init[arg_name] = arg
+      # This check prevents a parent class' `__init__()` from overriding the
+      # contents of `_dict_on_init`, which may have different arguments.
+      if not hasattr(self, '_dict_on_init'):
+        self._dict_on_init = dict(kwargs)
+        # Exclude `self` as the first argument
+        arg_names = inspect.getargspec(orig_init)[0][1:]
+        for arg_name, arg in zip(arg_names, args):
+          self._dict_on_init[arg_name] = arg
       
       orig_init(self, *args, **kwargs)
     
