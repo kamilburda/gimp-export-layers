@@ -32,12 +32,14 @@ class TestSetting(unittest.TestCase):
   def setUpClass(self):
     settings_.register_setting_type(stubs_setting.SettingStub, 'stub')
     settings_.register_setting_type(stubs_setting.SettingWithGuiStub, 'stub_with_gui')
+    settings_.register_setting_type(stubs_setting.SettingWithVarargsOnInitStub, 'stub_varargs')
     settings_.register_setting_gui_type(stubs_setting.PresenterStub, 'stub_presenter')
   
   @classmethod
   def tearDownClass(cls):
     settings_.unregister_setting_type('stub')
     settings_.unregister_setting_type('stub_with_gui')
+    settings_.unregister_setting_type('stub_varargs')
     settings_.unregister_setting_gui_type('stub_presenter')
   
   def setUp(self):
@@ -264,8 +266,8 @@ class TestSetting(unittest.TestCase):
     self.assertDictEqual(
       self.setting.to_dict(),
       {
-        'name': self.setting.name,
-        'value': self.setting.value,
+        'name': 'file_extension',
+        'value': 'png',
         'type': 'stub',
         'default_value': 'png',
       })
@@ -279,11 +281,25 @@ class TestSetting(unittest.TestCase):
     self.assertDictEqual(
       setting.to_dict(),
       {
-        'name': setting.name,
-        'value': setting.value,
+        'name': 'file_extension',
+        'value': 'png',
         'type': 'stub_with_gui',
         'default_value': 'png',
         'gui_type': 'stub_presenter',
+      })
+  
+  def test_to_dict_with_varargs(self):
+    setting = stubs_setting.SettingWithVarargsOnInitStub(
+      'file_extension', 'one', 'two', default_value='png')
+    
+    self.assertDictEqual(
+      setting.to_dict(),
+      {
+        'name': 'file_extension',
+        'value': 'png',
+        'type': 'stub_varargs',
+        'default_value': 'png',
+        '_varargs': ['one', 'two'],
       })
 
 
