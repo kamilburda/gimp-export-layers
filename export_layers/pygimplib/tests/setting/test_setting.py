@@ -977,6 +977,17 @@ class TestImageSetting(unittest.TestCase):
     with self.assertRaises(settings_.SettingValueError):
       self.setting.set_value(self.image)
   
+  def test_default_value_with_raw_type(self):
+    self.pdb.gimp_image_set_filename(self.image, 'file_path')
+    
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+      
+      setting = settings_.ImageSetting('image', default_value='file_path')
+    
+    self.assertEqual(setting.default_value, self.image)
+  
   def test_empty_value_as_default_value(self):
     try:
       settings_.ImageSetting('image', default_value=None)
@@ -1362,9 +1373,11 @@ class TestBrushSetting(unittest.TestCase):
   def setUp(self):
     self.setting = settings_.BrushSetting('brush', default_value=('', -1, -1, -1))
   
-  def test_init_with_brush_name_only_raises_error(self):
-    with self.assertRaises(settings_.SettingDefaultValueError):
-      settings_.BrushSetting('brush', default_value='Clipboard')
+  def test_init_with_brush_name_only(self):
+    setting = settings_.BrushSetting('brush', default_value='Clipboard')
+    
+    self.assertEqual(setting.value, ('Clipboard',))
+    self.assertEqual(setting.default_value, ('Clipboard',))
   
   @parameterized.parameterized.expand([
     ('one_element', ('Clipboard',), ('Clipboard',)),
@@ -1397,7 +1410,7 @@ class TestBrushSetting(unittest.TestCase):
         'name': 'brush',
         'value': ['Clipboard', 50.0, 10.0, -1],
         'type': 'brush',
-        'default_value': ('', -1, -1, -1),
+        'default_value': ['', -1, -1, -1],
       })
 
 
@@ -1522,7 +1535,7 @@ class TestCreateArraySetting(unittest.TestCase):
       element_type='float',
       element_default_value=0.0)
     
-    self.assertEqual(setting.default_value, [1.0, 5.0, 10.0])
+    self.assertEqual(setting.default_value, (1.0, 5.0, 10.0))
     self.assertEqual(setting.value, (1.0, 5.0, 10.0))
   
   def test_create_with_additional_read_only_element_arguments(self):
@@ -1750,7 +1763,7 @@ class TestArraySetting(unittest.TestCase):
         'name': 'coordinates',
         'value': [1.0, 5.0, 10.0],
         'type': 'array',
-        'default_value': (1.0, 5.0, 10.0),
+        'default_value': [1.0, 5.0, 10.0],
         'element_type': 'float',
         'element_default_value': 0.0,
         'element_max_value': 100.0,
@@ -1772,9 +1785,9 @@ class TestArraySetting(unittest.TestCase):
         'name': 'coordinates',
         'value': [['Clipboard'], ['Clipboard2']],
         'type': 'array',
-        'default_value': (),
+        'default_value': [],
         'element_type': 'brush',
-        'element_default_value': (),
+        'element_default_value': [],
       })
   
   @parameterized.parameterized.expand([

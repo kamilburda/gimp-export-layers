@@ -486,6 +486,8 @@ class Setting(
     """
     self.invoke_event('before-set-value')
     
+    value = self._raw_to_value(value)
+    
     self._validate_and_assign_value(value)
     self._setting_value_synchronizer.apply_setting_value_to_gui(value)
     
@@ -675,9 +677,11 @@ class Setting(
     `source_type`, it is mentioned in the subclass' documentation for
     `to_dict()`.
     """
-    settings_dict = {'name': self.name, 'value': self.value}
-    settings_dict['type'] = pgutils.safe_decode(
-      _SETTING_TYPES_TO_NAMES_MAP[self.__class__][0], 'utf-8')
+    settings_dict = {
+      'name': self.name,
+      'value': self._value_to_raw(self.value, source_type),
+      'type': pgutils.safe_decode(_SETTING_TYPES_TO_NAMES_MAP[self.__class__][0], 'utf-8'),
+    }
     
     dict_on_init_processed = {}
     
@@ -691,10 +695,13 @@ class Setting(
         
         dict_on_init_processed['gui_type'] = pgutils.safe_decode(
           _SETTING_GUI_TYPES_TO_NAMES_MAP[val][0], 'utf-8')
+      elif key == 'default_value':
+        dict_on_init_processed[key] = self._value_to_raw(val, source_type)
       else:
         dict_on_init_processed[key] = val
     
     settings_dict.update(dict_on_init_processed)
+    
     return settings_dict
   
   def _validate(self, value):
@@ -732,6 +739,35 @@ class Setting(
   
   def _is_value_empty(self, value):
     return value in self._empty_values
+  
+  def _raw_to_value(self, raw_value):
+    """Converts the given value to a type or format compatible with a particular
+    `Setting` subclass.
+    
+    The converted value is returned, or the original value if no conversion is
+    necessary.
+    
+    This method is called:
+    * in `set_value()` before `_validate_and_assign_value()` (applied to
+      `value`),
+    * during `__init__()` when the method is applied to `default_value`.
+    """
+    return raw_value
+  
+  def _value_to_raw(self, value, source_type):
+    """Converts the given value to a value that can be saved.
+    
+    The converted value is returned, or the original value if no conversion is
+    necessary.
+    
+    This method is called in `to_dict()` and is applied on the `value` and
+    `default_value` attributes.
+    
+    `source_type` is the setting source type passed to `to_dict()`. This
+    parameter may be used to convert the input value to a different format
+    depending on its value.
+    """
+    return value
   
   def _validate_and_assign_value(self, value):
     if not self._allow_empty_values:
@@ -771,7 +807,7 @@ class Setting(
       else:
         return self._DEFAULT_DEFAULT_VALUE()
     else:
-      return default_value
+      return self._raw_to_value(default_value)
   
   def _get_pdb_type(self, pdb_type):
     if pdb_type == SettingPdbTypes.automatic:
@@ -873,30 +909,37 @@ class GenericSetting(Setting):
     
     super().__init__(name, **kwargs)
   
-  def set_value(self, value):
-    if self._before_value_set is not None:
-      if len(inspect.getargspec(self._before_value_set).args) == 1:
-        value = self._before_value_set(value)
-      else:
-        value = self._before_value_set(value, self)
-    
-    super().set_value(value)
-  
   def to_dict(self, *args, **kwargs):
     settings_dict = super().to_dict(*args, **kwargs)
-    
-    if self._before_value_save is not None:
-      if len(inspect.getargspec(self._before_value_save).args) == 1:
-        settings_dict['value'] = self._before_value_save(settings_dict['value'])
-      else:
-        settings_dict['value'] = self._before_value_save(settings_dict['value'], self)
-    else:
-      settings_dict['value'] = repr(settings_dict['value'])
     
     settings_dict.pop('value_set', None)
     settings_dict.pop('value_save', None)
     
     return settings_dict
+  
+  def _raw_to_value(self, raw_value):
+    value = raw_value
+    
+    if self._before_value_set is not None:
+      if len(inspect.getargspec(self._before_value_set).args) == 1:
+        value = self._before_value_set(raw_value)
+      else:
+        value = self._before_value_set(raw_value, self)
+    
+    return value
+  
+  def _value_to_raw(self, value, source_type):
+    raw_value = value
+    
+    if self._before_value_save is not None:
+      if len(inspect.getargspec(self._before_value_save).args) == 1:
+        raw_value = self._before_value_save(value)
+      else:
+        raw_value = self._before_value_save(value, self)
+    else:
+      raw_value = repr(value)
+    
+    return raw_value
   
   def _validate_function(self, func, name):
     if func is None:
@@ -1284,11 +1327,11 @@ class StringSetting(Setting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
   _DEFAULT_DEFAULT_VALUE = ''
   
-  def set_value(self, value):
-    if isinstance(value, bytes):
-      value = pgutils.safe_decode_gimp(value)
-    
-    super().set_value(value)
+  def _raw_to_value(self, raw_value):
+    if isinstance(raw_value, bytes):
+      return pgutils.safe_decode_gimp(raw_value)
+    else:
+      return raw_value
 
 
 class ImageSetting(Setting):
@@ -1311,11 +1354,19 @@ class ImageSetting(Setting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.image_combo_box]
   _EMPTY_VALUES = [None]
   
-  def set_value(self, value):
-    if isinstance(value, int):
-      value = pgpdbutils.find_image_by_id(value)
-    elif isinstance(value, types.StringTypes):
-      images = pgpdbutils.find_images_by_filepath(value)
+  def _copy_value(self, value):
+    return value
+  
+  def _init_error_messages(self):
+    self.error_messages['invalid_value'] = _('Invalid image.')
+  
+  def _raw_to_value(self, raw_value):
+    value = raw_value
+    
+    if isinstance(raw_value, int):
+      value = pgpdbutils.find_image_by_id(raw_value)
+    elif isinstance(raw_value, types.StringTypes):
+      images = pgpdbutils.find_images_by_filepath(raw_value)
       if images:
         # Take the first image matching the file path. There may be multiple
         # opened images from the same file path, but there is no way to tell which
@@ -1324,28 +1375,20 @@ class ImageSetting(Setting):
       else:
         value = None
     
-    super().set_value(value)
-  
-  def to_dict(self, *args, **kwargs):
-    setting_dict = super().to_dict(*args, **kwargs)
-    
-    source_type = kwargs.pop('source_type', 'persistent')
-    
-    if source_type == 'session':
-      setting_dict['value'] = setting_dict['value'].ID
-    else:
-      if setting_dict['value'] is not None and setting_dict['value'].filename is not None:
-        setting_dict['value'] = pgutils.safe_decode_gimp(setting_dict['value'].filename)
-      else:
-        setting_dict['value'] = None
-    
-    return setting_dict
-  
-  def _copy_value(self, value):
     return value
   
-  def _init_error_messages(self):
-    self.error_messages['invalid_value'] = _('Invalid image.')
+  def _value_to_raw(self, value, source_type):
+    raw_value = value
+    
+    if source_type == 'session':
+      raw_value = value.ID
+    else:
+      if value is not None and value.filename is not None:
+        raw_value = pgutils.safe_decode_gimp(value.filename)
+      else:
+        raw_value = None
+    
+    return raw_value
   
   def _validate(self, image):
     if not pdb.gimp_image_is_valid(image):
@@ -1365,30 +1408,26 @@ class GimpItemSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   item type name and item path (from topmost parent to the item name) is used.
   """
   
-  def set_value(self, value):
-    if isinstance(value, list):
-      if len(value) == 2:
-        value = self._get_item_from_item_type_and_id(*value)
-      elif len(value) == 3:
-        value = self._get_item_from_image_and_item_path(*value)
+  def _raw_to_value(self, raw_value):
+    value = raw_value
+    
+    if isinstance(raw_value, list):
+      if len(raw_value) == 2:
+        value = self._get_item_from_item_type_and_id(*raw_value)
+      elif len(raw_value) == 3:
+        value = self._get_item_from_image_and_item_path(*raw_value)
       else:
         raise ValueError(
           ('lists as values for GIMP item settings must contain'
-           ' exactly 2 or 3 elements (has {})').format(len(value)))
+           ' exactly 2 or 3 elements (has {})').format(len(raw_value)))
     
-    super().set_value(value)
+    return value
   
-  def to_dict(self, *args, **kwargs):
-    setting_dict = super().to_dict(*args, **kwargs)
-    
-    source_type = kwargs.pop('source_type', 'persistent')
-    
+  def _value_to_raw(self, value, source_type):
     if source_type == 'session':
-      setting_dict['value'] = self._get_item_as_id(setting_dict['value'])
+      return self._get_item_as_id(value)
     else:
-      setting_dict['value'] = self._get_item_as_path(setting_dict['value'])
-    
-    return setting_dict
+      return self._get_item_as_path(value)
   
   def _get_item_from_item_type_and_id(self, item_type_name, item_id):
     return getattr(gimp, item_type_name).from_id(item_id)
@@ -1681,23 +1720,17 @@ class ColorSetting(Setting):
   # Create default value dynamically to avoid potential errors on GIMP startup.
   _DEFAULT_DEFAULT_VALUE = lambda self: gimpcolor.RGB(0, 0, 0)
   
-  def set_value(self, value):
-    if isinstance(value, list):
-      value = gimpcolor.RGB(*value)
-    
-    super().set_value(value)
-  
-  def to_dict(self, *args, **kwargs):
-    setting_dict = super().to_dict(*args, **kwargs)
-    
-    color = setting_dict['value']
-    setting_dict['value'] = [
-      int(color.r * 255), int(color.g * 255), int(color.b * 255), int(color.a * 255)]
-    
-    return setting_dict
-  
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _('Invalid color.')
+  
+  def _raw_to_value(self, raw_value):
+    if isinstance(raw_value, list):
+      return gimpcolor.RGB(*raw_value)
+    else:
+      return raw_value
+  
+  def _value_to_raw(self, value, source_type):
+    return [int(value.r * 255), int(value.g * 255), int(value.b * 255), int(value.a * 255)]
   
   def _validate(self, color):
     if not isinstance(color, gimpcolor.RGB):
@@ -1709,7 +1742,7 @@ class DisplaySetting(Setting):
   """Class for settings holding `gimp.Display` objects.
   
   `gimp.Display` objects cannot be loaded or saved. Therefore, `to_dict()`
-  returns a dictionary whose `'value'` key is `None`.
+  returns a dictionary whose `'value'` and `'default_value'` keys are `None`.
   
   Allowed GIMP PDB types:
   
@@ -1728,18 +1761,15 @@ class DisplaySetting(Setting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.display_spin_button]
   _EMPTY_VALUES = [None]
   
-  def to_dict(self, *args, **kwargs):
-    setting_dict = super().to_dict(*args, **kwargs)
-    
-    setting_dict['value'] = None
-    
-    return setting_dict
-  
   def _copy_value(self, value):
     return value
   
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _('Invalid display.')
+  
+  def _value_to_raw(self, value, source_type):
+    # There is no way to restore `gimp.Display` objects, therefore return `None`.
+    return None
   
   def _validate(self, display):
     if not pdb.gimp_display_is_valid(display):
@@ -1767,25 +1797,20 @@ class ParasiteSetting(Setting):
   # Create default value dynamically to avoid potential errors on GIMP startup.
   _DEFAULT_DEFAULT_VALUE = lambda self: gimp.Parasite(self.name, 0, '')
   
-  def set_value(self, value):
-    if isinstance(value, list):
-      value = gimp.Parasite(*value)
-    
-    super().set_value(value)
-  
-  def to_dict(self, *args, **kwargs):
-    setting_dict = super().to_dict(*args, **kwargs)
-    
-    parasite = setting_dict['value']
-    setting_dict['value'] = [parasite.name, parasite.flags, parasite.data]
-    
-    return setting_dict
-  
   def _copy_value(self, value):
     return value
   
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _('Invalid parasite.')
+  
+  def _raw_to_value(self, raw_value):
+    if isinstance(raw_value, list):
+      return gimp.Parasite(*raw_value)
+    else:
+      return raw_value
+  
+  def _value_to_raw(self, value, source_type):
+    return [value.name, value.flags, value.data]
   
   def _validate(self, parasite):
     if not isinstance(parasite, gimp.Parasite):
@@ -1942,9 +1967,9 @@ class BrushSetting(Setting):
   Each brush is represented by a tuple
   `(brush name: string, opacity: float, spacing: int, layer mode: int)`.
   
-  When calling `set_value`, brush name may be passed without being wrapped in a
-  tuple that gets then converted to a tuple of one element containing the brush
-  name.
+  When instantiating the setting or calling `set_value`, brush name may be
+  passed without being wrapped in a tuple that gets then converted to a tuple of
+  one element containing the brush name.
   
   Allowed GIMP PDB types:
   
@@ -1968,25 +1993,21 @@ class BrushSetting(Setting):
   
   _MAX_NUM_TUPLE_ELEMENTS = 4
   
-  def set_value(self, value):
-    if isinstance(value, types.StringTypes):
-      value = (value,)
-    elif isinstance(value, list):
-      value = tuple(value)
-    
-    super().set_value(value)
-  
-  def to_dict(self, *args, **kwargs):
-    setting_dict = super().to_dict(*args, **kwargs)
-    
-    setting_dict['value'] = list(setting_dict['value'])
-    
-    return setting_dict
-  
   def _init_error_messages(self):
     self.error_messages['invalid_value'] = _(
       'Invalid number of tuple elements (must be at most {}).'.format(
         self._MAX_NUM_TUPLE_ELEMENTS))
+  
+  def _raw_to_value(self, raw_value):
+    if isinstance(raw_value, types.StringTypes):
+      return (raw_value,)
+    elif isinstance(raw_value, list):
+      return tuple(raw_value)
+    else:
+      return raw_value
+  
+  def _value_to_raw(self, value, source_type):
+    return list(value)
   
   def _validate(self, brush_tuple):
     if len(brush_tuple) > self._MAX_NUM_TUPLE_ELEMENTS:
@@ -2244,6 +2265,9 @@ class ArraySetting(Setting):
     
     if 'default_value' not in self._element_kwargs:
       self._element_kwargs['default_value'] = self._reference_element.default_value
+    else:
+      self._element_kwargs['default_value'] = self._reference_element._raw_to_value(
+        self._element_kwargs['default_value'])
     
     for key, value in self._element_kwargs.items():
       pgutils.create_read_only_property(self, 'element_' + key, value)
@@ -2273,25 +2297,16 @@ class ArraySetting(Setting):
   def max_size(self):
     return self._max_size
   
-  def set_value(self, value_array):
-    if isinstance(value_array, list):
-      new_value_array = []
-      for value in value_array:
-        self._reference_element.set_value(value)
-        new_value_array.append(self._reference_element.value)
-      
-      self._reference_element.reset()
-      
-      super().set_value(new_value_array)
-    else:
-      super().set_value(value_array)
-  
   def to_dict(self, *args, **kwargs):
-    setting_dict = super().to_dict(*args, **kwargs)
+    settings_dict = super().to_dict(*args, **kwargs)
     
-    setting_dict['value'] = list(setting.to_dict()['value'] for setting in self._elements)
+    source_type = kwargs.get('source_type', 'persistent')
     
-    return setting_dict
+    for key, val in settings_dict.items():
+      if key == 'element_default_value':
+        settings_dict[key] = self._reference_element._value_to_raw(val, source_type)
+    
+    return settings_dict
   
   def __getitem__(self, index):
     """Returns a setting representing the the array element at the specified
@@ -2418,6 +2433,21 @@ class ArraySetting(Setting):
     self.error_messages['add_above_max_size'] = _(
       'Cannot add any more elements - at most {} elements are allowed.')
   
+  def _raw_to_value(self, raw_value_array):
+    if (isinstance(raw_value_array, collections.Iterable)
+        and not isinstance(raw_value_array, types.StringTypes)):
+      return tuple(
+        self._reference_element._raw_to_value(raw_value)
+        for raw_value in raw_value_array)
+    else:
+      # Let `_validate()` raise error
+      return raw_value_array
+  
+  def _value_to_raw(self, value_array, source_type):
+    return [
+      self._reference_element._value_to_raw(value, source_type)
+      for value in value_array]
+  
   def _validate(self, value_array):
     if (not isinstance(value_array, collections.Iterable)
         or isinstance(value_array, types.StringTypes)):
@@ -2439,6 +2469,10 @@ class ArraySetting(Setting):
       raise SettingValueError(
         self.error_messages['max_size_less_than_value_length'].format(
           self._max_size, len(value_array)))
+    
+    for value in value_array:
+      self._reference_element._validate(value)
+    self._reference_element.reset()
   
   def _assign_value(self, value_array):
     elements = []
@@ -2548,11 +2582,11 @@ class ListSetting(ContainerSetting):
   
   _DEFAULT_DEFAULT_VALUE = []
   
-  def set_value(self, value):
-    if not isinstance(value, list) and value is not None:
-      value = list(value)
-    
-    super().set_value(value)
+  def _raw_to_value(self, raw_value):
+    if not isinstance(raw_value, list) and raw_value is not None:
+      return list(raw_value)
+    else:
+      return raw_value
 
 
 class TupleSetting(ContainerSetting):
@@ -2560,18 +2594,14 @@ class TupleSetting(ContainerSetting):
   
   _DEFAULT_DEFAULT_VALUE = ()
   
-  def set_value(self, value):
-    if not isinstance(value, tuple) and value is not None:
-      value = tuple(value)
-    
-    super().set_value(value)
+  def _raw_to_value(self, raw_value):
+    if not isinstance(raw_value, tuple) and raw_value is not None:
+      return tuple(raw_value)
+    else:
+      return raw_value
   
-  def to_dict(self, *args, **kwargs):
-    setting_dict = super().to_dict(*args, **kwargs)
-    
-    setting_dict['value'] = list(setting_dict['value'])
-    
-    return setting_dict
+  def _value_to_raw(self, value, source_type):
+    return list(value)
 
 
 class SetSetting(ContainerSetting):
@@ -2581,18 +2611,14 @@ class SetSetting(ContainerSetting):
   
   _DEFAULT_DEFAULT_VALUE = set()
   
-  def set_value(self, value):
-    if not isinstance(value, set) and value is not None:
-      value = set(value)
-    
-    super().set_value(value)
+  def _raw_to_value(self, raw_value):
+    if not isinstance(raw_value, set) and raw_value is not None:
+      return set(raw_value)
+    else:
+      return raw_value
   
-  def to_dict(self, *args, **kwargs):
-    setting_dict = super().to_dict(*args, **kwargs)
-    
-    setting_dict['value'] = list(setting_dict['value'])
-    
-    return setting_dict
+  def _value_to_raw(self, value, source_type):
+    return list(value)
 
 
 class DictSetting(ContainerSetting):
@@ -2602,11 +2628,11 @@ class DictSetting(ContainerSetting):
   
   _DEFAULT_DEFAULT_VALUE = {}
   
-  def set_value(self, value):
-    if not isinstance(value, dict) and value is not None:
-      value = dict(value)
-    
-    super().set_value(value)
+  def _raw_to_value(self, raw_value):
+    if not isinstance(raw_value, dict) and raw_value is not None:
+      return dict(raw_value)
+    else:
+      return raw_value
 
 
 class SettingValueError(Exception):
