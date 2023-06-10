@@ -1929,9 +1929,6 @@ class ValidatableStringSetting(StringSetting):
     """
     self._string_validator = string_validator
     
-    if 'default_value' in kwargs and isinstance(kwargs['default_value'], bytes):
-      kwargs['default_value'] = pgutils.safe_decode_gimp(kwargs['default_value'])
-    
     StringSetting.__init__(self, name, **kwargs)
   
   def _init_error_messages(self):

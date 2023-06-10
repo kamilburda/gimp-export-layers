@@ -922,6 +922,21 @@ class TestEnumSetting(unittest.TestCase):
       })
 
 
+class TestStringSetting(unittest.TestCase):
+  
+  def test_to_dict_bytes_is_converted_to_str(self):
+    setting = settings_.StringSetting('file_extension', default_value=b'png')
+    
+    self.assertEqual(
+      setting.to_dict(),
+      {
+        'name': 'file_extension',
+        'value': 'png',
+        'type': 'str',
+        'default_value': 'png',
+      })
+
+
 @mock.patch(
   pgutils.get_pygimplib_module_path() + '.setting.settings.pdb', new=stubs_gimp.PdbStub())
 @mock.patch(
