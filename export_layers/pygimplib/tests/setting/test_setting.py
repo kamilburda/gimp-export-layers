@@ -301,6 +301,23 @@ class TestSetting(unittest.TestCase):
         'default_value': 'png',
         '_varargs': ['one', 'two'],
       })
+  
+  def test_to_dict_with_tags(self):
+    tags = set(['ignore_reset', 'ignore_load'])
+    expected_tags = list(tags)
+    
+    setting = stubs_setting.SettingStub(
+      'file_extension', default_value='png', tags=tags)
+    
+    self.assertDictEqual(
+      setting.to_dict(),
+      {
+        'name': 'file_extension',
+        'value': 'png',
+        'type': 'stub',
+        'default_value': 'png',
+        'tags': expected_tags,
+      })
 
 
 class TestSettingEvents(unittest.TestCase):

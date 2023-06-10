@@ -732,6 +732,8 @@ class Setting(
           _SETTING_GUI_TYPES_TO_NAMES_MAP[val][0], 'utf-8')
       elif key == 'default_value':
         dict_on_init_processed[key] = self._value_to_raw(val, source_type)
+      elif key == 'tags':
+        dict_on_init_processed[key] = list(val)
       else:
         dict_on_init_processed[key] = val
     
