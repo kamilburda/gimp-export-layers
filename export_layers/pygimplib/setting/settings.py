@@ -117,6 +117,9 @@ class SettingMeta(type):
   """
   
   def __new__(cls, name, bases, namespace):
+    if '_ABSTRACT' not in namespace:
+      namespace['_ABSTRACT'] = False
+    
     # Only wrap `__init__` if the (sub)class defines or overrides it.
     if '__init__' in namespace:
       namespace['__init__'] = cls._get_init_wrapper(namespace['__init__'])
@@ -128,6 +131,10 @@ class SettingMeta(type):
     
     @functools.wraps(orig_init)
     def init_wrapper(self, *args, **kwargs):
+      if getattr(self, '_ABSTRACT', False):
+        raise TypeError('cannot initialize abstract setting class "{}"'.format(
+          self.__class__.__name__))
+      
       # This check prevents a parent class' `__init__()` from overriding the
       # contents of `_dict_on_init`, which may have different arguments.
       if not hasattr(self, '_dict_on_init'):
@@ -300,6 +307,8 @@ class Setting(
   """
   
   DEFAULT_VALUE = type(b'DefaultValue', (), {})()
+  
+  _ABSTRACT = True
   
   _ALLOWED_PDB_TYPES = []
   _ALLOWED_GUI_TYPES = []
@@ -1000,6 +1009,8 @@ class NumericSetting(Setting):
   * `'above_max'` - The value assigned is greater than `max_value`.
   """
   
+  _ABSTRACT = True
+  
   def __init__(self, name, min_value=None, max_value=None, **kwargs):
     """Additional parameters:
     
@@ -1433,6 +1444,8 @@ class GimpItemSetting(Setting):
   saving. For persistent setting sources, a list containing the image file path,
   item type name and item path (from topmost parent to the item name) is used.
   """
+  
+  _ABSTRACT = True
   
   def _raw_to_value(self, raw_value):
     value = raw_value
@@ -1894,6 +1907,8 @@ class ValidatableStringSetting(StringSetting):
   messages from the method. See `path.FileValidatorErrorStatuses` for available
   error statuses.
   """
+  
+  _ABSTRACT = True
   
   def __init__(self, name, string_validator, **kwargs):
     """Additional parameters:
@@ -2572,6 +2587,8 @@ class ContainerSetting(Setting):
   Optionally, when assigning, the value can be nullable (`None`) instead of
   always a container.
   """
+  
+  _ABSTRACT = True
   
   _ALLOWED_PDB_TYPES = []
   _ALLOWED_GUI_TYPES = []
