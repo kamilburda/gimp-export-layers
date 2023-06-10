@@ -1227,6 +1227,13 @@ class EnumSetting(Setting):
   def empty_value(self):
     return self._empty_value
   
+  def to_dict(self, *args, **kwargs):
+    settings_dict = Setting.to_dict(self, *args, **kwargs)
+    
+    settings_dict['items'] = [list(elements) for elements in settings_dict['items']]
+    
+    return settings_dict
+  
   def is_item(self, *item_names):
     """Returns `True` if the setting value is set to one the specified items,
     `False` otherwise.

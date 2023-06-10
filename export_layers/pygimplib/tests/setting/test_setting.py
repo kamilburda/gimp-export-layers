@@ -908,6 +908,18 @@ class TestEnumSetting(unittest.TestCase):
     
     with self.assertRaises(settings_.SettingValueError):
       setting.set_value(setting.items['choose'])
+  
+  def test_to_dict(self):
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {
+        'name': 'overwrite_mode',
+        'value': 1,
+        'type': 'enum',
+        'default_value': 'replace',
+        'items': [['skip', 'Skip'], ['replace', 'Replace']],
+        'display_name': 'Overwrite mode',
+      })
 
 
 @mock.patch(
