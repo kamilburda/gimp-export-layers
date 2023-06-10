@@ -114,6 +114,9 @@ class SettingMeta(type):
   * Tracking names and values of arguments passed to instantiation of a setting.
     The names and values are then passed to `Setting.to_dict()` to allow
     persisting the setting with the arguments it was instantiated with.
+  
+  * Ensuring that `Setting` classes documented as abstract cannot be initialized
+    by raising `TypeError` on `__init__()`.
   """
   
   def __new__(cls, name, bases, namespace):
