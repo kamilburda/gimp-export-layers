@@ -257,59 +257,6 @@ class Setting(
   "Choose an item" for an enumerated setting. Empty values are useful when users
   must choose a different value, yet no valid value is a good candidate for a
   default value.
-  
-  Attributes:
-  
-  * `name` (read-only) - A name (string) that identifies the setting. The name
-    must be unique within a setting group (`setting.Group` instance).
-  
-  * `value` (read-only) - The setting value. To set the value, call
-    `set_value()`. `value` is initially set to `default_value`.
-  
-  * `default_value` (read-only) - Default value of the setting assigned upon its
-    initialization or after `reset()` is called. If not specified or if
-    `DEFAULT_VALUE` is passed explicitly, a default value is assigned
-    automatically. This value depends on the particular setting subclass
-    (defaulting to `None` if a subclass does not specify it). Note that it is
-    still a good practice to specify default values explicitly when creating a
-    setting.
-  
-  * `gui` (read-only) - `setting.Presenter` instance acting as a wrapper of a
-    GUI element. With `gui`, you may modify GUI-specific attributes, such as
-    visibility or sensitivity.
-  
-  * `display_name` (read-only) - Setting name in a human-readable format. Useful
-    e.g. as GUI labels or menu items.
-  
-  * `description` (read-only) - Usually `display_name` plus additional
-    information in parentheses (such as boundaries for numeric values). Useful
-    as a setting description when registering the setting as a plug-in parameter
-    to the GIMP Procedural Database (PDB). If the class uses `display_name` to
-    generate the description and `display_name` contains underscores, they are
-    removed in the description.
-  
-  * `pdb_type` (read-only) - GIMP PDB parameter type, used when registering the
-    setting as a plug-in parameter to the PDB. In `Setting` subclasses, only
-    specific PDB types are allowed. Refer to the documentation of the subclasses
-    for the list of allowed PDB types.
-  
-  * `pdb_name` (read-only) - Setting name as it appears in the GIMP PDB as a PDB
-    parameter name.
-  
-  * `setting_sources` (read-only) - Groups of setting sources to use when
-    loading or saving the setting. If `None`, default settings sources as
-    returned by `setting.persistor.Persistor.get_default_setting_sources()` are
-    used.
-  
-  * `error_messages` (read-only) - A dictionary of error messages containing
-    (message name, message contents) pairs, which can be used e.g. if a value
-    assigned to the setting is invalid. You can add your own error messages and
-    assign them to one of the "default" error messages (such as "invalid_value"
-    in several `Setting` subclasses) depending on the context in which the value
-    assigned is invalid.
-  
-  * `tags` - A set of arbitrary tags attached to the setting. Tags can be used
-    to e.g. iterate over a specific subset of settings.
   """
   
   DEFAULT_VALUE = type(b'DefaultValue', (), {})()
@@ -338,7 +285,7 @@ class Setting(
     
     Parameters:
     
-    * `name` - Setting name. See the `name` attribute.
+    * `name` - Setting name. See the `name` property.
     
     * `default_value` - Default setting value. During instantiation, the default
       value is validated. If one of the so called "empty values" (specific to
@@ -346,9 +293,9 @@ class Setting(
       validation is not performed. If omitted, a subclass-specific default value
       for `default_value` is assigned.
     
-    * `display_name` - See the `display_name` attribute.
+    * `display_name` - See the `display_name` property.
     
-    * `description` - See the `description` attribute.
+    * `description` - See the `description` property.
     
     * `pdb_type` - One of the `SettingPdbTypes` items. If set to the default
       value, the first PDB type in the list of allowed PDB types for a
@@ -435,46 +382,116 @@ class Setting(
   
   @property
   def name(self):
+    """A string that identifies the setting.
+    
+    The name must be unique within a setting group (`setting.Group` instance).
+    """
     return self._name
   
   @property
   def value(self):
+    """The setting value.
+    
+    To set the value, call `set_value()`.
+    
+    `value` is initially set to `default_value`.
+    """
     return self._value
   
   @property
   def default_value(self):
+    """Initial setting value or value assigned after calling `reset()`.
+    
+    If not specified or if `DEFAULT_VALUE` is passed explicitly, a
+    default value is assigned automatically. This value depends on the
+    particular setting subclass (defaulting to `None` if a subclass does not
+    specify it). Note that it is still a good practice to specify default values
+    explicitly when creating a setting.
+    """
     return self._default_value
   
   @property
   def gui(self):
+    """The setting GUI element.
+    
+    This is a `setting.Presenter` instance wrapping a native GUI element.
+    
+    With `gui`, you may modify GUI-specific attributes such as visibility or
+    sensitivity.
+    """
     return self._gui
   
   @property
   def display_name(self):
+    """Setting name in a human-readable format. Useful e.g. as GUI labels or
+    menu items."""
     return self._display_name
   
   @property
   def description(self):
+    """Setting description.
+    
+    This is usually `display_name` plus additional information in parentheses
+    (such as boundaries for numeric values).
+    
+    You may use this when registering the setting as a plug-in parameter to the
+    GIMP Procedural Database (PDB) as description.
+    
+    If a `Setting` class uses `display_name` to generate the description and
+    `display_name` contains underscores, they are removed in the description.
+    """
     return self._description
   
   @property
   def pdb_type(self):
+    """GIMP PDB parameter type.
+    
+    Use this property when registering the setting as a plug-in parameter to the
+    GIMP PDB.
+    
+    In `Setting` subclasses, only specific PDB types are allowed. Refer to the
+    documentation of the subclasses for the list of allowed PDB types.
+    """
     return self._pdb_type
   
   @property
   def pdb_name(self):
+    """Setting name as it appears in the GIMP PDB as a PDB parameter name."""
     return self._pdb_name
   
   @property
   def setting_sources(self):
+    """Groups of setting sources to use when loading or saving the setting.
+    
+    If `None`, default settings sources as returned by
+    `setting.persistor.Persistor.get_default_setting_sources()` are used.
+    """
     return self._setting_sources
   
   @property
   def error_messages(self):
+    """A dictionary of error messages.
+    
+    The dictionary contains (message name, message contents) pairs which can be
+    used e.g. if a value assigned to the setting is invalid. You can add your
+    own error messages and assign them to one of the "default" error messages
+    (such as "invalid_value" in several `Setting` subclasses) depending on the
+    context in which the value assigned is invalid.
+    """
     return self._error_messages
   
   @property
   def tags(self):
+    """A mutable set of arbitrary tags attached to the setting.
+    
+    Tags can be used to e.g. iterate over a specific subset of settings.
+    
+    Some classes in the `setting` package may exploit specific tag names to skip
+    settings. For example, if you call `setting.Group.reset()` and if `tags` in
+    a setting contains `'ignore_reset'`, then that setting will not be reset.
+    Specific tags and their effect are documented in the corresponding methods
+    in the `setting` package.
+    """
     return self._tags
   
   @classmethod
@@ -994,14 +1011,6 @@ class NumericSetting(Setting):
   When assigning a value, this class checks for the upper and lower bounds if
   they are set.
   
-  Additional attributes:
-  
-  * `min_value` - Minimum allowed numeric value. If `None`, no checks for a
-    minimum value are performed.
-  
-  * `max_value` - Maximum allowed numeric value. If `None`, no checks for a
-    maximum value are performed.
-  
   Raises:
   
   * `SettingValueError` - If `min_value` is not `None` and the value assigned is
@@ -1020,9 +1029,9 @@ class NumericSetting(Setting):
   def __init__(self, name, min_value=None, max_value=None, **kwargs):
     """Additional parameters:
     
-    * `min_value` - See the `min_value` attribute.
+    * `min_value` - See the `min_value` property.
     
-    * `max_value` - See the `max_value` attribute.
+    * `max_value` - See the `max_value` property.
     """
     self._min_value = min_value
     self._max_value = max_value
@@ -1037,10 +1046,18 @@ class NumericSetting(Setting):
   
   @property
   def min_value(self):
+    """Minimum allowed numeric value.
+    
+    If `None`, no checks for a minimum value are performed.
+    """
     return self._min_value
   
   @property
   def max_value(self):
+    """Maximum allowed numeric value.
+    
+    If `None`, no checks for a maximum value are performed
+    """
     return self._max_value
   
   @property
@@ -1141,19 +1158,6 @@ class EnumSetting(Setting):
   Default value: Name of the first item passed to the `items` parameter during
   initialization.
   
-  Additional attributes:
-  
-  * `items` (read-only) - A dictionary of <item name, item value> pairs. Item
-    name uniquely identifies each item. Item value is the corresponding integer
-    value.
-  
-  * `items_display_names` (read-only) - A dictionary of <item name, item display
-    name> pairs. Item display names can be used e.g. as combo box items in the
-    GUI.
-  
-  * `empty_value` (read-only) - Item name designated as the empty value. By
-    default, the setting does not have an empty value.
-  
   To access an item value:
     setting.items[item name]
   
@@ -1197,7 +1201,7 @@ class EnumSetting(Setting):
       and specified in each tuple. Use only 2- or only 3-element tuples, they
       cannot be combined.
     
-    * `empty_value` - See the `empty_value` attribute.
+    * `empty_value` - See the `empty_value` property.
     
     * `default_value` - Item name (identifier).
     
@@ -1234,14 +1238,27 @@ class EnumSetting(Setting):
   
   @property
   def items(self):
+    """A dictionary of (item name, item value) pairs.
+    
+    An item name uniquely identifies each item. An item value is the
+    corresponding integer value.
+    """
     return self._items
   
   @property
   def items_display_names(self):
+    """A dictionary of (item name, item display name) pairs.
+    
+    Item display names can be used e.g. as combo box items in the GUI.
+    """
     return self._items_display_names
   
   @property
   def empty_value(self):
+    """Item name designated as the empty value.
+    
+    By default, the setting does not have an empty value.
+    """
     return self._empty_value
   
   def to_dict(self, *args, **kwargs):
@@ -2238,14 +2255,6 @@ class ArraySetting(Setting):
   setting can be registered to the GIMP PDB. To disable registration, pass
   `None` to `pdb_type` during instantiation as one normally would.
   
-  Additional attributes:
-  
-  * `element_type` - Setting type of array elements.
-  
-  * `min_size` - The minimum array size.
-  
-  * `max_size` - The maximum array size.
-  
   Default value: `()`
   
   Error messages:
@@ -2340,14 +2349,20 @@ class ArraySetting(Setting):
   
   @property
   def element_type(self):
+    """Setting type of array elements."""
     return self._element_type
   
   @property
   def min_size(self):
+    """The minimum array size."""
     return self._min_size
   
   @property
   def max_size(self):
+    """The maximum array size.
+    
+    If `None`, the array size is unlimited.
+    """
     return self._max_size
   
   def to_dict(self, *args, **kwargs):
@@ -2362,12 +2377,10 @@ class ArraySetting(Setting):
     return settings_dict
   
   def __getitem__(self, index):
-    """Returns a setting representing the the array element at the specified
-    index.
-    """
     return self._elements[index]
   
   def __delitem__(self, index):
+    """Removes array element at the specified index."""
     if len(self._elements) == self._min_size:
       raise SettingValueError(
         self.error_messages['delete_below_min_size'].format(self._min_size))
@@ -2611,8 +2624,7 @@ class ContainerSetting(Setting):
   def __init__(self, name, nullable=False, **kwargs):
     """Additional parameters:
     
-    * `nullable` - If `True`, `None` is treated as a valid value when calling
-      `set_value()`.
+    * `nullable` - See the `nullable` property.
     """
     Setting.__init__(self, name, **kwargs)
     
@@ -2620,6 +2632,8 @@ class ContainerSetting(Setting):
   
   @property
   def nullable(self):
+    """If `True`, `None` is treated as a valid value when calling `set_value()`.
+    """
     return self._nullable
   
   def _init_error_messages(self):
