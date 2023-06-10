@@ -6,9 +6,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 import future.utils
 
-import abc
 import collections
 import copy
+import functools
 import inspect
 import os
 import types
@@ -106,10 +106,43 @@ class SettingPdbTypes(object):
   automatic = 'automatic'
 
 
+class SettingMeta(type):
+  """Metaclass for the `Setting` class and its subclasses.
+  
+  The metaclass is responsible for the following:
+  
+  * Tracking names and values of arguments passed to instantiation of a setting.
+    The names and values are then passed to `Setting.to_dict()` to allow
+    persisting the setting with the arguments it was instantiated with.
+  """
+  
+  def __new__(cls, name, bases, namespace):
+    # Only wrap `__init__` if the (sub)class defines or overrides it.
+    if '__init__' in namespace:
+      namespace['__init__'] = cls._get_init_wrapper(namespace['__init__'])
+    
+    return super(SettingMeta, cls).__new__(cls, name, bases, namespace)
+  
+  @staticmethod
+  def _get_init_wrapper(orig_init):
+    
+    @functools.wraps(orig_init)
+    def init_wrapper(self, *args, **kwargs):
+      self._dict_on_init = dict(kwargs)
+      # Excludes `self` as the first argument
+      arg_names = inspect.getargspec(orig_init)[0][1:]
+      for arg_name, arg in zip(arg_names, args):
+        self._dict_on_init[arg_name] = arg
+      
+      orig_init(self, *args, **kwargs)
+    
+    return init_wrapper
+
+
 @future.utils.python_2_unicode_compatible
 class Setting(
     future.utils.with_metaclass(
-      abc.ABCMeta, utils_.SettingParentMixin, utils_.SettingEventsMixin)):
+      SettingMeta, utils_.SettingParentMixin, utils_.SettingEventsMixin)):
   """Abstract class representing a plug-in setting.
   
   A `Setting` allows you to:
@@ -270,17 +303,20 @@ class Setting(
   _DEFAULT_DEFAULT_VALUE = None
   _EMPTY_VALUES = []
   
-  def __init__(self, name, **kwargs):
-    """Instantiates a setting with the name and the keyword arguments supplied.
-    
-    The accepted positional and keyword arguments are described below.
-    
-    A subclass may introduce additional keyword arguments which are part of
-    `**kwargs`. The reason to use `**kwargs` instead of explicitly named
-    arguments is that this allows to determine which parameters and their values
-    were specified during instantiation of a `Setting` subclass. This
-    information is then used in `to_dict()` which is invoked when saving the
-    `Setting` instance.
+  def __init__(
+        self,
+        name,
+        default_value=DEFAULT_VALUE,
+        display_name=None,
+        description=None,
+        pdb_type=SettingPdbTypes.automatic,
+        gui_type=SettingGuiTypes.automatic,
+        allow_empty_values=False,
+        auto_update_gui_to_setting=True,
+        setting_sources=None,
+        error_messages=None,
+        tags=None):
+    """Creates a new setting.
     
     Parameters:
     
@@ -338,26 +374,9 @@ class Setting(
       arbitrary tags attached to the setting. Tags can be used to e.g. iterate
       over a specific subset of settings.
     """
-    super().__init__()
+    utils_.SettingParentMixin.__init__(self)
+    utils_.SettingEventsMixin.__init__(self)
     
-    self._dict_on_init = dict(kwargs)
-    
-    self._init(name, **kwargs)
-  
-  def _init(
-        self,
-        name,
-        default_value=DEFAULT_VALUE,
-        display_name=None,
-        description=None,
-        pdb_type=SettingPdbTypes.automatic,
-        gui_type=SettingGuiTypes.automatic,
-        allow_empty_values=False,
-        auto_update_gui_to_setting=True,
-        setting_sources=None,
-        error_messages=None,
-        tags=None,
-        **unused_kwargs):
     self._name = name
     utils_.check_setting_name(self._name)
     
@@ -884,33 +903,32 @@ class GenericSetting(Setting):
   setting.
   """
   
-  def __init__(self, name, **kwargs):
+  def __init__(self, name, value_set=None, value_save=None, **kwargs):
     """Additional parameters:
     
-    * `value_set` (default: `None`) - Function invoked at the beginning of
-      `set_value()`. The function allows converting values of other types or
-      formats, particularly when loading value for this setting from a source
-      that allows storing only several value types.
-      The function accepts one or two positional parameters - the input value
-      and this setting instance (the latter can be omitted if not needed).
+    * `value_set` - Function invoked at the beginning of `set_value()`.
+      The function allows converting values of other types or formats,
+      particularly when loading value for this setting from a source that allows
+      storing only several value types. The function accepts one or two
+      positional parameters - the input value and this setting instance (the
+      latter can be omitted if not needed).
     
-    * `value_save` (default: `None`) - Function invoked at the beginning of
-      `to_dict()`. The function should ensure that the setting value is
-      converted to a type supported by setting sources.
-      The function accepts one or two positional parameters - the current
-      setting value and this setting instance (the latter can be omitted if not
-      needed).
+    * `value_save` - Function invoked at the beginning of `to_dict()`.
+      The function should ensure that the setting value is converted to a type
+      supported by setting sources. The function accepts one or two positional
+      parameters - the current setting value and this setting instance (the
+      latter can be omitted if not needed).
     """
-    self._before_value_set = kwargs.get('value_set', None)
-    self._before_value_save = kwargs.get('value_save', None)
+    self._before_value_set = value_set
+    self._before_value_save = value_save
     
     self._validate_function(self._before_value_set, 'value_set')
     self._validate_function(self._before_value_save, 'value_save')
     
-    super().__init__(name, **kwargs)
+    Setting.__init__(self, name, **kwargs)
   
   def to_dict(self, *args, **kwargs):
-    settings_dict = super().to_dict(*args, **kwargs)
+    settings_dict = Setting.to_dict(self, *args, **kwargs)
     
     settings_dict.pop('value_set', None)
     settings_dict.pop('value_save', None)
@@ -952,7 +970,7 @@ class GenericSetting(Setting):
       raise TypeError('{} function must have 1 or 2 positional parameters'.format(name))
 
 
-class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
+class NumericSetting(Setting):
   """Abstract class for numeric settings - integers and floats.
   
   When assigning a value, this class checks for the upper and lower bounds if
@@ -960,9 +978,11 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   
   Additional attributes:
   
-  * `min_value` - Minimum allowed numeric value.
+  * `min_value` - Minimum allowed numeric value. If `None`, no checks for a
+    minimum value are performed.
   
-  * `max_value` - Maximum allowed numeric value.
+  * `max_value` - Maximum allowed numeric value. If `None`, no checks for a
+    maximum value are performed.
   
   Raises:
   
@@ -977,17 +997,17 @@ class NumericSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   * `'above_max'` - The value assigned is greater than `max_value`.
   """
   
-  def __init__(self, name, **kwargs):
+  def __init__(self, name, min_value=None, max_value=None, **kwargs):
     """Additional parameters:
     
-    * `min_value` (default: `None`) - See the `min_value` attribute.
+    * `min_value` - See the `min_value` attribute.
     
-    * `max_value` (default: `None`) - See the `max_value` attribute.
+    * `max_value` - See the `max_value` attribute.
     """
-    self._min_value = kwargs.get('min_value', None)
-    self._max_value = kwargs.get('max_value', None)
+    self._min_value = min_value
+    self._max_value = max_value
     
-    super().__init__(name, **kwargs)
+    Setting.__init__(self, name, **kwargs)
   
   def _init_error_messages(self):
     self.error_messages['below_min'] = (
@@ -1147,7 +1167,7 @@ class EnumSetting(Setting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.combo_box]
   _DEFAULT_DEFAULT_VALUE = lambda self: next((name for name in self._items), None)
   
-  def __init__(self, name, items, **kwargs):
+  def __init__(self, name, items, empty_value=None, **kwargs):
     """Additional parameters:
     
     * `items` - A list of either (item name, item display name) tuples
@@ -1157,7 +1177,7 @@ class EnumSetting(Setting):
       and specified in each tuple. Use only 2- or only 3-element tuples, they
       cannot be combined.
     
-    * `empty_value` (default: `None`) - See the `empty_value` attribute.
+    * `empty_value` - See the `empty_value` attribute.
     
     * `default_value` - Item name (identifier).
     
@@ -1169,24 +1189,20 @@ class EnumSetting(Setting):
     
     # This member gets overridden during parent class instantiation, but can
     # still be accessible before the instantiation if need be.
-    self._error_messages = {}
-    
-    self._error_messages['invalid_value'] = (
-      _('Invalid item value; valid values: {}').format(list(self._item_values)))
-    
-    self._error_messages['invalid_default_value'] = (
-      'invalid identifier for the default value; must be one of {}').format(
-        list(self._items))
+    self._error_messages = {
+      'invalid_value': (
+        _('Invalid item value; valid values: {}').format(list(self._item_values))),
+      'invalid_default_value': (
+        'invalid identifier for the default value; must be one of {}').format(list(self._items)),
+    }
     
     if 'error_messages' in kwargs:
       self._error_messages.update(kwargs['error_messages'])
     kwargs['error_messages'] = self._error_messages
     
-    self._empty_value = self._get_empty_value(kwargs.get('empty_value', None))
+    self._empty_value = self._get_empty_value(empty_value)
     
-    kwargs['items'] = items
-    
-    super().__init__(name, **kwargs)
+    Setting.__init__(self, name, **kwargs)
     
     self._empty_values.append(self._empty_value)
     
@@ -1242,7 +1258,7 @@ class EnumSetting(Setting):
   
   def _get_default_value(self, default_value):
     if isinstance(default_value, type(Setting.DEFAULT_VALUE)):
-      default_default_value = super()._get_default_value(default_value)
+      default_default_value = Setting._get_default_value(self, default_value)
       if default_default_value is not None:
         return self._items[default_default_value]
       else:
@@ -1396,7 +1412,7 @@ class ImageSetting(Setting):
         utils_.value_to_str_prefix(image) + self.error_messages['invalid_value'])
 
 
-class GimpItemSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
+class GimpItemSetting(Setting):
   """Abstract class for settings storing GIMP items - layers, channels, etc.
   
   This class overrides `set_value()` to allow setting a GIMP item as a value
@@ -1845,12 +1861,10 @@ class PdbStatusSetting(EnumSetting):
       ('PDB_SUCCESS', 'PDB_SUCCESS', gimpenums.PDB_SUCCESS),
       ('PDB_CANCEL', 'PDB_CANCEL', gimpenums.PDB_CANCEL)]
     
-    kwargs['items'] = self._pdb_statuses
-    
-    super().__init__(name, **kwargs)
+    EnumSetting.__init__(self, name, self._pdb_statuses, empty_value=None, **kwargs)
 
 
-class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSetting)):
+class ValidatableStringSetting(StringSetting):
   """Abstract class for string settings which are meant to be validated with one
   of the `path.StringValidator` subclasses.
   
@@ -1882,7 +1896,7 @@ class ValidatableStringSetting(future.utils.with_metaclass(abc.ABCMeta, StringSe
     if 'default_value' in kwargs and isinstance(kwargs['default_value'], bytes):
       kwargs['default_value'] = pgutils.safe_decode_gimp(kwargs['default_value'])
     
-    super().__init__(name, **kwargs)
+    StringSetting.__init__(self, name, **kwargs)
   
   def _init_error_messages(self):
     for status in pgpath.FileValidatorErrorStatuses.ERROR_STATUSES:
@@ -1921,16 +1935,16 @@ class FileExtensionSetting(ValidatableStringSetting):
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry, SettingGuiTypes.file_extension_entry]
   _EMPTY_VALUES = ['']
   
-  def __init__(self, name, **kwargs):
+  def __init__(self, name, adjust_value=False, **kwargs):
     """Additional parameters:
     
-    * `adjust_value` (default: `False`) - if `True`, pre-process the new value
-      when `set_value()` is called. This involves removing leading '.'
-      characters and converting the file extension to lowercase.
+    * `adjust_value` - if `True`, process the new value when `set_value()` is
+      called. This involves removing leading '.' characters and converting the
+      file extension to lowercase.
     """
-    super().__init__(name, pgpath.FileExtensionValidator, **kwargs)
+    ValidatableStringSetting.__init__(self, name, pgpath.FileExtensionValidator, **kwargs)
     
-    if kwargs.get('adjust_value', False):
+    if adjust_value:
       self._assign_value = self._adjust_value
   
   def _adjust_value(self, value):
@@ -1958,7 +1972,7 @@ class DirpathSetting(ValidatableStringSetting):
   _EMPTY_VALUES = [None, '']
   
   def __init__(self, name, **kwargs):
-    super().__init__(name, pgpath.DirpathValidator, **kwargs)
+    ValidatableStringSetting.__init__(self, name, pgpath.DirpathValidator, **kwargs)
 
 
 class BrushSetting(Setting):
@@ -2229,7 +2243,7 @@ class ArraySetting(Setting):
     gimpenums.PDB_COLOR: gimpenums.PDB_COLORARRAY,
   }
   
-  def __init__(self, name, element_type, **kwargs):
+  def __init__(self, name, element_type, min_size=0, max_size=None, **kwargs):
     """Additional parameters include all parameters that would be passed to the
     setting class this array is composed of (i.e. array elements).
     
@@ -2249,13 +2263,12 @@ class ArraySetting(Setting):
     created.
     
     Array-specific additional parameters:
-    * `min_size` (default: 0) - minimum array size.
-    * `max_size` (default: `None`) - maximum array size (`None` means size is
-      unlimited).
+    * `min_size` - minimum array size.
+    * `max_size` - maximum array size (`None` means the size is unlimited).
     """
     self._element_type = process_setting_type(element_type)
-    self._min_size = kwargs.get('min_size', 0) if kwargs.get('min_size', 0) is not None else 0
-    self._max_size = kwargs.get('max_size', None)
+    self._min_size = min_size if min_size is not None else 0
+    self._max_size = max_size
     
     self._element_kwargs = {
       key[len('element_'):]: value for key, value in kwargs.items()
@@ -2274,9 +2287,9 @@ class ArraySetting(Setting):
     
     self._elements = []
     
-    kwargs['element_type'] = element_type
+    array_kwargs = {key: value for key, value in kwargs.items() if not key.startswith('element_')}
     
-    super().__init__(name, **kwargs)
+    Setting.__init__(self, name, **array_kwargs)
   
   @property
   def value(self):
@@ -2298,7 +2311,7 @@ class ArraySetting(Setting):
     return self._max_size
   
   def to_dict(self, *args, **kwargs):
-    settings_dict = super().to_dict(*args, **kwargs)
+    settings_dict = Setting.to_dict(self, *args, **kwargs)
     
     source_type = kwargs.get('source_type', 'persistent')
     
@@ -2534,7 +2547,7 @@ class ArraySetting(Setting):
     return tuple(setting.value for setting in self._elements)
 
 
-class ContainerSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
+class ContainerSetting(Setting):
   """Abstract class for settings representing container types.
   
   Container settings can hold elements of arbitrary type, but cannot be
@@ -2553,15 +2566,15 @@ class ContainerSetting(future.utils.with_metaclass(abc.ABCMeta, Setting)):
   _ALLOWED_PDB_TYPES = []
   _ALLOWED_GUI_TYPES = []
   
-  def __init__(self, name, **kwargs):
+  def __init__(self, name, nullable=False, **kwargs):
     """Additional parameters:
     
-    * `nullable` (default: `False`) - If `True`, `None` is treated as a valid
-      value when calling `set_value()`.
+    * `nullable` - If `True`, `None` is treated as a valid value when calling
+      `set_value()`.
     """
-    self._nullable = kwargs.get('nullable', False)
+    Setting.__init__(self, name, **kwargs)
     
-    super().__init__(name, **kwargs)
+    self._nullable = nullable
   
   @property
   def nullable(self):
