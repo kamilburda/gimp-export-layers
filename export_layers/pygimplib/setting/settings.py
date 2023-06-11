@@ -237,6 +237,12 @@ class Setting(
   "Choose an item" for `EnumSetting` instances. Empty values are useful when
   users must choose a different value, yet no valid value is a good candidate
   for a default value.
+  
+  If you need to create a custom `Setting` subclass in your plug-in and your
+  plug-in comprises more modules than the main file, you must ensure that the
+  subclass is defined in a module that is imported in the plug-in (i.e. the
+  module is kept in memory). Otherwise, the subclass will not be recognized as a
+  valid setting type.
   """
   
   DEFAULT_VALUE = type(b'DefaultValue', (), {})()
