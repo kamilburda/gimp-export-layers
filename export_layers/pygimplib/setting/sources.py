@@ -115,12 +115,9 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     """
     data = self.read_data_from_source()
     if data is None:
-      data = collections.OrderedDict()
+      data = []
     
-    if self.source_name not in data:
-      data[self.source_name] = []
-    
-    self._update_data_for_source(settings_or_groups, data[self.source_name])
+    self._update_data_for_source(settings_or_groups, data)
     
     self.write_data_to_source(data)
   
