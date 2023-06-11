@@ -25,7 +25,7 @@ class SourceError(Exception):
     self.traceback = traceback_.format_exc()
   
   def __str__(self):
-    if self.traceback:
+    if self.traceback and not self.message:
       return self.traceback
     else:
       return self.message

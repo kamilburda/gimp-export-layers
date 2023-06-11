@@ -11,6 +11,7 @@ import ast
 import collections
 import io
 import os
+import types
 
 try:
   import cPickle as pickle
@@ -59,6 +60,8 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     currently running GIMP instance is closed).
   """
   
+  _MAX_LENGTH_OF_OBJECT_AS_STRING_ON_ERROR_OUTPUT = 512
+  
   def __init__(self, source_name, source_type):
     self.source_name = source_name
     self.source_type = source_type
@@ -79,8 +82,8 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     * `SourceNotFoundError` - Could not find the source.
     
-    * `SourceInvalidFormatError` - The source has an invalid format. This could
-      happen if the source was directly edited manually.
+    * `SourceInvalidFormatError` - Existing data in the source have an invalid
+      format. This could happen if the source was edited manually.
     """
     settings_from_source = self.read_data_from_source()
     if settings_from_source is None:
@@ -112,6 +115,11 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Settings in the source but not specified in `settings_or_groups` are kept
     intact.
+    
+    Raises:
+    
+    * `SourceInvalidFormatError` - Existing data in the source have an invalid
+      format. This could happen if the source was edited manually.
     """
     data = self.read_data_from_source()
     if data is None:
@@ -174,16 +182,36 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         raise TypeError('only Setting or Group instances are allowed as the first element')
   
   def _find_dict(self, data_list, setting_or_group):
+    if (not isinstance(data_list, collections.Iterable)
+        or isinstance(data_list, types.StringTypes)
+        or isinstance(data_list, dict)):
+      raise SourceInvalidFormatError(
+        'Error while parsing data from a source: Not a list: {}'.format(
+          self._truncate_str(data_list)))
+    
     if isinstance(setting_or_group, settings_.Setting):
       key = 'value'
     else:
       key = 'settings'
     
     for i, dict_ in enumerate(data_list):
+      if not isinstance(dict_, dict):
+        raise SourceInvalidFormatError(
+          'Error while parsing data from a source: Not a dictionary: {}'.format(
+            self._truncate_str(dict_)))
+      
       if dict_.get('name', None) == setting_or_group.name and key in dict_:
         return dict_, i
     
     return None, None
+  
+  @staticmethod
+  def _truncate_str(obj, max_length=_MAX_LENGTH_OF_OBJECT_AS_STRING_ON_ERROR_OUTPUT):
+    str_ = str(obj)
+    if len(str_) > max_length:
+      str_ = str_[:max_length] + '... (truncated)'
+    
+    return str_
   
   @abc.abstractmethod
   def clear(self):

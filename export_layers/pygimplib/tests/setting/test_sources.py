@@ -248,6 +248,25 @@ class TestUpdateDataForSource(unittest.TestCase):
     self.source._update_data_for_source([settings], data)
     
     self.assertListEqual(data, expected_data)
+  
+  def test_update_data_for_source_raises_error_if_list_expected_but_not_found(self):
+    settings = _test_settings_for_read_write()
+    data = _test_data_for_read_write()
+    
+    data_with_wrong_structure = {'source_name': data}
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source._update_data_for_source([settings], data_with_wrong_structure)
+  
+  def test_update_data_for_source_raises_error_if_dict_expected_but_not_found(self):
+    settings = _test_settings_for_read_write()
+    data = _test_data_for_read_write()
+    
+    data_with_wrong_structure = data
+    data_with_wrong_structure[0] = [data_with_wrong_structure[0]]
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source._update_data_for_source([settings], data_with_wrong_structure)
 
 
 @mock.patch(
