@@ -326,7 +326,7 @@ class Setting(
     self._name = name
     utils_.check_setting_name(self._name)
     
-    self._default_value = self._get_default_value(default_value)
+    self._default_value = self._resolve_default_value(default_value)
     
     self._value = self._copy_value(self._default_value)
     
@@ -838,12 +838,17 @@ class Setting(
     except SettingValueError as e:
       raise SettingDefaultValueError(str(e), setting=self)
   
-  def _get_default_value(self, default_value):
+  def _resolve_default_value(self, default_value):
     if isinstance(default_value, type(self.DEFAULT_VALUE)):
       if not callable(self._DEFAULT_DEFAULT_VALUE):
-        return self._DEFAULT_DEFAULT_VALUE
+        default_default_value = self._DEFAULT_DEFAULT_VALUE
       else:
-        return self._DEFAULT_DEFAULT_VALUE()
+        default_default_value = self._DEFAULT_DEFAULT_VALUE()
+      
+      if 'default_value' in self._dict_on_init:
+        self._dict_on_init['default_value'] = default_default_value
+      
+      return default_default_value
     else:
       return self._raw_to_value(default_value)
   
@@ -1287,9 +1292,9 @@ class EnumSetting(Setting):
       display_names_and_values.extend((item_name, item_value))
     return display_names_and_values
   
-  def _get_default_value(self, default_value):
+  def _resolve_default_value(self, default_value):
     if isinstance(default_value, type(Setting.DEFAULT_VALUE)):
-      default_default_value = Setting._get_default_value(self, default_value)
+      default_default_value = Setting._resolve_default_value(self, default_value)
       if default_default_value is not None:
         return self._items[default_default_value]
       else:

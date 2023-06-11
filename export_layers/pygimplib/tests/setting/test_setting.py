@@ -259,6 +259,19 @@ class TestSetting(unittest.TestCase):
         'default_value': 'png',
       })
   
+  def test_to_dict_when_default_value_object_is_passed_to_init(self):
+    setting = stubs_setting.StubSetting(
+      'file_extension', default_value=settings_.Setting.DEFAULT_VALUE)
+    
+    self.assertDictEqual(
+      setting.to_dict(),
+      {
+        'name': 'file_extension',
+        'value': 0,
+        'type': 'stub',
+        'default_value': 0,
+      })
+  
   def test_to_dict_with_gui_type_as_object(self):
     setting = stubs_setting.StubWithGuiSetting(
       'file_extension',
