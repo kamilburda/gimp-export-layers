@@ -651,7 +651,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       file_extension_entry = gtk.Entry()
       ...
       main_settings.initialize_gui({
-        'file_extension': [SettingGuiTypes.text_entry, file_extension_entry]
+        'file_extension': [SettingGuiTypes.entry, file_extension_entry]
         ...
       })
     """

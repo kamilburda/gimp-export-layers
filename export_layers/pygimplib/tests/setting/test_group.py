@@ -754,16 +754,6 @@ class TestGroupLoadSave(unittest.TestCase):
 
 class TestGroupGui(unittest.TestCase):
   
-  @classmethod
-  def setUpClass(self):
-    settings_.register_setting_type(stubs_setting.SettingWithGuiStub, 'stub_with_gui')
-    settings_.register_setting_gui_type(stubs_setting.PresenterStub, 'stub_presenter')
-  
-  @classmethod
-  def tearDownClass(cls):
-    settings_.unregister_setting_type('stub_with_gui')
-    settings_.unregister_setting_gui_type('stub_presenter')
-  
   def setUp(self):
     self.settings = group_.Group('main')
     self.settings.add([
@@ -784,13 +774,13 @@ class TestGroupGui(unittest.TestCase):
     
     self.assertIs(
       type(self.settings['file_extension'].gui),
-      stubs_setting.CheckButtonPresenterStub)
+      stubs_setting.CheckButtonStubPresenter)
     self.assertIs(
       type(self.settings['file_extension'].gui.element),
       stubs_setting.CheckButtonStub)
     self.assertIs(
       type(self.settings['flatten'].gui),
-      stubs_setting.CheckButtonPresenterStub)
+      stubs_setting.CheckButtonStubPresenter)
     self.assertIs(
       type(self.settings['flatten'].gui.element),
       stubs_setting.CheckButtonStub)
@@ -801,7 +791,7 @@ class TestGroupGui(unittest.TestCase):
     
     self.assertIs(
       type(self.settings['file_extension'].gui),
-      stubs_setting.CheckButtonPresenterStub)
+      stubs_setting.CheckButtonStubPresenter)
     self.assertIs(
       type(self.settings['flatten'].gui),
       presenter_.NullPresenter)
@@ -810,10 +800,10 @@ class TestGroupGui(unittest.TestCase):
     file_extension_widget = stubs_setting.GuiWidgetStub('png')
     
     self.settings.initialize_gui(custom_gui={
-      'file_extension': [stubs_setting.PresenterStub, file_extension_widget]})
+      'file_extension': [stubs_setting.StubPresenter, file_extension_widget]})
     
     self.assertIs(
-      type(self.settings['file_extension'].gui), stubs_setting.PresenterStub)
+      type(self.settings['file_extension'].gui), stubs_setting.StubPresenter)
     self.assertIs(
       type(self.settings['file_extension'].gui.element),
       stubs_setting.GuiWidgetStub)
@@ -822,7 +812,7 @@ class TestGroupGui(unittest.TestCase):
     self.assertEqual(file_extension_widget.value, 'bmp')
     self.assertIs(
       type(self.settings['flatten'].gui),
-      stubs_setting.CheckButtonPresenterStub)
+      stubs_setting.CheckButtonStubPresenter)
     self.assertIs(
       type(self.settings['flatten'].gui.element),
       stubs_setting.CheckButtonStub)
@@ -830,8 +820,8 @@ class TestGroupGui(unittest.TestCase):
   def test_apply_gui_values_to_settings(self):
     file_extension_widget = stubs_setting.GuiWidgetStub(None)
     flatten_widget = stubs_setting.GuiWidgetStub(None)
-    self.settings['file_extension'].set_gui(stubs_setting.PresenterStub, file_extension_widget)
-    self.settings['flatten'].set_gui(stubs_setting.PresenterStub, flatten_widget)
+    self.settings['file_extension'].set_gui(stubs_setting.StubPresenter, file_extension_widget)
+    self.settings['flatten'].set_gui(stubs_setting.StubPresenter, flatten_widget)
     
     file_extension_widget.set_value('gif')
     flatten_widget.set_value(True)

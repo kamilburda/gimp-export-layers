@@ -32,7 +32,7 @@ class TestGetProcessedSettingAttribute(unittest.TestCase):
 
 
 def _create_test_settings_for_path():
-  setting = stubs_setting.SettingStub('file_extension')
+  setting = stubs_setting.StubSetting('file_extension')
   main_settings = group_.Group('main')
   advanced_settings = group_.Group('advanced')
   
@@ -49,7 +49,7 @@ class TestSettingParentMixin(unittest.TestCase):
       _create_test_settings_for_path())
   
   def test_get_parent_empty(self):
-    setting = stubs_setting.SettingStub('file_extension')
+    setting = stubs_setting.StubSetting('file_extension')
     
     self.assertEqual(setting.parent, None)
   
@@ -67,7 +67,7 @@ class TestSettingParentMixin(unittest.TestCase):
 class TestSettingEventsMixin(unittest.TestCase):
   
   def setUp(self):
-    self.file_extension = stubs_setting.SettingStub('file_extension', default_value='png')
+    self.file_extension = stubs_setting.StubSetting('file_extension', default_value='png')
     self.flatten = settings_.BoolSetting('flatten', default_value=False)
   
   def test_connect_event_argument_is_not_callable(self):
@@ -226,7 +226,7 @@ class TestSettingPath(unittest.TestCase):
       _create_test_settings_for_path())
   
   def test_get_path_no_parent(self):
-    setting = stubs_setting.SettingStub('file_extension')
+    setting = stubs_setting.StubSetting('file_extension')
     self.assertEqual(utils_.get_setting_path(setting), 'file_extension')
   
   def test_get_path(self):

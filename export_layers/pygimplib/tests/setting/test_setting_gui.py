@@ -136,8 +136,8 @@ def _get_basic_settings():
       'type': 'boolean',
     },
     {
-     'name': 'enumerated',
-     'type': 'enumerated',
+     'name': 'options',
+     'type': 'options',
      'items': [('interactive', 'RUN-INTERACTIVE'),
       ('non_interactive', 'RUN-NONINTERACTIVE'),
       ('run_with_last_vals', 'RUN-WITH-LAST-VALS')],

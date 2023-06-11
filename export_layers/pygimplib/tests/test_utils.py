@@ -13,19 +13,19 @@ from .setting import stubs_setting
 class TestReprifyObject(unittest.TestCase):
   
   def test_reprify_object_without_name(self):
-    s = stubs_setting.SettingStub('file_extension')
+    s = stubs_setting.StubSetting('file_extension')
     
     self.assertEqual(
       pgutils.reprify_object(s),
-      '<pygimplib.tests.setting.stubs_setting.SettingStub object at {}>'.format(
+      '<pygimplib.tests.setting.stubs_setting.StubSetting object at {}>'.format(
         hex(id(s)).rstrip('L')))
   
   def test_reprify_object_with_name(self):
-    s = stubs_setting.SettingStub('file_extension')
+    s = stubs_setting.StubSetting('file_extension')
     
     self.assertEqual(
       pgutils.reprify_object(s, 'file_extension'),
-      '<pygimplib.tests.setting.stubs_setting.SettingStub "file_extension" at {}>'.format(
+      '<pygimplib.tests.setting.stubs_setting.StubSetting "file_extension" at {}>'.format(
         hex(id(s)).rstrip('L')))
 
 

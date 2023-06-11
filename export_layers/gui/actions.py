@@ -180,7 +180,7 @@ class ActionBox(pg.gui.ItemBox):
     
     # HACK: Prevent displaying horizontal scrollbar by ellipsizing labels. To
     # make ellipsizing work properly, the label width must be set explicitly.
-    if isinstance(action['enabled'].gui, pg.setting.SettingGuiTypes.check_button):
+    if isinstance(action['enabled'].gui.element, gtk.CheckButton):
       action['enabled'].gui.element.set_property('width-request', 1)
       action['enabled'].gui.element.get_child().set_ellipsize(pango.ELLIPSIZE_END)
       action['enabled'].gui.element.get_child().set_max_width_chars(
@@ -556,7 +556,7 @@ class _ActionEditDialog(gimpui.Dialog):
       
       gui_element_to_attach = setting.gui.element
       
-      if not isinstance(setting.gui, pg.setting.SettingGuiTypes.none):
+      if not isinstance(setting.gui, pg.setting.NullPresenter):
         if isinstance(setting, pg.setting.ArraySetting):
           if setting.element_type.get_allowed_gui_types():
             setting.gui.element.set_property('width-request', self._ARRAY_PARAMETER_GUI_WIDTH)

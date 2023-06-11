@@ -130,7 +130,7 @@ def _test_data_for_read_write():
           'name': 'main',
           'settings': [
             {
-              'type': 'str',
+              'type': 'string',
               'name': 'file_extension',
               'value': 'png',
               'default_value': 'png',
@@ -156,7 +156,7 @@ def _test_data_for_read_write():
                       'gui_type': None,
                     },
                     {
-                      'type': 'str',
+                      'type': 'string',
                       'name': 'display_name',
                       'value': 'Use layer size',
                       'default_value': 'Use layer size',
@@ -179,7 +179,7 @@ def _test_data_for_read_write():
                       'gui_type': None,
                     },
                     {
-                      'type': 'str',
+                      'type': 'string',
                       'name': 'display_name',
                       'value': 'Insert background layers',
                       'default_value': 'Insert background layers',
@@ -189,7 +189,7 @@ def _test_data_for_read_write():
                       'name': 'arguments',
                       'settings': [
                         {
-                          'type': 'str',
+                          'type': 'string',
                           'name': 'tag',
                           'value': 'background',
                           'default_value': 'background',
@@ -220,7 +220,7 @@ def _test_data_for_read_write():
           ],
         },
         {
-          'type': 'str',
+          'type': 'string',
           'name': 'standalone_setting',
           'value': 'something',
           'default_value': 'something',
@@ -242,6 +242,8 @@ class TestUpdateDataForSource(unittest.TestCase):
     expected_data = _test_data_for_read_write()
     
     data = []
+    
+    self.maxDiff = None
     
     self.source._update_data_for_source([settings], data)
     

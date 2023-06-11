@@ -6,7 +6,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 from ...setting import group as group_
-from ...setting import settings as settings_
 
 
 def create_test_settings():
@@ -26,7 +25,7 @@ def create_test_settings():
       'setting_sources': ['persistent']
     },
     {
-      'type': 'enumerated',
+      'type': 'options',
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
       'items': [('replace', 'Replace'),
@@ -62,7 +61,7 @@ def create_test_settings_hierarchical():
       'display_name': 'Flatten',
     },
     {
-      'type': 'enumerated',
+      'type': 'options',
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
       'items': [('replace', 'Replace'),

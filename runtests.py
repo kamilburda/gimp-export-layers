@@ -124,7 +124,7 @@ class _Stream(object):
 SETTINGS = pg.setting.Group('settings')
 SETTINGS.add([
   {
-    'type': 'enumerated',
+    'type': 'options',
     'name': 'run_mode',
     'default_value': 'non_interactive',
     'items': [

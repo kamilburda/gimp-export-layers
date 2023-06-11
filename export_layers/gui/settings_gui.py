@@ -88,7 +88,7 @@ def create_gui_settings():
   
   session_only_gui_settings.add([
     {
-      'type': 'image_IDs_and_directories',
+      'type': 'image_ids_and_directories',
       'name': 'image_ids_and_directories',
       'default_value': {},
       'tags': ['ignore_reset'],

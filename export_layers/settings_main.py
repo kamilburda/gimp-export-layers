@@ -17,13 +17,11 @@ from export_layers import actions
 from export_layers import builtin_constraints
 from export_layers import builtin_procedures
 from export_layers import export as export_
-from export_layers import settings_custom
+# Despite being unused, `settings_custom` must be imported so that the custom
+# setting and GUI classes defined there are properly registered (via metaclasses
+# in `pg.setting.meta`).
+from export_layers import settings_custom  # @UnusedImport
 from export_layers.gui import settings_gui
-
-
-pg.setting.register_setting_type(settings_custom.FilenamePatternSetting, 'filename_pattern')
-pg.setting.register_setting_gui_type(
-  settings_custom.FilenamePatternEntryPresenter, 'filename_pattern_entry')
 
 
 def create_settings():
@@ -46,7 +44,7 @@ def create_settings():
   
   settings['special'].add([
     {
-      'type': 'enumerated',
+      'type': 'options',
       'name': 'run_mode',
       'default_value': 'non_interactive',
       'items': [
@@ -119,7 +117,7 @@ def create_settings():
       'value_save': lambda value: {key: list(val) for key, val in value.items()},
     },
     {
-      'type': 'enumerated',
+      'type': 'options',
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
       'items': [

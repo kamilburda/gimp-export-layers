@@ -37,7 +37,7 @@ class CheckButtonStub(GuiWidgetStub):
   pass
 
 
-class PresenterStub(presenter_.Presenter):
+class StubPresenter(presenter_.Presenter):
   
   def get_sensitive(self):
     return self._element.sensitive
@@ -67,28 +67,28 @@ class PresenterStub(presenter_.Presenter):
     self._element.disconnect()
 
 
-class PresenterWithValueChangedSignalStub(PresenterStub):
+class StubWithValueChangedSignalPresenter(StubPresenter):
   
   _VALUE_CHANGED_SIGNAL = 'changed'
 
 
-class PresenterWithoutGuiElementCreationStub(PresenterStub):
+class StubWithoutGuiElementCreationPresenter(StubPresenter):
   
   def _create_gui_element(self, setting):
     return None
 
 
-class CheckButtonPresenterStub(PresenterStub):
+class CheckButtonStubPresenter(StubPresenter):
   
   def _create_gui_element(self, setting):
     return CheckButtonStub(setting.value)
 
 
-class YesNoToggleButtonPresenterStub(PresenterStub):
+class YesNoToggleButtonStubPresenter(StubPresenter):
   pass
 
 
-class SettingStub(settings_.Setting):
+class StubSetting(settings_.Setting):
   
   _DEFAULT_DEFAULT_VALUE = 0
   _EMPTY_VALUES = ['']
@@ -101,26 +101,26 @@ class SettingStub(settings_.Setting):
       raise settings_.SettingValueError(self._error_messages['invalid_value'])
 
 
-class SettingStubWithCallableDefaultDefaultValue(SettingStub):
+class StubWithCallableDefaultDefaultValueSetting(StubSetting):
   
   _DEFAULT_DEFAULT_VALUE = lambda self: '_' + self._name
 
 
-class SettingRegistrableToPdbStub(SettingStub):
+class StubRegistrableToPdbSetting(StubSetting):
 
   _ALLOWED_PDB_TYPES = [settings_.SettingPdbTypes.string]
 
 
-class SettingWithGuiStub(SettingStub):
+class StubWithGuiSetting(StubSetting):
   
   _ALLOWED_GUI_TYPES = [
-    CheckButtonPresenterStub,
-    PresenterStub,
-    PresenterWithValueChangedSignalStub,
-    PresenterWithoutGuiElementCreationStub]
+    CheckButtonStubPresenter,
+    StubPresenter,
+    StubWithValueChangedSignalPresenter,
+    StubWithoutGuiElementCreationPresenter]
 
 
-class SettingWithVarargsOnInitStub(settings_.Setting):
+class StubWithVarargsOnInitSetting(settings_.Setting):
   
   def __init__(self, name, *args, **kwargs):
     self.args = args

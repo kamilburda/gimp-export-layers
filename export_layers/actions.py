@@ -324,7 +324,7 @@ def _create_action(
       'gui_type': None,
     },
     {
-      'type': 'enumerated',
+      'type': 'options',
       'name': 'origin',
       'default_value': origin,
       'items': [

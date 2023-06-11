@@ -8,7 +8,6 @@ import future.utils
 
 import collections
 import copy
-import functools
 import inspect
 import os
 import types
@@ -22,13 +21,18 @@ from .. import path as pgpath
 from .. import pdbutils as pgpdbutils
 from .. import utils as pgutils
 
+from . import meta as meta_
 from . import persistor as persistor_
 from . import presenter as presenter_
+# Despite being unused, `presenters_gtk` must be imported so that the GUI
+# classes defined there are properly registered and `SettingGuiTypes` is filled.
+from . import presenters_gtk  # @UnusedImport
 from . import utils as utils_
 
-from .presenters_gtk import SettingGuiTypes
-
 __all__ = [
+  'SettingTypes',
+  'SettingGuiTypes',
+  'PDB_TYPES_TO_SETTING_TYPES_MAP',
   'SettingPdbTypes',
   'Setting',
   'GenericSetting',
@@ -55,21 +59,46 @@ __all__ = [
   'GradientSetting',
   'PaletteSetting',
   'PatternSetting',
-  'ImageIDsAndDirpathsSetting',
+  'ImageIdsAndDirectoriesSetting',
   'ArraySetting',
   'SettingValueError',
   'SettingDefaultValueError',
-  'SettingTypes',
-  'PDB_TYPES_TO_SETTING_TYPES_MAP',
   'process_setting_type',
-  'register_setting_type',
-  'is_setting_type_registered',
-  'unregister_setting_type',
   'process_setting_gui_type',
-  'register_setting_gui_type',
-  'is_setting_gui_type_registered',
-  'unregister_setting_gui_type',
 ]
+
+
+SettingTypes = meta_.SettingTypes
+SettingGuiTypes = meta_.SettingGuiTypes
+
+
+PDB_TYPES_TO_SETTING_TYPES_MAP = {
+  gimpenums.PDB_INT32: 'int',
+  gimpenums.PDB_INT16: 'int',
+  gimpenums.PDB_INT8: 'int',
+  gimpenums.PDB_FLOAT: 'float',
+  gimpenums.PDB_STRING: 'string',
+  
+  gimpenums.PDB_IMAGE: 'image',
+  gimpenums.PDB_ITEM: 'item',
+  gimpenums.PDB_DRAWABLE: 'drawable',
+  gimpenums.PDB_LAYER: 'layer',
+  gimpenums.PDB_CHANNEL: 'channel',
+  gimpenums.PDB_SELECTION: 'selection',
+  gimpenums.PDB_VECTORS: 'vectors',
+  
+  gimpenums.PDB_COLOR: 'color',
+  gimpenums.PDB_PARASITE: 'parasite',
+  gimpenums.PDB_DISPLAY: 'display',
+  gimpenums.PDB_STATUS: 'pdb_status',
+  
+  gimpenums.PDB_INT32ARRAY: {'type': 'array', 'element_type': 'int'},
+  gimpenums.PDB_INT16ARRAY: {'type': 'array', 'element_type': 'int'},
+  gimpenums.PDB_INT8ARRAY: {'type': 'array', 'element_type': 'int'},
+  gimpenums.PDB_FLOATARRAY: {'type': 'array', 'element_type': 'float'},
+  gimpenums.PDB_STRINGARRAY: {'type': 'array', 'element_type': 'string'},
+  gimpenums.PDB_COLORARRAY: {'type': 'array', 'element_type': 'color'},
+}
 
 
 class SettingPdbTypes(object):
@@ -106,59 +135,10 @@ class SettingPdbTypes(object):
   automatic = 'automatic'
 
 
-class SettingMeta(type):
-  """Metaclass for the `Setting` class and its subclasses.
-  
-  The metaclass is responsible for the following:
-  
-  * Tracking names and values of arguments passed to instantiation of a setting.
-    The names and values are then passed to `Setting.to_dict()` to allow
-    persisting the setting with the arguments it was instantiated with.
-  
-  * Ensuring that `Setting` classes documented as abstract cannot be initialized
-    by raising `TypeError` on `__init__()`.
-  """
-  
-  def __new__(cls, name, bases, namespace):
-    if '_ABSTRACT' not in namespace:
-      namespace['_ABSTRACT'] = False
-    
-    # Only wrap `__init__` if the (sub)class defines or overrides it.
-    if '__init__' in namespace:
-      namespace['__init__'] = cls._get_init_wrapper(namespace['__init__'])
-    
-    return super(SettingMeta, cls).__new__(cls, name, bases, namespace)
-  
-  @staticmethod
-  def _get_init_wrapper(orig_init):
-    
-    @functools.wraps(orig_init)
-    def init_wrapper(self, *args, **kwargs):
-      if getattr(self, '_ABSTRACT', False):
-        raise TypeError('cannot initialize abstract setting class "{}"'.format(
-          self.__class__.__name__))
-      
-      # This check prevents a parent class' `__init__()` from overriding the
-      # contents of `_dict_on_init`, which may have different arguments.
-      if not hasattr(self, '_dict_on_init'):
-        self._dict_on_init = dict(kwargs)
-        # Exclude `self` as the first argument
-        arg_names = inspect.getargspec(orig_init)[0][1:]
-        for arg_name, arg in zip(arg_names, args):
-          self._dict_on_init[arg_name] = arg
-        
-        if inspect.getargspec(orig_init)[1] is not None:
-          self._dict_on_init['_varargs'] = list(args[len(arg_names):])
-      
-      orig_init(self, *args, **kwargs)
-    
-    return init_wrapper
-
-
 @future.utils.python_2_unicode_compatible
 class Setting(
     future.utils.with_metaclass(
-      SettingMeta, utils_.SettingParentMixin, utils_.SettingEventsMixin)):
+      meta_.SettingMeta, utils_.SettingParentMixin, utils_.SettingEventsMixin)):
   """Abstract class representing a plug-in setting.
   
   A `Setting` allows you to:
@@ -254,9 +234,9 @@ class Setting(
   considered invalid when used as default values. However, empty values will be
   treated as invalid when assigning the setting one of such values after
   instantiation. Examples of empty values include `None` for an image object, or
-  "Choose an item" for an enumerated setting. Empty values are useful when users
-  must choose a different value, yet no valid value is a good candidate for a
-  default value.
+  "Choose an item" for `EnumSetting` instances. Empty values are useful when
+  users must choose a different value, yet no valid value is a good candidate
+  for a default value.
   """
   
   DEFAULT_VALUE = type(b'DefaultValue', (), {})()
@@ -275,7 +255,7 @@ class Setting(
         display_name=None,
         description=None,
         pdb_type=SettingPdbTypes.automatic,
-        gui_type=SettingGuiTypes.automatic,
+        gui_type='automatic',
         allow_empty_values=False,
         auto_update_gui_to_setting=True,
         setting_sources=None,
@@ -303,17 +283,15 @@ class Setting(
       defined for that subclass, the setting cannot be registered (`None` is
       assigned).
     
-    * `gui_type` - Type of GUI element to be created by `set_gui()`. Use the
-      members of the `SettingGuiTypes` class to specify the desired GUI type.
+    * `gui_type` - Type of GUI element to be created by `set_gui()`. See the
+      `GUI_TYPES` mapping for available GUI types. The GUI types are limited for
+      each subclass. The list of accepted GUI types per subclass can be obtained
+      by calling `get_allowed_gui_types()`. Specifying an invalid type causes
+      `ValueError` to be raised.
       
-      If `gui_type` is `SettingGuiTypes.automatic` (the default), the first GUI
-      type is chosen from the list of allowed GUI type for the corresponding
-      `Setting` subclass. If there are no allowed GUI types for that subclass,
-      no GUI is created for this setting.
-      
-      If an explicit GUI type is specified, it must be one of the types from the
-      list of allowed GUI types for the corresponding `Setting` subclass. If
-      not, `ValueError` is raised.
+      If `gui_type` is `'automatic` (the default), the first GUI type is chosen
+      from `get_allowed_gui_types()`. If there are no allowed GUI types for that
+      subclass, no GUI is created for this setting.
       
       If the `gui_type` is `None`, no GUI is created for this setting.
     
@@ -502,7 +480,7 @@ class Setting(
   @classmethod
   def get_allowed_gui_types(cls):
     """Returns the list of allowed GUI types for this setting type."""
-    return list(cls._ALLOWED_GUI_TYPES)
+    return [process_setting_gui_type(type_or_name) for type_or_name in cls._ALLOWED_GUI_TYPES]
   
   def __str__(self):
     return pgutils.stringify_object(self, self.name)
@@ -580,7 +558,7 @@ class Setting(
   
   def set_gui(
         self,
-        gui_type=SettingGuiTypes.automatic,
+        gui_type='automatic',
         gui_element=None,
         auto_update_gui_to_setting=True):
     """Creates a new GUI object (`setting.Presenter` instance) for this setting
@@ -596,8 +574,8 @@ class Setting(
       When calling this method, `gui_type` does not have to be one of the
       allowed GUI types specified in the setting.
       
-      If `gui_type` is `SettingGuiTypes.automatic`, create a GUI object of the
-      type specified in the `gui_type` parameter in `__init__()`.
+      If `gui_type` is `'automatic'`, a GUI object of the type specified in the
+      `gui_type` parameter in `__init__()` is created.
       
       To specify an existing GUI element, pass a specific `gui_type` and the
       GUI element in `gui_element`. This is useful if you wish to use the GUI
@@ -608,30 +586,30 @@ class Setting(
     
     * `gui_element` - A GUI element (wrapped in a `Presenter` instance).
     
-      If `gui_type` is `SettingGuiTypes.automatic`, `gui_element` is ignored.
-      If `gui_type` is not `SettingGuiTypes.automatic` and `gui_element` is
-      `None`, raise `ValueError`.
+      If `gui_type` is `'automatic'`, `gui_element` is ignored.
+      If `gui_type` is not `'automatic'` and `gui_element` is `None`,
+      `ValueError` is raised.
     
     * `auto_update_gui_to_setting` - See `auto_update_gui_to_setting` parameter
       in `__init__()`.
     """
-    gui_type = process_setting_gui_type(gui_type)
-    
-    if gui_type != SettingGuiTypes.automatic and gui_element is None:
+    if gui_type != 'automatic' and gui_element is None:
       raise ValueError('gui_element cannot be None if gui_type is automatic')
-    if gui_type == SettingGuiTypes.automatic and gui_element is not None:
+    if gui_type == 'automatic' and gui_element is not None:
       raise ValueError('gui_type cannot be automatic if gui_element is not None')
     
     self.invoke_event('before-set-gui')
     
-    if gui_type == SettingGuiTypes.automatic:
-      gui_type = self._gui_type
+    if gui_type == 'automatic':
+      processed_gui_type = self._gui_type
     elif gui_type is None:
-      gui_type = presenter_.NullPresenter
+      processed_gui_type = presenter_.NullPresenter
       # We need to disconnect the "GUI changed" event before removing the GUI.
       self._gui.auto_update_gui_to_setting(False)
+    else:
+      processed_gui_type = process_setting_gui_type(gui_type)
     
-    self._gui = gui_type(
+    self._gui = processed_gui_type(
       self,
       gui_element,
       setting_value_synchronizer=self._setting_value_synchronizer,
@@ -732,21 +710,21 @@ class Setting(
     settings_dict = {
       'name': self.name,
       'value': self._value_to_raw(self.value, source_type),
-      'type': pgutils.safe_decode(_SETTING_TYPES_TO_NAMES_MAP[self.__class__][0], 'utf-8'),
+      'type': pgutils.safe_decode(SettingTypes[self.__class__], 'utf-8'),
     }
     
     dict_on_init_processed = {}
     
     for key, val in self._dict_on_init.items():
       if key == 'gui_type' and val is not None and not isinstance(val, types.StringTypes):
-        if (val not in _SETTING_GUI_TYPES_TO_NAMES_MAP
-            or len(_SETTING_GUI_TYPES_TO_NAMES_MAP[val]) < 1):
+        try:
+          gui_type_name = SettingGuiTypes[val]
+        except TypeError:
           raise TypeError(
             ('invalid value for field "gui_type": "{}";'
              ' the value must be one of the setting.Presenter classes').format(val))
         
-        dict_on_init_processed['gui_type'] = pgutils.safe_decode(
-          _SETTING_GUI_TYPES_TO_NAMES_MAP[val][0], 'utf-8')
+        dict_on_init_processed['gui_type'] = pgutils.safe_decode(gui_type_name, 'utf-8')
       elif key == 'default_value':
         dict_on_init_processed[key] = self._value_to_raw(val, source_type)
       elif key == 'tags':
@@ -885,26 +863,26 @@ class Setting(
     gui_type_to_return = None
     
     if gui_type is None:
-      gui_type_to_return = SettingGuiTypes.none
+      gui_type_to_return = presenter_.NullPresenter
     else:
-      gui_type = process_setting_gui_type(gui_type)
+      allowed_gui_types = self.get_allowed_gui_types()
       
-      if gui_type == SettingGuiTypes.automatic:
-        if self._ALLOWED_GUI_TYPES:
-          gui_type_to_return = self._ALLOWED_GUI_TYPES[0]
+      if gui_type == 'automatic':
+        if allowed_gui_types:
+          gui_type_to_return = allowed_gui_types[0]
         else:
-          gui_type_to_return = SettingGuiTypes.none
+          gui_type_to_return = presenter_.NullPresenter
       else:
-        if gui_type in self._ALLOWED_GUI_TYPES:
-          gui_type_to_return = gui_type
-        elif gui_type in [SettingGuiTypes.none, presenter_.NullPresenter]:
-          gui_type_to_return = gui_type
+        processed_gui_type = process_setting_gui_type(gui_type)
+        
+        if processed_gui_type in allowed_gui_types:
+          gui_type_to_return = processed_gui_type
+        elif processed_gui_type == presenter_.NullPresenter:
+          gui_type_to_return = processed_gui_type
         else:
           raise ValueError(
             '{}: invalid GUI type "{}"; must be one of {}'.format(
-              self.name,
-              gui_type,
-              [type_.__name__ for type_ in self._ALLOWED_GUI_TYPES]))
+              self.name, processed_gui_type, allowed_gui_types))
     
     return gui_type_to_return
   
@@ -1092,8 +1070,9 @@ class IntSetting(NumericSetting):
   Default value: 0
   """
   
-  _ALLOWED_PDB_TYPES = [
-    SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
+  _ALIASES = ['integer']
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.int_spin_button]
   _DEFAULT_DEFAULT_VALUE = 0
 
@@ -1128,8 +1107,9 @@ class BoolSetting(Setting):
   Default value: `False`
   """
   
-  _ALLOWED_PDB_TYPES = [
-    SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
+  _ALIASES = ['boolean', 'true_false', 'yes_no']
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [
     SettingGuiTypes.check_button,
     SettingGuiTypes.check_button_no_text,
@@ -1186,8 +1166,9 @@ class EnumSetting(Setting):
     parameter when instantiating the object).
   """
   
-  _ALLOWED_PDB_TYPES = [
-    SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
+  _ALIASES = ['enumerated', 'options']
+  
+  _ALLOWED_PDB_TYPES = [SettingPdbTypes.int32, SettingPdbTypes.int16, SettingPdbTypes.int8]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.combo_box]
   _DEFAULT_DEFAULT_VALUE = lambda self: next((name for name in self._items), None)
   
@@ -1383,8 +1364,10 @@ class StringSetting(Setting):
   Default value: `''`
   """
   
+  _ALIASES = ['str']
+  
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.string]
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.entry]
   _DEFAULT_DEFAULT_VALUE = ''
   
   def _raw_to_value(self, raw_value):
@@ -1759,6 +1742,8 @@ class VectorsSetting(GimpItemSetting):
   * `'invalid_value'` - The vectors instance assigned is invalid.
   """
   
+  _ALIASES = ['path']
+  
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.vectors, SettingPdbTypes.path]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.vectors_combo_box]
   _EMPTY_VALUES = [None]
@@ -1989,7 +1974,7 @@ class FileExtensionSetting(ValidatableStringSetting):
   * `''`
   """
   
-  _ALLOWED_GUI_TYPES = [SettingGuiTypes.text_entry, SettingGuiTypes.file_extension_entry]
+  _ALLOWED_GUI_TYPES = [SettingGuiTypes.entry, SettingGuiTypes.file_extension_entry]
   _EMPTY_VALUES = ['']
   
   def __init__(self, name, adjust_value=False, **kwargs):
@@ -2023,6 +2008,8 @@ class DirpathSetting(ValidatableStringSetting):
   * `None`
   * `''`
   """
+  
+  _ALIASES = ['directory']
   
   _ALLOWED_GUI_TYPES = [
     SettingGuiTypes.folder_chooser_widget, SettingGuiTypes.folder_chooser_button]
@@ -2166,7 +2153,7 @@ class PatternSetting(Setting):
   _EMPTY_VALUES = ['']
 
 
-class ImageIDsAndDirpathsSetting(Setting):
+class ImageIdsAndDirectoriesSetting(Setting):
   """Class for settings the list of currently opened images and their import
   directory paths.
   
@@ -2695,6 +2682,8 @@ class DictSetting(ContainerSetting):
   key-value pairs).
   """
   
+  _ALIASES = ['dictionary', 'map']
+  
   _DEFAULT_DEFAULT_VALUE = {}
   
   def _raw_to_value(self, raw_value):
@@ -2724,260 +2713,45 @@ class SettingDefaultValueError(SettingValueError):
   pass
 
 
-class SettingTypes(object):
-  """Mapping of `Setting` classes to more human-readable names."""
-  
-  generic = GenericSetting
-  integer = IntSetting
-  int = integer
-  float = FloatSetting
-  boolean = BoolSetting
-  bool = boolean
-  enumerated = EnumSetting
-  enum = enumerated
-  string = StringSetting
-  str = string
-  
-  image = ImageSetting
-  item = ItemSetting
-  drawable = DrawableSetting
-  layer = LayerSetting
-  channel = ChannelSetting
-  selection = SelectionSetting
-  vectors = VectorsSetting
-  path = vectors
-  
-  color = ColorSetting
-  parasite = ParasiteSetting
-  display = DisplaySetting
-  pdb_status = PdbStatusSetting
-  
-  file_extension = FileExtensionSetting
-  directory = DirpathSetting
-  
-  brush = BrushSetting
-  font = FontSetting
-  gradient = GradientSetting
-  palette = PaletteSetting
-  pattern = PatternSetting
-  
-  image_IDs_and_directories = ImageIDsAndDirpathsSetting
-  
-  array = ArraySetting
-  
-  tuple = TupleSetting
-  list = ListSetting
-  set = SetSetting
-  dictionary = DictSetting
-  dict = dictionary
-  map = dictionary
-
-
-_SETTING_TYPES_TO_NAMES_MAP = collections.defaultdict(list)
-_BUILTIN_SETTING_TYPE_NAMES = set()
-for key, value in inspect.getmembers(SettingTypes, lambda attr: not(inspect.isroutine(attr))):
-  if not key.startswith('__'):
-    _SETTING_TYPES_TO_NAMES_MAP[value].append(key)
-    _BUILTIN_SETTING_TYPE_NAMES.add(key)
-
-
-_SETTING_GUI_TYPES_TO_NAMES_MAP = collections.defaultdict(list)
-_BUILTIN_SETTING_GUI_TYPE_NAMES = set()
-for key, value in inspect.getmembers(SettingGuiTypes, lambda attr: not(inspect.isroutine(attr))):
-  if not key.startswith('__'):
-    _SETTING_GUI_TYPES_TO_NAMES_MAP[value].append(key)
-    _BUILTIN_SETTING_GUI_TYPE_NAMES.add(key)
-
-
-PDB_TYPES_TO_SETTING_TYPES_MAP = {
-  gimpenums.PDB_INT32: 'integer',
-  gimpenums.PDB_INT16: 'integer',
-  gimpenums.PDB_INT8: 'integer',
-  gimpenums.PDB_FLOAT: 'float',
-  gimpenums.PDB_STRING: 'string',
-  
-  gimpenums.PDB_IMAGE: 'image',
-  gimpenums.PDB_ITEM: 'item',
-  gimpenums.PDB_DRAWABLE: 'drawable',
-  gimpenums.PDB_LAYER: 'layer',
-  gimpenums.PDB_CHANNEL: 'channel',
-  gimpenums.PDB_SELECTION: 'selection',
-  gimpenums.PDB_VECTORS: 'vectors',
-  
-  gimpenums.PDB_COLOR: 'color',
-  gimpenums.PDB_PARASITE: 'parasite',
-  gimpenums.PDB_DISPLAY: 'display',
-  gimpenums.PDB_STATUS: 'pdb_status',
-  
-  gimpenums.PDB_INT32ARRAY: {'type': 'array', 'element_type': 'integer'},
-  gimpenums.PDB_INT16ARRAY: {'type': 'array', 'element_type': 'integer'},
-  gimpenums.PDB_INT8ARRAY: {'type': 'array', 'element_type': 'integer'},
-  gimpenums.PDB_FLOATARRAY: {'type': 'array', 'element_type': 'float'},
-  gimpenums.PDB_STRINGARRAY: {'type': 'array', 'element_type': 'string'},
-  gimpenums.PDB_COLORARRAY: {'type': 'array', 'element_type': 'color'},
-}
-
-
 def process_setting_type(setting_type_or_name):
-  """Returns a `setting.Setting` class based on the input setting type or name.
+  """Returns a `setting.Setting` class based on the input type or name.
   
-  `setting_type_or_name` can be an object or a string, representing one of the
-  aliases specified in `setting.SettingTypes` or registered via
-  `register_setting_type()`.
+  `setting_type_or_name` can be a `setting.Setting` class or a string
+  representing the class name or one of its aliases in `setting.SettingTypes`.
   
-  `ValueError` is raised if `setting_gui_type_or_name` is not valid.
+  `ValueError` is raised if `setting_type_or_name` is not valid.
   """
   return _process_type(
     setting_type_or_name,
     SettingTypes,
-    _SETTING_TYPES_TO_NAMES_MAP,
-    ('setting type "{}" is not recognized; see pygimplib.setting.SettingTypes'
-     ' for a list of supported setting types').format(setting_type_or_name),
-    ('setting type "{}" is not recognized; if this is a custom setting type, register it'
-     ' via settings.register_setting_type()').format(setting_type_or_name))
-
-
-def register_setting_type(setting_type, name):
-  """Adds `setting_type` as a recognized setting type (`setting.Setting` class)
-  to `settings.SettingTypes`, using `name` as the human-readable alias."""
-  _register_type(
-    setting_type,
-    name,
-    SettingTypes,
-    _SETTING_TYPES_TO_NAMES_MAP,
-    'a setting type is already registered with the name "{}" (namely "{}")'.format(
-      name, getattr(SettingTypes, name, None)))
-
-
-def is_setting_type_registered(setting_type_or_name):
-  """Returns `True` if the specified setting type or name is registered via
-  `register_setting_type()` or is a built-in setting type."""
-  return _is_type_registered(setting_type_or_name, SettingTypes, _SETTING_TYPES_TO_NAMES_MAP)
-
-
-def unregister_setting_type(name):
-  """Removes a setting type registered via `register_setting_type()` from
-  `setting.SettingTypes`.
-  
-  `ValueError` is raised when `name` does not match any existing setting type or
-  when attempting to unregister a built-in setting type (e.g. `'integer'`).
-  """
-  _unregister_type(
-    name,
-    SettingTypes,
-    _SETTING_TYPES_TO_NAMES_MAP,
-    _BUILTIN_SETTING_TYPE_NAMES,
-    'setting type with name "{}" does not exist'.format(name),
-    'attempting to unregister a built-in setting type with name "{}"'.format(name))
+    ('setting type "{}" is not recognized; refer to'
+     ' pygimplib.setting.SettingTypes for the supported setting types and their'
+     ' aliases').format(setting_type_or_name))
 
 
 def process_setting_gui_type(setting_gui_type_or_name):
-  """Returns a `setting.Presenter` class based on the input setting type or
-  name.
+  """Returns a `setting.Presenter` class based on the input type or name.
   
-  `setting_gui_type_or_name` can be an object or a string, representing one of
-  the aliases specified in `setting.SettingGuiTypes` or registered via
-  `register_setting_gui_type()`.
+  `setting_gui_type_or_name` can be a `setting.Presenter` class or a string
+  representing the class name or one of its aliases in `setting.GUI_TYPES`.
   
   `ValueError` is raised if `setting_gui_type_or_name` is not valid.
   """
   return _process_type(
     setting_gui_type_or_name,
     SettingGuiTypes,
-    _SETTING_GUI_TYPES_TO_NAMES_MAP,
-    ('setting GUI type "{}" is not recognized; see pygimplib.setting.SettingGuiTypes'
-     ' for a list of supported setting GUI types').format(setting_gui_type_or_name),
-    ('setting GUI type "{}" is not recognized; if this is a custom setting GUI type, register it'
-     ' via settings.register_setting_gui_type()').format(setting_gui_type_or_name))
+    ('setting GUI type "{}" is not recognized; refer to'
+     ' pygimplib.setting.SettingGuiTypes for the supported setting GUI types'
+     ' and their aliases').format(setting_gui_type_or_name))
 
 
-def register_setting_gui_type(setting_gui_type, name):
-  """Adds `setting_gui_type` as a recognized setting GUI type
-  (`setting.Presenter` class) to `setting.SettingGuiTypes`, using `name` as the
-  human-readable alias."""
-  _register_type(
-    setting_gui_type,
-    name,
-    SettingGuiTypes,
-    _SETTING_GUI_TYPES_TO_NAMES_MAP,
-    'a setting GUI type is already registered with the name "{}" (namely "{}")'.format(
-      name, getattr(SettingGuiTypes, name, None)))
-
-
-def is_setting_gui_type_registered(setting_gui_type_or_name):
-  """Returns `True` if the specified setting GUI type or name is registered via
-  `register_setting_gui_type()` or is a built-in setting GUI type."""
-  return _is_type_registered(
-    setting_gui_type_or_name, SettingGuiTypes, _SETTING_GUI_TYPES_TO_NAMES_MAP)
-
-
-def unregister_setting_gui_type(name):
-  """Removes a setting GUI type registered via `register_setting_gui_type()`
-  from `setting.SettingGuiTypes`.
+def _process_type(type_or_name, type_map, error_message):
+  try:
+    type_map[type_or_name]
+  except TypeError:
+    raise TypeError(error_message)
   
-  `ValueError` is raised when `name` does not match any existing setting GUI
-  type or when attempting to unregister a built-in setting GUI type
-  (e.g. `'check_button'`).
-  """
-  _unregister_type(
-    name,
-    SettingGuiTypes,
-    _SETTING_GUI_TYPES_TO_NAMES_MAP,
-    _BUILTIN_SETTING_GUI_TYPE_NAMES,
-    'setting GUI type with name "{}" does not exist'.format(name),
-    'attempting to unregister a built-in setting GUI type with name "{}"'.format(name))
-
-
-def _process_type(
-      type_or_name,
-      types_class,
-      types_to_names_map,
-      error_message_for_name,
-      error_message_for_type):
   if isinstance(type_or_name, types.StringTypes):
-    if _is_type_registered(type_or_name, types_class, types_to_names_map):
-      return getattr(types_class, type_or_name)
-    else:
-      raise ValueError(error_message_for_name)
+    return type_map[type_or_name]
   else:
-    if _is_type_registered(type_or_name, types_class, types_to_names_map):
-      return type_or_name
-    else:
-      raise ValueError(error_message_for_type)
-
-
-def _register_type(type_, name, types_class, types_to_names_map, error_message):
-  if _is_type_registered(name, types_class, types_to_names_map):
-    raise ValueError(error_message)
-  
-  setattr(types_class, name, type_)
-  types_to_names_map[type_].append(name)
-
-
-def _is_type_registered(type_or_name, types_class, types_to_names_map):
-  if isinstance(type_or_name, types.StringTypes):
-    return hasattr(types_class, type_or_name)
-  else:
-    return type_or_name in types_to_names_map
-
-
-def _unregister_type(
-      name,
-      types_class,
-      types_to_names_map,
-      builtin_names,
-      error_message_for_non_existent,
-      error_message_for_builtin):
-  if not _is_type_registered(name, types_class, types_to_names_map):
-    raise ValueError(error_message_for_non_existent)
-  
-  if name in builtin_names:
-    raise ValueError(error_message_for_builtin)
-  
-  type_ = getattr(types_class, name)
-  
-  delattr(types_class, name)
-  
-  types_to_names_map[type_].remove(name)
-  if not types_to_names_map[type_]:
-    del types_to_names_map[type_]
+    return type_or_name

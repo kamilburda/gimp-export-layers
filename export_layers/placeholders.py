@@ -149,11 +149,6 @@ class PlaceholderItemSetting(PlaceholderSetting):
   _ALLOWED_PLACEHOLDERS = ['current_layer', 'background_layer', 'foreground_layer']
 
 
-pg.setting.register_setting_type(PlaceholderImageSetting, 'placeholder_image')
-pg.setting.register_setting_type(PlaceholderItemSetting, 'placeholder_item')
-pg.setting.register_setting_type(PlaceholderDrawableSetting, 'placeholder_drawable')
-pg.setting.register_setting_type(PlaceholderLayerSetting, 'placeholder_layer')
-
 PDB_TYPES_TO_PLACEHOLDER_SETTING_TYPES_MAP = {
   gimpenums.PDB_IMAGE: 'placeholder_image',
   gimpenums.PDB_ITEM: 'placeholder_item',
