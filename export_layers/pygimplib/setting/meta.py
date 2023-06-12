@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Metaclasses for settings and GUI and mappings of types and GUI types."""
+"""Metaclasses for settings and mappings of types."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
@@ -80,7 +80,7 @@ class SettingMeta(type):
     persisting the setting with the arguments it was instantiated with.
   
   * Ensuring that `Setting` classes documented as abstract cannot be initialized
-    by raising `TypeError` on `__init__()`.
+    (`TypeError` is raised on `__init__()`).
   """
   
   def __new__(mcls, name, bases, namespace):  # @NoSelf
