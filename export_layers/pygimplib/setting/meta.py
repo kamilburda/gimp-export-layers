@@ -22,17 +22,26 @@ class _TypeMap(object):
     self._name_to_type_map = collections.OrderedDict()
     self._type_to_names_map = collections.defaultdict(list)
   
-  def __getitem__(self, type_or_name, return_all_names=False):
+  def __getitem__(self, type_or_name):
     if isinstance(type_or_name, types.StringTypes):
       try:
         return self._name_to_type_map[type_or_name]
       except KeyError:
         raise TypeError(self._get_error_message(type_or_name))
     else:
-      if type_or_name not in self._type_to_names_map:
-        raise TypeError(self._get_error_message(type_or_name))
+      return_all_names = False
       
-      names = self._type_to_names_map[type_or_name]
+      if isinstance(type_or_name, (list, tuple)):
+        type_ = type_or_name[0]
+        if len(type_or_name) > 1:
+          return_all_names = type_or_name[1]
+      else:
+        type_ = type_or_name
+      
+      if type_ not in self._type_to_names_map:
+        raise TypeError(self._get_error_message(type_))
+      
+      names = self._type_to_names_map[type_]
       
       if return_all_names:
         return names
