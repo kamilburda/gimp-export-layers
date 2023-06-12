@@ -130,7 +130,7 @@ class PresenterMeta(type):
     `setting.Group.add()`.
   
   * Ensuring that `Presenter` classes documented as abstract cannot be
-    initialized by raising `TypeError` on `__init__()`.
+    initialized (`TypeError` is raised on `__init__()`).
   """
   
   def __new__(mcls, name, bases, namespace):  # @NoSelf
