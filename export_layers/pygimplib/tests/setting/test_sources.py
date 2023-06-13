@@ -39,10 +39,6 @@ def _test_settings_for_read_write():
       'name': 'file_extension',
       'default_value': 'png',
     },
-    {
-      'type': 'dict',
-      'name': 'selected_layers',
-    },
   ])
   
   procedures = group_.create_groups({
@@ -65,11 +61,6 @@ def _test_settings_for_read_write():
       'name': 'enabled',
       'default_value': True,
     },
-    {
-      'type': 'str',
-      'name': 'display_name',
-      'default_value': 'Use layer size',
-    },
     group_.Group(name='arguments', setting_attributes={'gui_type': None}),
   ])
   
@@ -78,11 +69,6 @@ def _test_settings_for_read_write():
       'type': 'bool',
       'name': 'enabled',
       'default_value': True,
-    },
-    {
-      'type': 'str',
-      'name': 'display_name',
-      'default_value': 'Insert background layers',
     },
     group_.Group(name='arguments', setting_attributes={'gui_type': None}),
   ])
@@ -137,12 +123,6 @@ def _test_data_for_read_write():
               'gui_type': None,
             },
             {
-              'type': 'dict',
-              'name': 'selected_layers',
-              'value': {},
-              'gui_type': None,
-            },
-            {
               'name': 'procedures',
               'settings': [
                 {
@@ -153,13 +133,6 @@ def _test_data_for_read_write():
                       'name': 'enabled',
                       'value': True,
                       'default_value': True,
-                      'gui_type': None,
-                    },
-                    {
-                      'type': 'string',
-                      'name': 'display_name',
-                      'value': 'Use layer size',
-                      'default_value': 'Use layer size',
                       'gui_type': None,
                     },
                     {
@@ -176,13 +149,6 @@ def _test_data_for_read_write():
                       'name': 'enabled',
                       'value': True,
                       'default_value': True,
-                      'gui_type': None,
-                    },
-                    {
-                      'type': 'string',
-                      'name': 'display_name',
-                      'value': 'Insert background layers',
-                      'default_value': 'Insert background layers',
                       'gui_type': None,
                     },
                     {
@@ -236,34 +202,110 @@ class TestUpdateDataForSource(unittest.TestCase):
   def setUp(self):
     self.source_name = 'test_settings'
     self.source = sources_.PickleFileSource(self.source_name, filepath='filepath')
+    
+    self.settings = _test_settings_for_read_write()
+    
+    self.maxDiff = None
   
   def test_update_data_for_source_empty_data(self):
-    settings = _test_settings_for_read_write()
     expected_data = _test_data_for_read_write()
     
     data = []
+    self.source._update_data_for_source([self.settings], data)
     
-    self.maxDiff = None
+    self.assertListEqual(data, expected_data)
+  
+  def test_update_data_for_source_modifies_existing_data(self):
+    expected_data = _test_data_for_read_write()
     
-    self.source._update_data_for_source([settings], data)
+    self.settings['main/file_extension'].set_value('jpg')
+    self.settings['main/procedures/use_layer_size/enabled'].set_value(False)
+    self.settings['standalone_setting'].set_value('something_else')
+    
+    expected_data[0]['settings'][0]['settings'][0]['value'] = 'jpg'
+    expected_data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][0]['value'] = False
+    expected_data[0]['settings'][2]['value'] = 'something_else'
+    
+    data = _test_data_for_read_write()
+    self.source._update_data_for_source([self.settings], data)
+    
+    self.assertListEqual(data, expected_data)
+  
+  def test_update_data_for_source_modifies_only_selected_settings(self):
+    expected_data = _test_data_for_read_write()
+    
+    self.settings['main/file_extension'].set_value('jpg')
+    self.settings['main/procedures/use_layer_size/enabled'].set_value(False)
+    self.settings['main/procedures/insert_background_layers/enabled'].set_value(False)
+    self.settings['standalone_setting'].set_value('something_else')
+    
+    expected_data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][0]['value'] = False
+    expected_data[0]['settings'][0]['settings'][1]['settings'][1]['settings'][0]['value'] = False
+    expected_data[0]['settings'][2]['value'] = 'something_else'
+    
+    data = _test_data_for_read_write()
+    self.source._update_data_for_source(
+      [self.settings['main/procedures'], self.settings['standalone_setting']],
+      data)
+    
+    self.assertListEqual(data, expected_data)
+  
+  def test_update_data_for_source_adds_groups_which_are_not_present_in_source(self):
+    expected_data = _test_data_for_read_write()
+    
+    # Keep only 'main/procedures/use_layer_size/enabled' and 'standalone_setting'
+    del expected_data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][1]
+    del expected_data[0]['settings'][0]['settings'][1]['settings'][1]
+    del expected_data[0]['settings'][0]['settings'][2]
+    del expected_data[0]['settings'][0]['settings'][0]
+    del expected_data[0]['settings'][1]
+    
+    data = []
+    self.source._update_data_for_source(
+      [self.settings['main/procedures/use_layer_size/enabled'],
+       self.settings['standalone_setting']],
+      data)
+    
+    self.assertListEqual(data, expected_data)
+  
+  def test_update_data_for_source_adds_settings_to_existing_groups(self):
+    expected_data = _test_data_for_read_write()
+    
+    new_setting = {
+      'type': 'string',
+      'name': 'origin',
+    }
+    
+    expected_new_setting_dict = {
+      'type': 'string',
+      'name': 'origin',
+      'value': 'builtin',
+      'gui_type': None,
+    }
+    
+    self.settings['main/procedures/use_layer_size/arguments'].add([new_setting])
+    self.settings['main/procedures/use_layer_size/arguments/origin'].set_value('builtin')
+    
+    expected_data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][1][
+      'settings'].append(expected_new_setting_dict)
+    
+    data = []
+    self.source._update_data_for_source(self.settings, data)
     
     self.assertListEqual(data, expected_data)
   
   def test_update_data_for_source_raises_error_if_list_expected_but_not_found(self):
     settings = _test_settings_for_read_write()
-    data = _test_data_for_read_write()
     
-    data_with_wrong_structure = {'source_name': data}
+    data_with_wrong_structure = {'source_name': []}
     
     with self.assertRaises(sources_.SourceInvalidFormatError):
       self.source._update_data_for_source([settings], data_with_wrong_structure)
   
   def test_update_data_for_source_raises_error_if_dict_expected_but_not_found(self):
     settings = _test_settings_for_read_write()
-    data = _test_data_for_read_write()
     
-    data_with_wrong_structure = data
-    data_with_wrong_structure[0] = [data_with_wrong_structure[0]]
+    data_with_wrong_structure = [[{'source_name': []}]]
     
     with self.assertRaises(sources_.SourceInvalidFormatError):
       self.source._update_data_for_source([settings], data_with_wrong_structure)
