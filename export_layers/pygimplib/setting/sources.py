@@ -171,44 +171,59 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         if path in matching_child_settings_or_groups:
           self._update_setting(matching_child_settings_or_groups[path], dict_)
         else:
-          parent_path = path.rsplit(utils_.SETTING_PATH_SEPARATOR, 1)
-          
-          # If the assertion fails, `matching_dicts` does not contain children
-          # in depth-first order for some reason, which should not happen.
-          assert parent_path in matching_child_settings_or_groups
-          
-          parent_group = matching_child_settings_or_groups[parent_path]
-          
-          parent_group.add([dict_])
-          
-          child_setting = parent_group[dict_['name']]
-          matching_child_settings_or_groups[child_setting.get_path()] = child_setting
+          self._add_setting_to_parent_group(dict_, path, matching_child_settings_or_groups)
       else:  # dict_ is a `Group`
         if path in matching_child_settings_or_groups:
           # Nothing to do. Group attributes will not be updated since setting
           # attributes are also not updated.
           pass
         else:
-          parent_path = path.rsplit(utils_.SETTING_PATH_SEPARATOR, 1)
-          
-          assert parent_path in matching_child_settings_or_groups
-          
-          parent_group = matching_child_settings_or_groups[parent_path]
-          
-          child_group_kwargs = dict(dict_)
-          # Child settings will be created separately.
-          child_group_kwargs.pop('settings')
-          child_group = group_.Group(**child_group_kwargs)
-          
-          parent_group.add([child_group])
-          
-          matching_child_settings_or_groups[child_group.get_path()] = child_group
+          self._add_group_to_parent_group(dict_, path, matching_child_settings_or_groups)
   
   def _update_setting(self, setting, setting_dict):
     try:
       setting.set_value(setting_dict['value'])
     except settings_.SettingValueError:
       setting.reset()
+  
+  def _add_setting_to_parent_group(self, dict_, path, matching_child_settings_or_groups):
+    parent_path = path.rsplit(utils_.SETTING_PATH_SEPARATOR, 1)[0]
+    
+    # If the assertion fails, `matching_dicts` does not contain children
+    # in depth-first order for some reason, which should not happen.
+    assert parent_path in matching_child_settings_or_groups
+    
+    parent_group = matching_child_settings_or_groups[parent_path]
+    
+    child_setting_dict = dict(dict_)
+    child_setting_dict.pop('value', None)
+    
+    parent_group.add([child_setting_dict])
+    
+    child_setting = parent_group[dict_['name']]
+    
+    if 'value' in dict_:
+      self._update_setting(child_setting, dict_)
+    
+    matching_child_settings_or_groups[child_setting.get_path()] = child_setting
+  
+  def _add_group_to_parent_group(self, dict_, path, matching_child_settings_or_groups):
+    parent_path = path.rsplit(utils_.SETTING_PATH_SEPARATOR, 1)[0]
+    
+    # If the assertion fails, `matching_dicts` does not contain children
+    # in depth-first order for some reason, which should not happen.
+    assert parent_path in matching_child_settings_or_groups
+    
+    parent_group = matching_child_settings_or_groups[parent_path]
+    
+    child_group_kwargs = dict(dict_)
+    # Child settings will be created separately.
+    child_group_kwargs.pop('settings')
+    child_group = group_.Group(**child_group_kwargs)
+    
+    parent_group.add([child_group])
+    
+    matching_child_settings_or_groups[child_group.get_path()] = child_group
   
   def write(self, settings_or_groups):
     """Writes data representing settings specified in the `settings_or_groups`
