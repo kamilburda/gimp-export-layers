@@ -34,6 +34,7 @@ from .. import utils as pgutils
 
 from . import group as group_
 from . import settings as settings_
+from . import utils as utils_
 
 from ._sources_errors import *
 
@@ -65,6 +66,12 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   def __init__(self, source_name, source_type):
     self.source_name = source_name
     self.source_type = source_type
+    
+    self._settings_not_found = []
+  
+  @property
+  def settings_not_found(self):
+    return list(self._settings_not_found)
   
   def read(self, settings_or_groups):
     """Reads setting attributes from data and assigns them to existing settings
@@ -74,40 +81,134 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     If a setting value from the source is invalid, the setting will be reset to
     its default value.
     
-    Raises:
+    All settings that were not found in the source will be stored in the
+    `settings_not_found` property. This property is reset on each call to
+    `read()`.
     
-    * `SettingsNotFoundInSourceError` - At least one of the settings is not
-      found in the source. All settings that were not found in the source will
-      be stored in this exception in the `settings_not_found` attribute.
+    Raises:
     
     * `SourceNotFoundError` - Could not find the source.
     
     * `SourceInvalidFormatError` - Existing data in the source have an invalid
       format. This could happen if the source was edited manually.
     """
-    settings_from_source = self.read_data_from_source()
-    if settings_from_source is None:
+    data = self.read_data_from_source()
+    if data is None:
       raise SourceNotFoundError(
         _('Could not find setting source "{}".').format(self.source_name))
     
-    settings_not_found = []
+    self._settings_not_found = []
+    
+    self._update_settings(settings_or_groups, data)
+  
+  def _update_settings(self, settings_or_groups, data):
+    data_dict = self._create_data_dict(data)
     
     for setting_or_group in settings_or_groups:
-      try:
-        value = settings_from_source[setting_or_group.get_path('root')]
-      except KeyError:
-        settings_not_found.append(setting_or_group)
+      setting_path = setting_or_group.get_path()
+      
+      if setting_path in data_dict:
+        setting_dict = data_dict[setting_path]
+        
+        if isinstance(setting_or_group, settings_.Setting):
+          self._check_if_setting_dict_has_value(setting_dict, setting_path)
+          self._update_setting(setting_or_group, setting_dict)
+        elif isinstance(setting_or_group, group_.Group):
+          self._check_if_setting_dict_has_settings(setting_dict, setting_path)
+          self._update_group(setting_or_group, setting_dict, setting_path, data_dict)
+        else:
+          raise TypeError('settings_or_groups must contain only Setting or Group instances')
       else:
-        try:
-          setting_or_group.set_value(value)
-        except settings_.SettingValueError:
-          setting_or_group.reset()
+        self._settings_not_found.append(setting_or_group)
+  
+  def _create_data_dict(self, data):
+    # Creates a (setting/group path, dict/list representing the setting/group) mapping.
+    # The entries in the mapping are listed in the depth-first order.
+    data_dict = collections.OrderedDict()
+    data_dict[None] = data
     
-    if settings_not_found:
-      raise SettingsNotFoundInSourceError(
-        _('The following settings could not be found:\n{}').format(
-          '\n'.join(setting.get_path() for setting in settings_not_found)),
-        settings_not_found=settings_not_found)
+    current_list_and_parents = []
+    
+    self._check_if_is_list(data)
+    
+    for dict_ in reversed(data):
+      current_list_and_parents.insert(0, (dict_, []))
+    
+    while current_list_and_parents:
+      current_dict, parents = current_list_and_parents.pop(0)
+      
+      self._check_if_is_dict(current_dict)
+      self._check_if_dict_has_required_keys(current_dict)
+      
+      key = utils_.SETTING_PATH_SEPARATOR.join(parents + [current_dict['name']])
+      data_dict[key] = current_dict
+      
+      if 'settings' in current_dict:
+        parents.append(current_dict['name'])
+        
+        child_list = current_dict['settings']
+        
+        self._check_if_is_list(child_list)
+        
+        for child_dict in reversed(child_list):
+          current_list_and_parents.insert(0, (child_dict, list(parents)))
+    
+    return data_dict
+  
+  def _update_group(self, group, group_dict, group_path, data_dict):
+    matching_dicts = collections.OrderedDict(
+      (path, dict_) for path, dict_ in data_dict.items()
+      if path is not None and path.startswith(group_path) and path != group_path)
+    
+    matching_child_settings_or_groups = collections.OrderedDict(
+      (child.get_path(), child) for child in group.walk(include_groups=True))
+    matching_child_settings_or_groups[group_path] = group
+    
+    # `matching_dicts` is assumed to contain children in depth-first order,
+    # which simplifies the algorithm quite a bit.
+    for path, dict_ in matching_dicts.items():
+      if 'value' in dict_:  # dict_ is a `Setting`
+        if path in matching_child_settings_or_groups:
+          self._update_setting(matching_child_settings_or_groups[path], dict_)
+        else:
+          parent_path = path.rsplit(utils_.SETTING_PATH_SEPARATOR, 1)
+          
+          # If the assertion fails, `matching_dicts` does not contain children
+          # in depth-first order for some reason, which should not happen.
+          assert parent_path in matching_child_settings_or_groups
+          
+          parent_group = matching_child_settings_or_groups[parent_path]
+          
+          parent_group.add([dict_])
+          
+          child_setting = parent_group[dict_['name']]
+          matching_child_settings_or_groups[child_setting.get_path()] = child_setting
+      else:  # dict_ is a `Group`
+        if path in matching_child_settings_or_groups:
+          # Nothing to do. Group attributes will not be updated since setting
+          # attributes are also not updated.
+          pass
+        else:
+          parent_path = path.rsplit(utils_.SETTING_PATH_SEPARATOR, 1)
+          
+          assert parent_path in matching_child_settings_or_groups
+          
+          parent_group = matching_child_settings_or_groups[parent_path]
+          
+          child_group_kwargs = dict(dict_)
+          # Child settings will be created separately.
+          child_group_kwargs.pop('settings')
+          child_group = group_.Group(**child_group_kwargs)
+          
+          parent_group.add([child_group])
+          
+          matching_child_settings_or_groups[child_group.get_path()] = child_group
+  
+  def _update_setting(self, setting, setting_dict):
+    try:
+      setting.set_value(setting_dict['value'])
+    except settings_.SettingValueError:
+      setting.reset()
   
   def write(self, settings_or_groups):
     """Writes data representing settings specified in the `settings_or_groups`
@@ -125,16 +226,16 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     if data is None:
       data = []
     
-    self._update_data_for_source(settings_or_groups, data)
+    self._update_data(settings_or_groups, data)
     
     self.write_data_to_source(data)
   
-  def _update_data_for_source(self, settings_or_groups, data_for_source):
+  def _update_data(self, settings_or_groups, data):
     for setting_or_group in settings_or_groups:
       # Create all parent groups if they do not exist.
       # `current_list` at the end of the loop will hold the immediate parent of
       # `setting_or_group`.
-      current_list = data_for_source
+      current_list = data
       for parent in setting_or_group.parents:
         parent_dict = self._find_dict(current_list, parent)[0]
         
@@ -182,12 +283,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         raise TypeError('only Setting or Group instances are allowed as the first element')
   
   def _find_dict(self, data_list, setting_or_group):
-    if (not isinstance(data_list, collections.Iterable)
-        or isinstance(data_list, types.StringTypes)
-        or isinstance(data_list, dict)):
-      raise SourceInvalidFormatError(
-        'Error while parsing data from a source: Not a list: {}'.format(
-          self._truncate_str(data_list)))
+    self._check_if_is_list(data_list)
     
     if isinstance(setting_or_group, settings_.Setting):
       key = 'value'
@@ -195,15 +291,49 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       key = 'settings'
     
     for i, dict_ in enumerate(data_list):
-      if not isinstance(dict_, dict):
-        raise SourceInvalidFormatError(
-          'Error while parsing data from a source: Not a dictionary: {}'.format(
-            self._truncate_str(dict_)))
+      self._check_if_is_dict(dict_)
       
-      if dict_.get('name', None) == setting_or_group.name and key in dict_:
+      if 'name' in dict_ and dict_['name'] == setting_or_group.name and key in dict_:
         return dict_, i
     
     return None, None
+  
+  def _check_if_is_list(self, list_):
+    if (not isinstance(list_, collections.Iterable)
+        or isinstance(list_, types.StringTypes)
+        or isinstance(list_, dict)):
+      raise SourceInvalidFormatError(
+        'Error while parsing data from a source: Not a list: {}'.format(
+          self._truncate_str(list_)))
+  
+  def _check_if_is_dict(self, dict_):
+    if not isinstance(dict_, dict):
+      raise SourceInvalidFormatError(
+        'Error while parsing data from a source: Not a dictionary: {}'.format(
+          self._truncate_str(dict_)))
+  
+  def _check_if_dict_has_required_keys(self, dict_):
+    if 'name' not in dict_:
+      raise SourceInvalidFormatError(
+        'Error while parsing data from a source: every dictionary must always contain "name" key')
+    
+    if (('value' not in dict_ and 'settings' not in dict_)
+        or ('value' in dict_ and 'settings' in dict_)):
+      raise SourceInvalidFormatError(
+        ('Error while parsing data from a source: every dictionary must always contain'
+         ' either "value" or "settings" key'))
+  
+  def _check_if_setting_dict_has_value(self, setting_dict, setting_path):
+    if 'value' not in setting_dict:
+      raise SourceInvalidFormatError(
+        ('Error while parsing data from a source: "value" not found in dictionary'
+         ' representing setting "{}"').format(setting_path))
+  
+  def _check_if_setting_dict_has_settings(self, setting_dict, setting_path):
+    if 'settings' not in setting_dict:
+      raise SourceInvalidFormatError(
+        ('Error while parsing data from a source: "settings" not found in dictionary'
+         ' representing setting group "{}"').format(setting_path))
   
   @staticmethod
   def _truncate_str(obj, max_length=_MAX_LENGTH_OF_OBJECT_AS_STRING_ON_ERROR_OUTPUT):
@@ -322,7 +452,7 @@ class GimpParasiteSource(Source):
       return None
     
     try:
-      settings_from_source = pickle.loads(parasite.data)
+      data = pickle.loads(parasite.data)
     except Exception:
       raise SourceInvalidFormatError(
         _('Settings for this plug-in stored in "{}" may be corrupt.'
@@ -330,7 +460,7 @@ class GimpParasiteSource(Source):
           '\nTo fix this, save the settings again or reset them.').format(
             self._parasite_filepath))
     
-    return settings_from_source
+    return data
   
   def write_data_to_source(self, data):
     gimp.parasite_attach(
@@ -373,11 +503,11 @@ class PickleFileSource(Source):
     determine if there are data under `source_name` or not.
     """
     try:
-      settings_from_source = self.read_data_from_source()
+      data = self.read_data_from_source()
     except SourceError:
       return 'invalid_format'
     else:
-      return settings_from_source is not None
+      return data is not None
   
   def read_data_from_source(self):
     all_data = self.read_all_data()
@@ -484,11 +614,11 @@ class JsonFileSource(Source):
     determine if there are data under `source_name` or not.
     """
     try:
-      settings_from_source = self.read_data_from_source()
+      data = self.read_data_from_source()
     except SourceError:
       return 'invalid_format'
     else:
-      return settings_from_source is not None
+      return data is not None
   
   def read_data_from_source(self):
     all_data = self.read_all_data()
