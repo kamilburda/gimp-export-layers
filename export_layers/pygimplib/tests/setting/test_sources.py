@@ -380,6 +380,27 @@ class TestSourceRead(unittest.TestCase):
         'gui_type': None,
       })
   
+  def test_read_invalid_setting_value_set_to_default_value(self):
+    setting_dict = {
+      'name': 'some_number',
+      'default_value': 2,
+      'min_value': 0,
+    }
+    
+    setting = settings_.IntSetting(**setting_dict)
+    setting.set_value(5)
+    
+    setting_dict['type'] = 'int'
+    setting_dict['value'] = -1
+        
+    self.source.data = [setting_dict]
+    
+    self.source.read([setting])
+    
+    self.assertEqual(
+      setting.value,
+      setting.default_value)
+  
   def test_read_raises_error_if_list_expected_but_not_found(self):
     self.source.data = [
       {
@@ -582,6 +603,22 @@ class TestSourceWrite(unittest.TestCase):
     
     self.assertListEqual(self.source.data, expected_data)
   
+  def test_write_multiple_settings_separately(self):
+    expected_data = _test_data_for_read_write()
+    
+    expected_data[0]['settings'][0]['settings'][0]['value'] = 'jpg'
+    expected_data[0]['settings'][2]['value'] = 'something_else'
+    
+    self.settings['main/file_extension'].set_value('jpg')
+    
+    self.source.write([self.settings])
+    
+    self.settings['standalone_setting'].set_value('something_else')
+    
+    self.source.write([self.settings['standalone_setting']])
+    
+    self.assertListEqual(self.source.data, expected_data)
+  
   def test_write_raises_error_if_list_expected_but_not_found(self):
     self.source.data = {'source_name': []}
     
@@ -608,67 +645,19 @@ class TestGimpShelfSource(unittest.TestCase):
     self.source = sources_.GimpShelfSource(self.source_name)
     self.settings = stubs_group.create_test_settings()
   
-  def test_write(self, mock_session_source):
+  def test_write_read(self, mock_session_source):
     self.settings['file_extension'].set_value('png')
     self.settings['flatten'].set_value(True)
     
     self.source.write([self.settings])
     
-    self.assertEqual(
-      sources_.gimpshelf.shelf[self.source_name][
-        self.settings['file_extension'].get_path('root')],
-      'png')
-    self.assertEqual(
-      sources_.gimpshelf.shelf[self.source_name][
-        self.settings['flatten'].get_path('root')],
-      True)
-  
-  def test_write_multiple_settings_separately(self, mock_session_source):
-    self.settings['file_extension'].set_value('jpg')
-    self.source.write([self.settings['file_extension']])
-    self.settings['flatten'].set_value(True)
+    self.settings['file_extension'].reset()
+    self.settings['flatten'].reset()
     
-    self.source.write([self.settings['flatten']])
-    self.source.read([self.settings['file_extension']])
-    self.source.read([self.settings['flatten']])
-    
-    self.assertEqual(self.settings['file_extension'].value, 'jpg')
-    self.assertEqual(self.settings['flatten'].value, True)
-  
-  def test_read(self, mock_session_source):
-    data = {}
-    data[self.settings['file_extension'].get_path('root')] = 'png'
-    data[self.settings['flatten'].get_path('root')] = True
-    sources_.gimpshelf.shelf[self.source_name] = data
-    
-    self.source.read(
-      [self.settings['file_extension'], self.settings['flatten']])
+    self.source.read([self.settings])
     
     self.assertEqual(self.settings['file_extension'].value, 'png')
     self.assertEqual(self.settings['flatten'].value, True)
-  
-  def test_read_settings_not_found(self, mock_session_source):
-    self.source.write([self.settings['file_extension']])
-    with self.assertRaises(sources_.SettingsNotFoundInSourceError):
-      self.source.read([self.settings])
-  
-  def test_read_settings_invalid_format(self, mock_session_source):
-    with mock.patch(
-           pgutils.get_pygimplib_module_path()
-           + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
-      temp_mock_session_source.__getitem__.side_effect = Exception
-      
-      with self.assertRaises(sources_.SourceInvalidFormatError):
-        self.source.read([self.settings])
-  
-  def test_read_invalid_setting_value_set_to_default_value(self, mock_session_source):
-    setting_with_invalid_value = settings_.IntSetting('int', default_value=-1)
-    self.source.write([setting_with_invalid_value])
-    
-    setting = settings_.IntSetting('int', default_value=2, min_value=0)
-    self.source.read([setting])
-    
-    self.assertEqual(setting.value, setting.default_value)
   
   def test_clear(self, mock_session_source):
     self.source.write([self.settings])
@@ -703,42 +692,17 @@ class TestGimpParasiteSource(unittest.TestCase):
     self.settings['flatten'].set_value(True)
     
     self.source.write([self.settings])
+    
+    self.settings['file_extension'].reset()
+    self.settings['flatten'].reset()
+    
     self.source.read([self.settings])
     
     self.assertEqual(self.settings['file_extension'].value, 'jpg')
     self.assertEqual(self.settings['flatten'].value, True)
   
-  def test_write_multiple_settings_separately(self, mock_persistent_source):
-    self.settings['file_extension'].set_value('jpg')
-    self.source.write([self.settings['file_extension']])
-    self.settings['flatten'].set_value(True)
-    
-    self.source.write([self.settings['flatten']])
-    self.source.read([self.settings['file_extension']])
-    self.source.read([self.settings['flatten']])
-    
-    self.assertEqual(self.settings['file_extension'].value, 'jpg')
-    self.assertEqual(self.settings['flatten'].value, True)
-  
-  def test_write_read_same_setting_name_in_different_groups(self, mock_persistent_source):
-    settings = stubs_group.create_test_settings_hierarchical()
-    file_extension_advanced_setting = settings_.FileExtensionSetting(
-      'file_extension', default_value='png')
-    settings['advanced'].add([file_extension_advanced_setting])
-    
-    self.source.write(settings.walk())
-    self.source.read(settings.walk())
-    
-    self.assertEqual(settings['main/file_extension'].value, 'bmp')
-    self.assertEqual(settings['advanced/file_extension'].value, 'png')
-  
   def test_read_source_not_found(self, mock_persistent_source):
     with self.assertRaises(sources_.SourceNotFoundError):
-      self.source.read([self.settings])
-  
-  def test_read_settings_not_found(self, mock_persistent_source):
-    self.source.write([self.settings['file_extension']])
-    with self.assertRaises(sources_.SettingsNotFoundInSourceError):
       self.source.read([self.settings])
   
   def test_read_settings_invalid_format(self, mock_persistent_source):
@@ -751,15 +715,6 @@ class TestGimpParasiteSource(unittest.TestCase):
     
     with self.assertRaises(sources_.SourceInvalidFormatError):
       self.source.read([self.settings])
-  
-  def test_read_invalid_setting_value_set_to_default_value(self, mock_persistent_source):
-    setting_with_invalid_value = settings_.IntSetting('int', default_value=-1)
-    self.source.write([setting_with_invalid_value])
-    
-    setting = settings_.IntSetting('int', default_value=2, min_value=0)
-    self.source.read([setting])
-    
-    self.assertEqual(setting.value, setting.default_value)
   
   def test_clear(self, mock_persistent_source):
     self.source.write([self.settings])
