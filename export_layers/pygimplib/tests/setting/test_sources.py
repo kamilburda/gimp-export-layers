@@ -83,7 +83,7 @@ def _test_settings_for_read_write():
   
   settings['main'].add([procedures])
   
-  constraints = group_.Group(name='constraints')
+  constraints = group_.Group(name='constraints', setting_attributes={'gui_type': None})
   
   settings['main'].add([constraints])
   
@@ -217,7 +217,281 @@ class _StubSource(sources_.Source):
     pass
 
 
-class TestWrite(unittest.TestCase):
+class TestSourceRead(unittest.TestCase):
+
+  def setUp(self):
+    self.source_name = 'test_settings'
+    self.source = _StubSource(self.source_name, 'persistent')
+    
+    self.settings = _test_settings_for_read_write()
+    
+    self.maxDiff = None
+
+  def test_read(self):
+    self.source.data = _test_data_for_read_write()
+    
+    self.source.data[0]['settings'][0]['settings'][0]['value'] = 'jpg'
+    self.source.data[0]['settings'][0]['settings'][1]['settings'][0][
+      'settings'][0]['value'] = False
+    self.source.data[0]['settings'][2]['value'] = 'something_else'
+    
+    expected_setting_values = {
+      setting.get_path(): setting.value for setting in self.settings.walk()}
+    expected_setting_values['all_settings/main/file_extension'] = 'jpg'
+    expected_setting_values['all_settings/main/procedures/use_layer_size/enabled'] = False
+    expected_setting_values['all_settings/standalone_setting'] = 'something_else'
+    
+    self.source.read([self.settings])
+    
+    for setting in self.settings.walk():
+      self.assertEqual(setting.value, expected_setting_values[setting.get_path()])
+  
+  def test_read_specific_settings(self):
+    self.source.data = _test_data_for_read_write()
+    
+    self.source.data[0]['settings'][0]['settings'][0]['value'] = 'jpg'
+    self.source.data[0]['settings'][0]['settings'][1]['settings'][1][
+      'settings'][0]['value'] = False
+    self.source.data[0]['settings'][0]['settings'][1]['settings'][1][
+      'settings'][1]['settings'][0]['value'] = 'foreground'
+    self.source.data[0]['settings'][2]['value'] = 'something_else'
+    
+    expected_setting_values = {
+      setting.get_path(): setting.value for setting in self.settings.walk()}
+    expected_setting_values[
+      'all_settings/main/procedures/insert_background_layers/enabled'] = False
+    expected_setting_values[
+      'all_settings/main/procedures/insert_background_layers/arguments/tag'] = 'foreground'
+    expected_setting_values['all_settings/standalone_setting'] = 'something_else'
+    
+    self.source.read([self.settings['main/procedures'], self.settings['standalone_setting']])
+    
+    for setting in self.settings.walk():
+      self.assertEqual(setting.value, expected_setting_values[setting.get_path()])
+  
+  def test_read_ignores_non_value_attributes_for_existing_settings(self):
+    self.source.data = _test_data_for_read_write()
+    
+    self.source.data[0]['settings'][0]['settings'][0]['value'] = 'jpg'
+    self.source.data[0]['settings'][0]['settings'][0]['default_value'] = 'gif'
+    self.source.data[0]['settings'][0]['settings'][0]['description'] = 'some description'
+    
+    self.source.read([self.settings['main/file_extension']])
+    
+    self.assertEqual(self.settings['main/file_extension'].value, 'jpg')
+    self.assertEqual(self.settings['main/file_extension'].default_value, 'png')
+    self.assertEqual(self.settings['main/file_extension'].description, 'File extension')
+  
+  def test_read_not_all_settings_found(self):
+    self.source.data = _test_data_for_read_write()
+    
+    # Keep only 'main/procedures/use_layer_size/enabled' and 'standalone_setting'
+    del self.source.data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][1]
+    del self.source.data[0]['settings'][0]['settings'][1]['settings'][1]
+    del self.source.data[0]['settings'][0]['settings'][2]
+    del self.source.data[0]['settings'][0]['settings'][0]
+    del self.source.data[0]['settings'][1]
+    
+    self.source.read(
+      [self.settings['main/file_extension'],
+       self.settings['main/procedures/insert_background_layers']])
+    
+    self.assertListEqual(
+      self.source.settings_not_found,
+      [self.settings['main/file_extension'],
+       self.settings['main/procedures/insert_background_layers']])
+    
+    # Test if `settings_not_found` is reset on each call to `read()`
+    self.source.read([self.settings['main/constraints']])
+    
+    self.assertListEqual(self.source.settings_not_found, [self.settings['main/constraints']])
+  
+  def test_read_creates_new_child_groups_and_settings_if_missing(self):
+    self.source.data = _test_data_for_read_write()
+    
+    # Add 'main/procedures/use_layer_size/arguments/tag'
+    tag_argument = {
+      'type': 'string',
+      'name': 'tag',
+      'value': 'foreground',
+      'default_value': 'background',
+    }
+    self.source.data[0]['settings'][0]['settings'][1]['settings'][0][
+      'settings'][1]['settings'].append(tag_argument)
+    
+    # Add 'main/constraints/visible'
+    visible_constraint = {
+      'name': 'visible',
+      'setting_attributes': {'gui_type': None},
+      'settings': [
+        {
+          'type': 'bool',
+          'name': 'enabled',
+          'value': False,
+          'default_value': True,
+        },
+        {
+          'name': 'arguments',
+          'setting_attributes': {'gui_type': None},
+          'settings': [
+            {
+              'type': 'string',
+              'name': 'tag',
+              'value': 'foreground',
+              'default_value': 'background',
+            },
+          ],
+        },
+      ],
+    }
+    self.source.data[0]['settings'][0]['settings'][2]['settings'].append(visible_constraint)
+    
+    expected_num_settings_and_groups = len(list(self.settings.walk(include_groups=True))) + 5
+    
+    self.source.read([self.settings])
+    
+    self.assertEqual(
+      len(list(self.settings.walk(include_groups=True))), expected_num_settings_and_groups)
+    self.assertDictEqual(
+      self.settings['main/procedures/use_layer_size/arguments/tag'].to_dict(),
+      {
+        'type': 'string',
+        'name': 'tag',
+        'value': 'foreground',
+        'default_value': 'background',
+        'gui_type': None,
+      })
+    self.assertDictEqual(
+      self.settings['main/constraints/visible/enabled'].to_dict(),
+      {
+        'type': 'bool',
+        'name': 'enabled',
+        'value': False,
+        'default_value': True,
+        'gui_type': None,
+      })
+    self.assertDictEqual(
+      self.settings['main/constraints/visible/arguments/tag'].to_dict(),
+      {
+        'type': 'string',
+        'name': 'tag',
+        'value': 'foreground',
+        'default_value': 'background',
+        'gui_type': None,
+      })
+  
+  def test_read_raises_error_if_list_expected_but_not_found(self):
+    self.source.data = [
+      {
+        'name': 'all_settings',
+        'settings': {'name': 'file_extension_not_inside_list', 'type': 'string', 'value': 'png'}
+      }
+    ]
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source.read([self.settings])
+  
+  def test_read_raises_error_if_dict_expected_but_not_found(self):
+    self.source.data = [
+      {
+        'name': 'all_settings',
+        'settings': [[{'name': 'file_extension_not_inside_list', 'type': 'string', 'value': 'png'}]]
+      }
+    ]
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source.read([self.settings])
+  
+  def test_read_raises_error_if_dict_is_missing_name(self):
+    self.source.data = [
+      {
+        'name': 'all_settings',
+        'settings': [{'type': 'string', 'value': 'png'}]
+      }
+    ]
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source.read([self.settings])
+  
+  def test_read_raises_error_if_dict_is_missing_value(self):
+    self.source.data = [
+      {
+        'name': 'all_settings',
+        'settings': [{'name': 'file_extension', 'type': 'string'}]
+      }
+    ]
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source.read([self.settings])
+  
+  def test_read_raises_error_if_dict_is_missing_settings(self):
+    self.source.data = [
+      {
+        'name': 'all_settings',
+      }
+    ]
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source.read([self.settings])
+  
+  def test_read_raises_error_if_dict_has_both_value_and_settings(self):
+    self.source.data = [
+      {
+        'name': 'all_settings',
+        'settings': [{'name': 'file_extension', 'type': 'string', 'value': 'png'}],
+        'value': 'png',
+      }
+    ]
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source.read([self.settings])
+  
+  def test_read_raises_error_if_dict_has_value_but_object_is_group(self):
+    self.source.data = [
+      {
+        'name': 'all_settings',
+        'settings': [
+          {
+            'type': 'string',
+            'name': 'main',
+            'value': 'png',
+          },
+        ],
+      }
+    ]
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source.read([self.settings])
+  
+  def test_read_raises_error_if_dict_has_settings_but_object_is_setting(self):
+    self.source.data = [
+      {
+        'name': 'all_settings',
+        'settings': [
+          {
+            'name': 'main',
+            'settings': [
+              {
+                'name': 'file_extension',
+                'settings': [
+                  {
+                    'type': 'string',
+                    'name': 'some_setting',
+                    'value': 'png',
+                  }
+                ],
+              },
+            ]
+          },
+        ],
+      }
+    ]
+    
+    with self.assertRaises(sources_.SourceInvalidFormatError):
+      self.source.read([self.settings])
+
+
+class TestSourceWrite(unittest.TestCase):
   
   def setUp(self):
     self.source_name = 'test_settings'
@@ -309,20 +583,16 @@ class TestWrite(unittest.TestCase):
     self.assertListEqual(self.source.data, expected_data)
   
   def test_write_raises_error_if_list_expected_but_not_found(self):
-    settings = _test_settings_for_read_write()
-    
     self.source.data = {'source_name': []}
     
     with self.assertRaises(sources_.SourceInvalidFormatError):
-      self.source.write([settings])
+      self.source.write([self.settings])
   
   def test_write_raises_error_if_dict_expected_but_not_found(self):
-    settings = _test_settings_for_read_write()
-    
     self.source.data = [[{'source_name': []}]]
     
     with self.assertRaises(sources_.SourceInvalidFormatError):
-      self.source.write([settings])
+      self.source.write([self.settings])
 
 
 @mock.patch(
