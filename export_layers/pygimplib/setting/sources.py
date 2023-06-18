@@ -444,7 +444,7 @@ class GimpShelfSource(Source):
       return None
     except Exception:
       raise SourceInvalidFormatError(
-        _('Session-wide settings for this plug-in may be corrupt.\n'
+        _('Settings for this plug-in may be corrupt.\n'
           'To fix this, save the settings again or reset them.'))
   
   def write_data_to_source(self, data):
