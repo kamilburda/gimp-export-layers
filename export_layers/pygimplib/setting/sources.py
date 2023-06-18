@@ -169,16 +169,21 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     for path, dict_ in matching_dicts.items():
       if 'value' in dict_:  # dict_ is a `Setting`
         if path in matching_child_settings_or_groups:
+          self._check_if_is_setting(matching_child_settings_or_groups[path], path)
           self._update_setting(matching_child_settings_or_groups[path], dict_)
         else:
           self._add_setting_to_parent_group(dict_, path, matching_child_settings_or_groups)
-      else:  # dict_ is a `Group`
+      elif 'settings' in dict_:  # dict_ is a `Group`
         if path in matching_child_settings_or_groups:
-          # Nothing to do. Group attributes will not be updated since setting
-          # attributes are also not updated.
-          pass
+          # Nothing else to do. Group attributes will not be updated since
+          # setting attributes are also not updated.
+          self._check_if_is_group(matching_child_settings_or_groups[path], path)
         else:
           self._add_group_to_parent_group(dict_, path, matching_child_settings_or_groups)
+      else:
+        raise SourceInvalidFormatError(
+          ('Error while parsing data from a source: every dictionary must always contain'
+           ' either "value" or "settings" key'))
   
   def _update_setting(self, setting, setting_dict):
     try:
@@ -341,14 +346,24 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   def _check_if_setting_dict_has_value(self, setting_dict, setting_path):
     if 'value' not in setting_dict:
       raise SourceInvalidFormatError(
-        ('Error while parsing data from a source: "value" not found in dictionary'
+        ('Error while parsing data from a source: "value" key not found in dictionary'
          ' representing setting "{}"').format(setting_path))
   
   def _check_if_setting_dict_has_settings(self, setting_dict, setting_path):
     if 'settings' not in setting_dict:
       raise SourceInvalidFormatError(
-        ('Error while parsing data from a source: "settings" not found in dictionary'
+        ('Error while parsing data from a source: "settings" key not found in dictionary'
          ' representing setting group "{}"').format(setting_path))
+  
+  def _check_if_is_setting(self, setting, setting_path):
+    if not isinstance(setting, settings_.Setting):
+      raise SourceInvalidFormatError(
+        'expected a Setting instance, found Group instead: "{}"'.format(setting_path))
+  
+  def _check_if_is_group(self, group, group_path):
+    if not isinstance(group, group_.Group):
+      raise SourceInvalidFormatError(
+        'expected a Group instance, found Setting instead: "{}"'.format(group_path))
   
   @staticmethod
   def _truncate_str(obj, max_length=_MAX_LENGTH_OF_OBJECT_AS_STRING_ON_ERROR_OUTPUT):
