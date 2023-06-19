@@ -10,6 +10,7 @@ import mock
 
 from ... import utils as pgutils
 
+from ...setting import group as group_
 from ...setting import persistor as persistor_
 from ...setting import sources as sources_
 
@@ -78,78 +79,85 @@ class TestPersistor(unittest.TestCase):
   
   def test_load_save_with_default_sources_as_dict_of_lists(
         self, mock_gimp_module, mock_gimp_shelf):
-    spy_persistent_source = mock.Mock(wraps=self.persistent_source)
-    spy_default_session_source_1 = mock.Mock(wraps=self.session_source)
-    spy_default_session_source_2 = mock.Mock(wraps=sources_.GimpShelfSource(''))
+    shelf_source = sources_.GimpShelfSource('')
+    
+    self._spy_for_source(self.persistent_source)
+    self._spy_for_source(self.session_source)
+    self._spy_for_source(shelf_source)
     
     persistor_.Persistor.set_default_setting_sources(
       collections.OrderedDict([
-        ('session', [spy_default_session_source_1, spy_default_session_source_2]),
-        ('persistent', spy_persistent_source)]))
+        ('session', [self.session_source, shelf_source]),
+        ('persistent', self.persistent_source)]))
     
     self._test_load_save(None)
     
-    self.assertEqual(spy_default_session_source_1.read.call_count, 1)
-    self.assertEqual(spy_default_session_source_1.write.call_count, 1)
-    self.assertEqual(spy_default_session_source_2.read.call_count, 0)
-    self.assertEqual(spy_default_session_source_2.write.call_count, 1)
-    self.assertEqual(spy_persistent_source.read.call_count, 0)
-    self.assertEqual(spy_persistent_source.write.call_count, 1)
+    self.assertEqual(self.session_source.read.call_count, 1)
+    self.assertEqual(self.session_source.write.call_count, 1)
+    self.assertEqual(shelf_source.read.call_count, 0)
+    self.assertEqual(shelf_source.write.call_count, 1)
+    self.assertEqual(self.persistent_source.read.call_count, 0)
+    self.assertEqual(self.persistent_source.write.call_count, 1)
   
   def test_load_save_with_default_sources_and_dict(self, mock_gimp_module, mock_gimp_shelf):
-    spy_persistent_source = mock.Mock(wraps=self.persistent_source)
-    spy_default_session_source = mock.Mock(wraps=self.session_source)
-    spy_session_source = mock.Mock(wraps=sources_.GimpShelfSource(''))
+    shelf_source = sources_.GimpShelfSource('')
     
-    session_source_for_persistor = {'session': spy_session_source}
+    self._spy_for_source(self.persistent_source)
+    self._spy_for_source(self.session_source)
+    self._spy_for_source(shelf_source)
+    
+    session_source_for_persistor = {'session': shelf_source}
     
     persistor_.Persistor.set_default_setting_sources(self.sources_for_persistor)
     
     self._test_load_save(session_source_for_persistor)
     
-    self.assertEqual(spy_session_source.read.call_count, 1)
-    self.assertEqual(spy_session_source.write.call_count, 1)
-    self.assertEqual(spy_default_session_source.read.call_count, 0)
-    self.assertEqual(spy_default_session_source.write.call_count, 0)
-    self.assertEqual(spy_persistent_source.read.call_count, 0)
-    self.assertEqual(spy_persistent_source.write.call_count, 0)
+    self.assertEqual(shelf_source.read.call_count, 1)
+    self.assertEqual(shelf_source.write.call_count, 1)
+    self.assertEqual(self.session_source.read.call_count, 0)
+    self.assertEqual(self.session_source.write.call_count, 0)
+    self.assertEqual(self.persistent_source.read.call_count, 0)
+    self.assertEqual(self.persistent_source.write.call_count, 0)
   
   def test_load_save_with_default_sources_and_dict_of_lists(
         self, mock_gimp_module, mock_gimp_shelf):
-    spy_persistent_source = mock.Mock(wraps=self.persistent_source)
-    spy_default_session_source = mock.Mock(wraps=self.session_source)
-    spy_session_source = mock.Mock(wraps=sources_.GimpShelfSource(''))
+    shelf_source = sources_.GimpShelfSource('')
     
-    session_source_for_persistor = {'session': [spy_session_source, spy_default_session_source]}
+    self._spy_for_source(self.persistent_source)
+    self._spy_for_source(self.session_source)
+    self._spy_for_source(shelf_source)
+    
+    session_source_for_persistor = {'session': [shelf_source, self.session_source]}
     
     persistor_.Persistor.set_default_setting_sources(self.sources_for_persistor)
     
     self._test_load_save(session_source_for_persistor)
     
-    self.assertEqual(spy_session_source.read.call_count, 1)
-    self.assertEqual(spy_session_source.write.call_count, 1)
-    self.assertEqual(spy_default_session_source.read.call_count, 0)
-    self.assertEqual(spy_default_session_source.write.call_count, 1)
-    self.assertEqual(spy_persistent_source.read.call_count, 0)
-    self.assertEqual(spy_persistent_source.write.call_count, 0)
+    self.assertEqual(shelf_source.read.call_count, 1)
+    self.assertEqual(shelf_source.write.call_count, 1)
+    self.assertEqual(self.session_source.read.call_count, 0)
+    self.assertEqual(self.session_source.write.call_count, 1)
+    self.assertEqual(self.persistent_source.read.call_count, 0)
+    self.assertEqual(self.persistent_source.write.call_count, 0)
   
   def test_load_save_with_default_sources_and_list(self, mock_gimp_module, mock_gimp_shelf):
-    spy_persistent_source = mock.Mock(wraps=self.persistent_source)
-    spy_session_source = mock.Mock(wraps=self.session_source)
+    self._spy_for_source(self.persistent_source)
+    self._spy_for_source(self.session_source)
+    
     sources_for_persistor = ['session', 'persistent']
     default_sources = collections.OrderedDict([
-      ('session', spy_session_source),
-      ('persistent', spy_persistent_source)])
+      ('session', self.session_source),
+      ('persistent', self.persistent_source)])
     
     persistor_.Persistor.set_default_setting_sources(default_sources)
     
     self._test_load_save(sources_for_persistor)
     
-    self.assertEqual(spy_session_source.read.call_count, 1)
-    self.assertEqual(spy_session_source.write.call_count, 1)
+    self.assertEqual(self.session_source.read.call_count, 1)
+    self.assertEqual(self.session_source.write.call_count, 1)
     # `read` should not be called as all settings have been found in `spy_session_source`.
-    self.assertEqual(spy_persistent_source.read.call_count, 0)
-    self.assertEqual(spy_persistent_source.write.call_count, 1)
+    self.assertEqual(self.persistent_source.read.call_count, 0)
+    self.assertEqual(self.persistent_source.write.call_count, 1)
   
   def _test_load_save(self, sources_for_persistor):
     self.settings['file_extension'].set_value('png')
@@ -167,6 +175,10 @@ class TestPersistor(unittest.TestCase):
     self.assertEqual(status, persistor_.Persistor.SUCCESS)
     self.assertEqual(self.settings['file_extension'].value, 'png')
     self.assertEqual(self.settings['flatten'].value, True)
+  
+  def _spy_for_source(self, source):
+    source.read = mock.Mock(wraps=source.read)
+    source.write = mock.Mock(wraps=source.write)
   
   def test_load_combine_settings_from_multiple_sources(self, mock_gimp_module, mock_gimp_shelf):
     self.settings['file_extension'].set_value('png')
@@ -225,7 +237,46 @@ class TestPersistor(unittest.TestCase):
     
     status, unused_ = persistor_.Persistor.load(
       [self.settings['overwrite_mode']], self.sources_for_persistor)
+    
     self.assertEqual(status, persistor_.Persistor.NOT_ALL_SETTINGS_FOUND)
+    self.assertListEqual(
+      self.session_source.settings_not_found, [self.settings['overwrite_mode']])
+    self.assertListEqual(
+      self.persistent_source.settings_not_found, [self.settings['overwrite_mode']])
+  
+  def test_load_child_settings_not_found_in_first_but_subsequent_sources(
+        self, mock_gimp_module, mock_gimp_shelf):
+    settings = stubs_group.create_test_settings_hierarchical()
+    
+    arguments_settings = group_.Group('arguments')
+    arguments_settings.add([
+      {
+        'type': 'string',
+        'name': 'tag',
+        'default_value': 'background',
+      }
+    ])
+    
+    settings['advanced'].add([arguments_settings])
+    
+    self.persistent_source.write([settings])
+    
+    arguments_group = settings['advanced/arguments']
+    overwrite_mode_setting = settings['advanced/overwrite_mode']
+    
+    settings['advanced'].remove(['overwrite_mode', 'arguments'])
+    
+    self.session_source.write([settings])
+    
+    settings['advanced'].add([overwrite_mode_setting, arguments_group])
+    
+    status, unused_ = persistor_.Persistor.load([settings], self.sources_for_persistor)
+    
+    self.assertEqual(status, persistor_.Persistor.SUCCESS)
+    self.assertListEqual(
+      self.session_source.settings_not_found,
+      [settings['advanced/overwrite_mode'], settings['advanced/arguments/tag']])
+    self.assertFalse(self.persistent_source.settings_not_found)
   
   def test_load_read_fail(self, mock_gimp_module, mock_gimp_shelf):
     self.persistent_source.write(self.settings)

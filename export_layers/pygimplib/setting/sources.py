@@ -156,13 +156,10 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     return data_dict
   
   def _update_group(self, group, group_dict, group_path, data_dict):
-    matching_dicts = collections.OrderedDict(
-      (path, dict_) for path, dict_ in data_dict.items()
-      if path is not None and path.startswith(group_path) and path != group_path)
+    matching_dicts = self._get_matching_dicts_for_group_path(data_dict, group_path)
     
-    matching_child_settings_or_groups = collections.OrderedDict(
-      (child.get_path(), child) for child in group.walk(include_groups=True))
-    matching_child_settings_or_groups[group_path] = group
+    matching_child_settings_or_groups = self._get_matching_child_settings_or_groups(
+      group, group_path, matching_dicts)
     
     # `matching_dicts` is assumed to contain children in depth-first order,
     # which simplifies the algorithm quite a bit.
@@ -184,6 +181,30 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         raise SourceInvalidFormatError(
           ('Error while parsing data from a source: every dictionary must always contain'
            ' either "value" or "settings" key'))
+  
+  def _get_matching_dicts_for_group_path(self, data_dict, group_path):
+    return collections.OrderedDict(
+      (path, dict_) for path, dict_ in data_dict.items()
+      if path is not None and path.startswith(group_path) and path != group_path)
+  
+  def _get_matching_child_settings_or_groups(self, group, group_path, matching_dicts):
+    matching_child_settings_or_groups = collections.OrderedDict()
+    
+    for child in group.walk(include_groups=True):
+      child_path = child.get_path()
+      matching_child_settings_or_groups[child_path] = child
+      
+      if child_path not in matching_dicts:
+        if isinstance(child, group_.Group):
+          # Only append empty groups since non-empty groups are further descended.
+          if len(child) == 0:
+            self._settings_not_found.append(child)
+        else:
+          self._settings_not_found.append(child)
+    
+    matching_child_settings_or_groups[group_path] = group
+    
+    return matching_child_settings_or_groups
   
   def _update_setting(self, setting, setting_dict):
     try:

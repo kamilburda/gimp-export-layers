@@ -285,21 +285,31 @@ class TestSourceRead(unittest.TestCase):
   def test_read_not_all_settings_found(self):
     self.source.data = _test_data_for_read_write()
     
-    # Keep only 'main/procedures/use_layer_size/enabled' and 'standalone_setting'
+    # 'main/procedures/use_layer_size/arguments'
     del self.source.data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][1]
+    # 'main/procedures/use_layer_size/enabled'
+    del self.source.data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][0]
+    # 'main/procedures/insert_background_layers'
     del self.source.data[0]['settings'][0]['settings'][1]['settings'][1]
+    # 'main/constraints'
     del self.source.data[0]['settings'][0]['settings'][2]
+    # 'main/file_extension'
     del self.source.data[0]['settings'][0]['settings'][0]
+    # 'special'
     del self.source.data[0]['settings'][1]
     
     self.source.read(
       [self.settings['main/file_extension'],
-       self.settings['main/procedures/insert_background_layers']])
+       self.settings['main/procedures/insert_background_layers'],
+       self.settings['main/procedures/use_layer_size']])
     
     self.assertListEqual(
       self.source.settings_not_found,
       [self.settings['main/file_extension'],
-       self.settings['main/procedures/insert_background_layers']])
+       self.settings['main/procedures/insert_background_layers'],
+       # Missing settings and empty groups must be expanded.
+       self.settings['main/procedures/use_layer_size/enabled'],
+       self.settings['main/procedures/use_layer_size/arguments']])
     
     # Test if `settings_not_found` is reset on each call to `read()`
     self.source.read([self.settings['main/constraints']])

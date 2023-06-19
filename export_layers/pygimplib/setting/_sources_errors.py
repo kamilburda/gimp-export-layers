@@ -9,7 +9,6 @@ import traceback as traceback_
 
 __all__ = [
   'SourceError',
-  'SettingsNotFoundInSourceError',
   'SourceNotFoundError',
   'SourceReadError',
   'SourceInvalidFormatError',
@@ -29,14 +28,6 @@ class SourceError(Exception):
       return self.traceback
     else:
       return self.message
-
-
-class SettingsNotFoundInSourceError(SourceError):
-  
-  def __init__(self, message='', settings_not_found=None):
-    super().__init__(message)
-    
-    self.settings_not_found = settings_not_found if settings_not_found is not None else []
 
 
 class SourceNotFoundError(SourceError):

@@ -60,24 +60,26 @@ class Persistor(object):
   
   @classmethod
   def load(cls, settings_or_groups, setting_sources=None):
-    """Loads setting values from the specified dictionary of setting sources
-    to the specified list of settings or setting groups (`settings_or_groups`).
+    """Loads settings from the specified setting.
     
     The order of sources in the `setting_sources` list indicates the preference
     of the sources, beginning with the first source in the list. If not all
     settings could be found in the first source, the second source is read to
-    assign values to the remaining settings. This continues until all settings
-    are read.
+    assign values to the remaining settings. This continues until all sources
+    are read or all settings are found.
     
-    If settings have invalid values, their default values will be assigned.
-    
-    If some settings could not be found in any of the sources,
-    their default values will be assigned.
+    If the source(s) contain an invalid value for a setting, the default value
+    for the setting will be assigned.
+    Settings not found in any of the sources will also have their default values
+    assigned.
     
     Parameters:
     
     * `settings_or_groups` - List of `settings.Setting` or `group.Group`
-      instances whose values are loaded from `setting_sources`.
+      instances whose values are loaded from `setting_sources`. For settings and
+      groups that exist in `settings_or_groups`, only values are loaded.
+      Child settings and groups not present in a group in memory but present in
+      the source(s) are created within the group.
     
     * `setting_sources` - Dictionary or list of setting sources or `None`. If a
       dictionary, it must contain (key, setting source) pairs or
@@ -123,47 +125,38 @@ class Persistor(object):
     if not setting_sources_list:
       return cls._status(cls.NO_SOURCE)
     
-    all_settings = cls._list_settings(settings_or_groups)
-    all_settings_found = True
-    not_all_settings_found_message = ''
-    
-    settings = all_settings
-    
-    for setting in all_settings:
+    for setting in cls._list_settings(settings_or_groups):
       setting.invoke_event('before-load')
     
-    for index, source in enumerate(setting_sources_list):
+    settings_to_load = settings_or_groups
+    
+    for source in setting_sources_list:
       try:
-        source.read(settings)
-      except (_sources_errors.SettingsNotFoundInSourceError,
-              _sources_errors.SourceNotFoundError) as e:
-        if isinstance(e, _sources_errors.SettingsNotFoundInSourceError):
-          settings = e.settings_not_found
-        
-        if index == len(setting_sources_list) - 1:
-          all_settings_found = False
-          not_all_settings_found_message = str(e)
-          break
-        else:
-          continue
+        source.read(settings_to_load)
+      except _sources_errors.SourceNotFoundError as e:
+        pass
       except (_sources_errors.SourceReadError,
               _sources_errors.SourceInvalidFormatError) as e:
         return cls._status(cls.READ_FAIL, str(e))
       else:
-        break
+        if source.settings_not_found:
+          settings_to_load = source.settings_not_found
+        else:
+          settings_to_load = []
+          break
     
-    for setting in all_settings:
+    for setting in cls._list_settings(settings_or_groups):
       setting.invoke_event('after-load')
     
-    if all_settings_found:
+    if not settings_to_load:
       return cls._status(cls.SUCCESS)
     else:
-      return cls._status(cls.NOT_ALL_SETTINGS_FOUND, not_all_settings_found_message)
+      message = _('The following settings could not be loaded: {}'.format(settings_to_load))
+      return cls._status(cls.NOT_ALL_SETTINGS_FOUND, message)
   
   @classmethod
   def save(cls, settings_or_groups, setting_sources=None):
-    """Saves setting values from specified list of settings or setting groups
-    (`settings_or_groups`) to the specified setting sources.
+    """Saves settings to the specified setting sources.
     
     Parameters:
     
@@ -268,8 +261,6 @@ class Persistor(object):
   
   @staticmethod
   def _list_settings(settings_or_groups):
-    # Put all settings into one list so that `read()` and `write()` are invoked
-    # only once per each source.
     settings = []
     for setting_or_group in settings_or_groups:
       if isinstance(setting_or_group, collections.Iterable):
