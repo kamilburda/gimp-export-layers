@@ -159,6 +159,10 @@ class TestPersistor(unittest.TestCase):
     self.assertEqual(self.persistent_source.read.call_count, 0)
     self.assertEqual(self.persistent_source.write.call_count, 1)
   
+  def _spy_for_source(self, source):
+    source.read = mock.Mock(wraps=source.read)
+    source.write = mock.Mock(wraps=source.write)
+  
   def _test_load_save(self, sources_for_persistor):
     self.settings['file_extension'].set_value('png')
     self.settings['flatten'].set_value(True)
@@ -175,10 +179,6 @@ class TestPersistor(unittest.TestCase):
     self.assertEqual(status, persistor_.Persistor.SUCCESS)
     self.assertEqual(self.settings['file_extension'].value, 'png')
     self.assertEqual(self.settings['flatten'].value, True)
-  
-  def _spy_for_source(self, source):
-    source.read = mock.Mock(wraps=source.read)
-    source.write = mock.Mock(wraps=source.write)
   
   def test_load_combine_settings_from_multiple_sources(self, mock_gimp_module, mock_gimp_shelf):
     self.settings['file_extension'].set_value('png')

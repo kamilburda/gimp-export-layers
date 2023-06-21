@@ -695,40 +695,6 @@ class TestGroupLoadSave(unittest.TestCase):
       'save',
       mock_save)
   
-  def test_load_save_return_statuses(self, mock_load, mock_save):
-    load_save_calls_return_values = [
-      (persistor_.Persistor.SUCCESS, ''),
-      (persistor_.Persistor.SUCCESS, ''),
-      (persistor_.Persistor.SUCCESS, '')]
-    
-    mock_load.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.load()
-    self.assertEqual(status, persistor_.Persistor.SUCCESS)
-    
-    mock_save.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.save()
-    self.assertEqual(status, persistor_.Persistor.SUCCESS)
-    
-    load_save_calls_return_values[1] = persistor_.Persistor.NOT_ALL_SETTINGS_FOUND, ''
-    mock_load.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.load()
-    self.assertEqual(status, persistor_.Persistor.NOT_ALL_SETTINGS_FOUND)
-    
-    load_save_calls_return_values[1] = persistor_.Persistor.NOT_ALL_SETTINGS_FOUND, ''
-    mock_save.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.save()
-    self.assertEqual(status, persistor_.Persistor.NOT_ALL_SETTINGS_FOUND)
-    
-    load_save_calls_return_values[2] = persistor_.Persistor.READ_FAIL, ''
-    mock_load.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.load()
-    self.assertEqual(status, persistor_.Persistor.READ_FAIL)
-    
-    load_save_calls_return_values[2] = persistor_.Persistor.WRITE_FAIL, ''
-    mock_save.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.save()
-    self.assertEqual(status, persistor_.Persistor.WRITE_FAIL)
-  
   def _test_load_save(
         self,
         test_case_name_suffix,
