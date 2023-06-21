@@ -195,18 +195,16 @@ class Persistor(object):
     if not setting_sources_list:
       return cls._status(cls.NO_SOURCE)
     
-    settings = cls._list_settings(settings_or_groups)
-    
-    for setting in settings:
+    for setting in cls._list_settings(settings_or_groups):
       setting.invoke_event('before-save')
     
     for source in setting_sources_list:
       try:
-        source.write(settings)
+        source.write(settings_or_groups)
       except _sources_errors.SourceError as e:
         return cls._status(cls.WRITE_FAIL, str(e))
     
-    for setting in settings:
+    for setting in cls._list_settings(settings_or_groups):
       setting.invoke_event('after-save')
     
     return cls._status(cls.SUCCESS)
