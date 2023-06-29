@@ -278,7 +278,7 @@ def setup_image_ids_and_filepaths_settings(
     assign_filepath_to_image_id_func_args = []
   
   image_filepaths_dict_setting.connect_event(
-    'after-load-group', _remove_invalid_image_filepaths)
+    'after-load', _remove_invalid_image_filepaths)
   
   image_filepaths_dict_setting.connect_event(
     'before-save',
@@ -288,7 +288,7 @@ def setup_image_ids_and_filepaths_settings(
     assign_image_id_to_filepath_func_args)
   
   image_ids_dict_setting.connect_event(
-    'after-load-group',
+    'after-load',
     _update_image_ids,
     image_filepaths_dict_setting,
     assign_filepath_to_image_id_func,

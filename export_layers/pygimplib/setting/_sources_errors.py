@@ -34,11 +34,11 @@ class SourceNotFoundError(SourceError):
   pass
 
 
-class SourceReadError(SourceError):
+class SourceInvalidFormatError(SourceError):
   pass
 
 
-class SourceInvalidFormatError(SourceError):
+class SourceReadError(SourceError):
   pass
 
 

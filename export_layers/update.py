@@ -82,26 +82,28 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   
   current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
   
-  status, message = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
+  load_result = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
   
-  if status == pg.setting.Persistor.READ_FAIL:
+  if pg.setting.Persistor.FAIL in load_result.statuses_per_source.values():
     fix_element_paths_for_pickle(
       sources, _FIX_PICKLE_HANDLERS, current_version, pg.config.SOURCE_NAME.encode('utf-8'))
     
-    status, message = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
+    load_result = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
+  
+  load_message = '\n'.join(list(load_result.messages_per_source.values()))
   
   previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
   
-  if status == pg.setting.Persistor.SUCCESS and previous_version == current_version:
-    return NO_ACTION, message
+  if load_result.status == pg.setting.Persistor.SUCCESS and previous_version == current_version:
+    return NO_ACTION, load_message
   
-  if (status == pg.setting.Persistor.SUCCESS
+  if (load_result.status == pg.setting.Persistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
     _save_plugin_version(settings, sources)
     
     handle_update(settings, sources, _UPDATE_HANDLERS, previous_version, current_version)
     
-    return UPDATE, message
+    return UPDATE, load_message
   
   if handle_invalid == 'ask_to_clear':
     response = messages.display_message(
@@ -112,14 +114,14 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
     
     if response == gtk.RESPONSE_YES:
       clear_setting_sources(settings, sources)
-      return CLEAR_SETTINGS, message
+      return CLEAR_SETTINGS, load_message
     else:
-      return ABORT, message
+      return ABORT, load_message
   elif handle_invalid == 'clear':
     clear_setting_sources(settings, sources)
-    return CLEAR_SETTINGS, message
+    return CLEAR_SETTINGS, load_message
   else:
-    return ABORT, message
+    return ABORT, load_message
 
 
 def _get_persistent_sources(sources):

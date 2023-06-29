@@ -390,6 +390,54 @@ class TestSourceRead(unittest.TestCase):
         'gui_type': None,
       })
   
+  def test_read_ignore_settings_with_ignore_load_tag(self):
+    self.source.data = _test_data_for_read_write()
+    
+    # 'main/file_extension'
+    self.source.data[0]['settings'][0]['settings'][0]['tags'] = ['ignore_load']
+    # A new setting inside 'main/constraints' to be ignored
+    self.source.data[0]['settings'][0]['settings'][2]['settings'].append(
+      {'name': 'enabled', 'type': 'bool', 'value': False})
+    # A new group inside 'main/procedures' to be ignored
+    self.source.data[0]['settings'][0]['settings'][1]['settings'].append(
+      {'name': 'rename',
+       'tags': ['ignore_load'],
+       'settings': [{'name': 'enabled', 'type': 'bool', 'value': False}]})
+    # A new setting inside 'main/procedures' to be ignored
+    self.source.data[0]['settings'][0]['settings'][1]['settings'].append(
+      {'name': 'new_setting', 'type': 'string', 'value': 'new', 'tags': ['ignore_load']})
+    
+    self.settings['main/file_extension'].set_value('jpg')
+    
+    self.settings['main/procedures/use_layer_size/enabled'].tags.add('ignore_load')
+    self.settings['main/procedures/use_layer_size/enabled'].set_value(False)
+    
+    self.settings['main/procedures/insert_background_layers'].tags.add('ignore_load')
+    self.settings['main/procedures/insert_background_layers/enabled'].set_value(False)
+    self.settings['main/procedures/insert_background_layers/arguments/tag'].set_value('fg')
+    
+    self.settings['main/constraints'].tags.add('ignore_load')
+    
+    self.source.read([self.settings])
+    
+    self.assertFalse(bool(self.source.settings_not_found))
+    # The tag was not found in the code. Any attribute except 'value' in the
+    # source is ignored. Therefore, the setting value is overridden.
+    self.assertEqual(self.settings['main/file_extension'].value, 'png')
+    # The tag is found in the code, therefore the value for this setting will not be overridden
+    self.assertEqual(self.settings['main/procedures/use_layer_size/enabled'].value, False)
+    # The tag is found in the code for a parent
+    self.assertEqual(
+      self.settings['main/procedures/insert_background_layers/enabled'].value, False)
+    self.assertEqual(
+      self.settings['main/procedures/insert_background_layers/arguments/tag'].value, 'fg')
+    # Group does not exist in the code, exists in the source but is not loaded
+    self.assertNotIn('rename', self.settings['main/procedures'])
+    # Setting does not exist in the code, exists in the source but is not loaded
+    self.assertNotIn('new_setting', self.settings['main/procedures'])
+    # The tag exists in a group in the code and any child in the source is ignored
+    self.assertFalse(bool(list(self.settings['main/constraints'])))
+  
   def test_read_invalid_setting_value_set_to_default_value(self):
     setting_dict = {
       'name': 'some_number',
@@ -628,6 +676,39 @@ class TestSourceWrite(unittest.TestCase):
     self.source.write([self.settings['standalone_setting']])
     
     self.assertListEqual(self.source.data, expected_data)
+  
+  def test_write_ignore_settings_with_ignore_save_tag(self):
+    self.source.data = _test_data_for_read_write()
+    
+    self.settings['main/file_extension'].set_value('jpg')
+    
+    self.settings['main/procedures/use_layer_size/enabled'].tags.add('ignore_save')
+    self.settings['main/procedures/use_layer_size/enabled'].set_value(False)
+    
+    self.settings['main/procedures/insert_background_layers'].tags.add('ignore_save')
+    self.settings['main/procedures/insert_background_layers/enabled'].set_value(False)
+    self.settings['main/procedures/insert_background_layers/arguments/tag'].set_value('fg')
+    
+    self.settings['main/constraints'].tags.add('ignore_save')
+    self.settings['main/constraints'].add([{'name': 'enabled', 'type': 'bool'}])
+    self.settings['main/constraints/enabled'].set_value(False)
+    
+    self.source.write([self.settings])
+    
+    self.assertEqual(
+      self.source.data[0]['settings'][0]['settings'][0]['value'], 'jpg')
+    # The tag exists in the setting
+    self.assertTrue(
+      self.source.data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][0]['value'])
+    # The tag exists in the parent
+    self.assertTrue(
+      self.source.data[0]['settings'][0]['settings'][1]['settings'][1]['settings'][0]['value'])
+    self.assertEqual(
+      self.source.data[0]['settings'][0]['settings'][1]['settings'][1]['settings'][1][
+        'settings'][0]['value'],
+      'background')
+    # Child not present in data and the tag exists in the parent
+    self.assertFalse(self.source.data[0]['settings'][0]['settings'][2]['settings'])
   
   def test_write_raises_error_if_list_expected_but_not_found(self):
     self.source.data = {'source_name': []}

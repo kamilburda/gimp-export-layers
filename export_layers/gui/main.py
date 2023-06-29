@@ -315,9 +315,11 @@ class ExportLayersDialog(object):
     self._settings['main/procedures'].tags.add('ignore_load')
     self._settings['main/constraints'].tags.add('ignore_load')
     
-    status, status_message = self._settings.load()
-    if status == pg.setting.Persistor.READ_FAIL:
-      messages_.display_message(status_message, gtk.MESSAGE_WARNING)
+    load_result = self._settings.load()
+    load_messages = '\n\n'.join(
+      message for message in load_result.messages_per_source.values() if message)
+    if pg.setting.Persistor.FAIL in load_result.statuses_per_source.values():
+      messages_.display_message(load_messages, gtk.MESSAGE_WARNING)
     
     _setup_image_ids_and_directories_and_initial_directory(
       self._settings, self._settings['gui_session/current_directory'], self._image)
@@ -692,16 +694,16 @@ class ExportLayersDialog(object):
           setting.tags.add('ignore_load')
           size_settings_to_ignore_for_load.append(setting)
     
-    status, status_message = self._settings.load({'persistent': source})
+    load_result = self._settings.load({'persistent': source})
     
     for setting in size_settings_to_ignore_for_load:
       setting.tags.discard('ignore_load')
     
-    if (status != pg.setting.Persistor.SUCCESS
-        and status != pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND):
+    if pg.setting.Persistor.FAIL in load_result.statuses_per_source.values():
       messages_.display_import_export_settings_failure_message(
         _('Failed to import settings from file "{}"'.format(filepath)),
-        details=status_message,
+        details='\n\n'.join(
+          message for message in load_result.messages_per_source.values() if message),
         parent=self._dialog)
       return False
     else:
@@ -709,19 +711,20 @@ class ExportLayersDialog(object):
   
   def _save_settings(self, filepath=None, file_format='json'):
     if filepath is None:
-      status, status_message = self._settings.save()
+      save_result = self._settings.save()
     else:
       if file_format == 'pkl' or not _json_module_found:
         source = pg.setting.sources.PickleFileSource(pg.config.SOURCE_NAME, filepath)
       else:
         source = pg.setting.sources.JsonFileSource(pg.config.SOURCE_NAME, filepath)
       
-      status, status_message = self._settings.save({'persistent': source})
+      save_result = self._settings.save({'persistent': source})
     
-    if status != pg.setting.Persistor.SUCCESS:
+    if pg.setting.Persistor.FAIL in save_result.statuses_per_source.values():
       messages_.display_import_export_settings_failure_message(
         _('Failed to export settings to file "{}"'.format(filepath)),
-        details=status_message,
+        details='\n\n'.join(
+          message for message in save_result.messages_per_source.values() if message),
         parent=self._dialog)
       return False
     else:

@@ -17,11 +17,9 @@ import parameterized
 from ... import utils as pgutils
 from ... import path as pgpath
 
-from ...setting import persistor as persistor_
 from ...setting import presenter as presenter_
 from ...setting import presenters_gtk
 from ...setting import settings as settings_
-from ...setting import sources as sources_
 
 from .. import stubs_gimp
 from . import stubs_setting
@@ -152,103 +150,6 @@ class TestSetting(unittest.TestCase):
     setting.reset()
     self.assertEqual(setting.value, {})
   
-  @parameterized.parameterized.expand([
-    ('default_source',
-     ['default'], None, True, ['default']),
-    
-    ('no_default_source',
-     None, None, True, []),
-    
-    ('parameter_not_in_empty_default_sources',
-     None, ['param'], True, []),
-    
-    ('parameter_not_in_default_sources',
-     ['default'], ['param'], True, []),
-    
-    ('parameter_matching_a_default_source',
-     ['one', 'two'], ['one'], True, ['one']),
-  ])
-  @mock.patch(pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.load')
-  def test_load(
-        self,
-        test_case_name_suffix,
-        sources_for_setting,
-        sources_as_parameters,
-        was_save_called,
-        sources_in_call_args,
-        mock_persistor_load):
-    self._test_load_save(
-      sources_for_setting,
-      sources_as_parameters,
-      was_save_called,
-      sources_in_call_args,
-      mock_persistor_load,
-      'load')
-  
-  @parameterized.parameterized.expand([
-    ('default_source',
-     ['default'], None, True, ['default']),
-    
-    ('no_default_source',
-     None, None, True, []),
-    
-    ('parameter_not_in_empty_default_sources',
-     None, ['param'], True, []),
-    
-    ('parameter_not_in_default_sources',
-     ['default'], ['param'], True, []),
-    
-    ('parameter_matching_a_default_source',
-     ['one', 'two'], ['one'], True, ['one']),
-  ])
-  @mock.patch(pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.save')
-  def test_save(
-        self,
-        test_case_name_suffix,
-        sources_for_setting,
-        sources_as_parameters,
-        was_save_called,
-        sources_in_call_args,
-        mock_persistor_save):
-    self._test_load_save(
-      sources_for_setting,
-      sources_as_parameters,
-      was_save_called,
-      sources_in_call_args,
-      mock_persistor_save,
-      'save')
-  
-  def _test_load_save(
-        self,
-        sources_for_setting,
-        sources_as_parameters,
-        was_save_called,
-        sources_in_call_args,
-        mock_load_save,
-        load_save_func_name):
-    setting = stubs_setting.StubSetting(
-      'image_ids_and_directories', default_value={}, setting_sources=sources_for_setting)
-    getattr(setting, load_save_func_name)(sources_as_parameters)
-    
-    if was_save_called:
-      self.assertTrue(mock_load_save.called)
-    else:
-      self.assertFalse(mock_load_save.called)
-    
-    sources = (
-      sources_for_setting if sources_for_setting is not None else []
-      + sources_as_parameters if sources_as_parameters is not None else [])
-    
-    for source in sources:
-      call_args = (
-        mock_load_save.call_args[0][1]
-        if mock_load_save.call_args[0][1] is not None else [])
-      
-      if source in sources_in_call_args:
-        self.assertIn(source, call_args)
-      else:
-        self.assertNotIn(source, call_args)
-  
   def test_to_dict(self):
     self.assertDictEqual(
       self.setting.to_dict(),
@@ -356,115 +257,6 @@ class TestSettingEvents(unittest.TestCase):
     self.setting.reset()
     self.assertEqual(self.flatten.value, self.flatten.default_value)
     self.assertTrue(self.flatten.gui.get_sensitive())
-
-
-@mock.patch(
-  pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
-  new_callable=stubs_gimp.ShelfStub)
-class TestSettingLoadSaveEvents(unittest.TestCase):
-  
-  @mock.patch(
-    pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
-    new=stubs_gimp.ShelfStub())
-  def setUp(self):
-    self.setting = stubs_setting.StubWithGuiSetting('file_extension', default_value='png')
-    self.flatten = settings_.BoolSetting('flatten', default_value=False)
-    self.session_source = sources_.GimpShelfSource('')
-    
-    self.session_source_dict = {'session': self.session_source}
-  
-  def test_before_load_event(self, mock_session_source):
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    self.setting.set_value('gif')
-    
-    self.setting.connect_event(
-      'before-load', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.load([self.setting], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'png')
-    self.assertEqual(self.flatten.value, True)
-  
-  def test_after_load_event(self, mock_session_source):
-    self.flatten.set_value(True)
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    
-    self.setting.connect_event(
-      'after-load', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.load([self.setting], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'png')
-    self.assertEqual(self.flatten.value, False)
-  
-  def test_after_load_event_not_all_settings_found_invoke_for_all_settings(
-        self, mock_session_source):
-    self.setting.set_value('gif')
-    persistor_.Persistor.save([self.setting], self.session_source_dict)
-    
-    self.setting.connect_event(
-      'after-load', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.load([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, True)
-  
-  def test_after_load_event_read_fail(self, mock_session_source):
-    self.flatten.set_value(True)
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    
-    self.setting.connect_event(
-      'after-load', stubs_setting.on_file_extension_changed, self.flatten)
-    
-    with mock.patch(
-           pgutils.get_pygimplib_module_path()
-           + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
-      temp_mock_session_source.__getitem__.side_effect = sources_.SourceReadError
-      persistor_.Persistor.load([self.setting], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'png')
-    self.assertEqual(self.flatten.value, True)
-  
-  def test_before_save_event(self, mock_session_source):
-    self.setting.set_value('gif')
-    
-    self.setting.connect_event(
-      'before-save', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, True)
-    
-    persistor_.Persistor.load([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, True)
-  
-  def test_after_save_event(self, mock_session_source):
-    self.setting.set_value('gif')
-    
-    self.setting.connect_event(
-      'after-save', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, True)
-    
-    persistor_.Persistor.load([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, False)
-  
-  def test_after_save_event_write_fail(self, mock_session_source):
-    self.setting.set_value('gif')
-    self.setting.connect_event(
-      'after-save', stubs_setting.on_file_extension_changed, self.flatten)
-    
-    with mock.patch(
-           pgutils.get_pygimplib_module_path()
-           + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
-      temp_mock_session_source.__setitem__.side_effect = sources_.SourceWriteError
-      persistor_.Persistor.save([self.setting], self.session_source_dict)
-    
-    self.assertEqual(self.flatten.value, False)
 
 
 class TestSettingGui(unittest.TestCase):

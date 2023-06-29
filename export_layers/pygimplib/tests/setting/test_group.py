@@ -5,13 +5,9 @@ from future.builtins import *
 
 import unittest
 
-import mock
 import parameterized
 
-from ... import utils as pgutils
-
 from ...setting import group as group_
-from ...setting import persistor as persistor_
 from ...setting import presenter as presenter_
 from ...setting import settings as settings_
 
@@ -620,102 +616,6 @@ class TestGroupHierarchical(unittest.TestCase):
     walk_callbacks.on_end_group_walk = _append_setting_name_and_end_group_walk_indicator
     
     return walked_settings, walk_callbacks
-
-
-@mock.patch(
-  pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.save',
-  return_value=(persistor_.Persistor.SUCCESS, ''))
-@mock.patch(
-  pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.load',
-  return_value=(persistor_.Persistor.SUCCESS, ''))
-class TestGroupLoadSave(unittest.TestCase):
-  
-  def setUp(self):
-    self.settings = stubs_group.create_test_settings_load_save()
-  
-  def test_load_save_setting_sources_not_in_group_and_in_settings(
-        self, mock_load, mock_save):
-    settings = stubs_group.create_test_settings()
-    
-    settings.load()
-    self.assertEqual(mock_load.call_count, 1)
-    self.assertEqual([settings['flatten']], mock_load.call_args[0][0])
-    
-    settings.save()
-    self.assertEqual(mock_save.call_count, 1)
-    self.assertEqual([settings['flatten']], mock_save.call_args[0][0])
-  
-  @parameterized.parameterized.expand([
-    ('default_sources',
-     None,
-     3,
-     [['main/file_extension'],
-      ['advanced/flatten'],
-      ['advanced/use_layer_size']],
-     [('session', 'persistent'),
-      ('persistent', 'session'),
-      ('session',)]),
-    
-    ('session_source_only',
-     ['session'],
-     1,
-     [['main/file_extension', 'advanced/flatten', 'advanced/use_layer_size']],
-     [('session',)]),
-    
-    ('persistent_source_only',
-     ['persistent'],
-     1,
-     [['main/file_extension', 'advanced/flatten']],
-     [('persistent',)]),
-  ])
-  def test_load_save_setting_sources_in_group_and_in_settings(
-        self,
-        mock_load,
-        mock_save,
-        test_case_name_suffix,
-        setting_sources,
-        load_save_call_count,
-        setting_names_in_calls,
-        expected_setting_sources_in_calls):
-    self._test_load_save(
-      test_case_name_suffix,
-      setting_sources,
-      load_save_call_count,
-      setting_names_in_calls,
-      expected_setting_sources_in_calls,
-      'load',
-      mock_load)
-    
-    self._test_load_save(
-      test_case_name_suffix,
-      setting_sources,
-      load_save_call_count,
-      setting_names_in_calls,
-      expected_setting_sources_in_calls,
-      'save',
-      mock_save)
-  
-  def _test_load_save(
-        self,
-        test_case_name_suffix,
-        setting_sources,
-        load_save_call_count,
-        setting_names_in_calls,
-        expected_setting_sources_in_calls,
-        load_save_func_name,
-        mock_object):
-    getattr(self.settings, load_save_func_name)(setting_sources)
-    
-    self.assertEqual(mock_object.call_count, load_save_call_count)
-    
-    for i, (setting_names_per_call, setting_sources_per_call) in (
-          enumerate(zip(setting_names_in_calls, expected_setting_sources_in_calls))):
-      self.assertEqual(
-        mock_object.call_args_list[i][0][0],
-        [self.settings[name] for name in setting_names_per_call])
-      self.assertEqual(
-        mock_object.call_args_list[i][0][1],
-        setting_sources_per_call)
 
 
 class TestGroupGui(unittest.TestCase):

@@ -197,38 +197,17 @@ class Setting(
     
     * `'after-set-gui'` - invoked after `set_gui()` is called.
     
-    * `'before-load'` - invoked before loading a setting via
-      `setting.persistor.Persistor.load()`.
+    * `'before-load'` - invoked before loading a setting via `Setting.load()` or
+      `Group.load()` if the setting is within a group.
     
-    * `'after-load'` - invoked after loading a setting via
-      `setting.persistor.Persistor.load()`. Events will not be invoked if
-      loading settings failed (i.e. `Persistor` returns `READ_FAIL` status).
-      Events will be invoked for all settings, even if some of them were not
-      found in setting sources (i.e. `Persistor` returns
-      `NOT_ALL_SETTINGS_FOUND` status).
+    * `'after-load'` - invoked after loading a setting via `Setting.load()` or
+      `Group.load()` if the setting is within a group.
     
-    * `'before-save'` - invoked before saving a setting via
-      `setting.persistor.Persistor.save()`.
+    * `'before-save'` - invoked before saving a setting via `Setting.save()` or
+      `Group.save()` if the setting is within a group.
     
-    * `'after-save'` - invoked after saving a setting via
-      `setting.persistor.Persistor.save()`. Events will not be invoked if saving
-      settings failed (i.e. `Persistor` returns `SAVE_FAIL` status).
-    
-    * `'before-load-group'` - invoked before loading settings in a group via
-      `Group.load()`.
-    
-    * `'after-load-group'` - invoked after loading settings in a group via
-      `Group.load()`. This is useful if the group contains settings with
-      different setting sources so that the event is invoked only once after
-      all settings from different sources are loaded. This also applies to
-      other related events (`'before-load-group'`, `'before-save-group'`,
-      `'after-save-group'`).
-    
-    * `'before-save-group'` - invoked before saving settings in a group via
-      `Group.load()`.
-    
-    * `'after-save-group'` - invoked after saving settings in a group via
-      `Group.load()`.
+    * `'after-save'` - invoked after saving a setting via `Setting.save()` or
+      `Group.save()` if the setting is within a group.
   
   If a setting subclass supports "empty" values, such values will not be
   considered invalid when used as default values. However, empty values will be
@@ -624,43 +603,20 @@ class Setting(
     
     self.invoke_event('after-set-gui')
   
-  def load(self, setting_sources=None):
-    """Loads a setting value from the specified setting source(s).
+  def load(self, **kwargs):
+    """Loads a value for the current setting from the specified setting
+    source(s).
     
-    See `setting.persistor.Persistor.load()` for more information about setting
-    sources.
-    
-    If `setting_sources` is `None`, the default sources returned by
-    `setting.persistor.Persistor.get_default_setting_sources()` are used. If
-    specified, a subset of sources matching the default sources is used. For
-    example, if the default sources contain a persistent and a
-    session-persistent source and `setting_sources` contains a
-    session-persistent source, the setting value is loaded from the
-    session-persistent source only.
-    
-    If there are no default setting sources or `setting_sources` does not match
-    any of the default sources, this method has no effect.
+    See `setting.persistor.Persistor.load()` for information about parameters.
     """
-    return self._load_save(setting_sources, persistor_.Persistor.load)
+    return persistor_.Persistor.load([self], **kwargs)
   
-  def save(self, setting_sources=None):
+  def save(self, **kwargs):
     """Saves the current setting value to the specified setting source(s).
     
-    See `setting.persistor.Persistor.save()` for more information about setting
-    sources.
-    
-    If `setting_sources` is `None`, the sources returned by
-    `setting.persistor.Persistor.get_default_setting_sources()` are used. If
-    specified, a subset of sources matching the default sources is used. For
-    example, if the default sources contain a persistent and a
-    session-persistent source and `setting_sources` contains a
-    session-persistent source, the setting value is saved to the
-    session-persistent source only.
-    
-    If there are no default setting sources or `setting_sources` does not match
-    any of the default sources, this method has no effect.
+    See `setting.persistor.Persistor.save()` for information about parameters.
     """
-    return self._load_save(setting_sources, persistor_.Persistor.save)
+    return persistor_.Persistor.save([self], **kwargs)
   
   def is_value_empty(self):
     """Returns `True` if the setting value is one of the empty values defined
@@ -896,22 +852,6 @@ class Setting(
               self.name, processed_gui_type, allowed_gui_types))
     
     return gui_type_to_return
-  
-  def _load_save(self, setting_sources, load_save_func):
-    if setting_sources is None:
-      setting_sources = self._setting_sources
-    else:
-      if self._setting_sources is not None:
-        if isinstance(setting_sources, dict):
-          setting_sources = collections.OrderedDict(
-            [(key, setting_source) for key, setting_source in setting_sources.items()
-             if key in self._setting_sources])
-        else:
-          setting_sources = [key for key in setting_sources if key in self._setting_sources]
-      else:
-        setting_sources = None
-    
-    return load_save_func([self], setting_sources)
 
 
 class GenericSetting(Setting):

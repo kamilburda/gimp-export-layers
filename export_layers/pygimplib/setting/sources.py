@@ -63,6 +63,9 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   _MAX_LENGTH_OF_OBJECT_AS_STRING_ON_ERROR_OUTPUT = 512
   
+  _IGNORE_LOAD_TAG = 'ignore_load'
+  _IGNORE_SAVE_TAG = 'ignore_save'
+  
   def __init__(self, source_name, source_type):
     self.source_name = source_name
     self.source_type = source_type
@@ -156,27 +159,32 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     return data_dict
   
   def _update_group(self, group, group_dict, group_path, data_dict):
-    matching_dicts = self._get_matching_dicts_for_group_path(data_dict, group_path)
+    if self._IGNORE_LOAD_TAG in group.tags:
+      return
     
-    matching_child_settings_or_groups = self._get_matching_child_settings_or_groups(
-      group, group_path, matching_dicts)
+    matching_dicts = self._get_matching_dicts_for_group_path(data_dict, group_path)
+    prefixes_to_ignore = set()
+    matching_children = self._get_matching_children(
+      group, group_path, matching_dicts, prefixes_to_ignore)
+    matching_dicts = self._filter_matching_dicts(
+      matching_dicts, matching_children, prefixes_to_ignore)
     
     # `matching_dicts` is assumed to contain children in depth-first order,
     # which simplifies the algorithm quite a bit.
     for path, dict_ in matching_dicts.items():
       if 'value' in dict_:  # dict_ is a `Setting`
-        if path in matching_child_settings_or_groups:
-          self._check_if_is_setting(matching_child_settings_or_groups[path], path)
-          self._update_setting(matching_child_settings_or_groups[path], dict_)
+        if path in matching_children:
+          self._check_if_is_setting(matching_children[path], path)
+          self._update_setting(matching_children[path], dict_)
         else:
-          self._add_setting_to_parent_group(dict_, path, matching_child_settings_or_groups)
+          self._add_setting_to_parent_group(dict_, path, matching_children)
       elif 'settings' in dict_:  # dict_ is a `Group`
-        if path in matching_child_settings_or_groups:
+        if path in matching_children:
           # Nothing else to do. Group attributes will not be updated since
           # setting attributes are also not updated.
-          self._check_if_is_group(matching_child_settings_or_groups[path], path)
+          self._check_if_is_group(matching_children[path], path)
         else:
-          self._add_group_to_parent_group(dict_, path, matching_child_settings_or_groups)
+          self._add_group_to_parent_group(dict_, path, matching_children)
       else:
         raise SourceInvalidFormatError(
           ('Error while parsing data from a source: every dictionary must always contain'
@@ -187,12 +195,19 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       (path, dict_) for path, dict_ in data_dict.items()
       if path is not None and path.startswith(group_path) and path != group_path)
   
-  def _get_matching_child_settings_or_groups(self, group, group_path, matching_dicts):
-    matching_child_settings_or_groups = collections.OrderedDict()
+  def _get_matching_children(self, group, group_path, matching_dicts, prefixes_to_ignore):
+    matching_children = collections.OrderedDict()
     
     for child in group.walk(include_groups=True):
       child_path = child.get_path()
-      matching_child_settings_or_groups[child_path] = child
+      
+      if self._IGNORE_LOAD_TAG in child.tags:
+        prefixes_to_ignore.add(child_path)
+      
+      if any(child_path.startswith(prefix) for prefix in prefixes_to_ignore):
+        continue
+      
+      matching_children[child_path] = child
       
       if child_path not in matching_dicts:
         if isinstance(child, group_.Group):
@@ -202,24 +217,42 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         else:
           self._settings_not_found.append(child)
     
-    matching_child_settings_or_groups[group_path] = group
+    matching_children[group_path] = group
     
-    return matching_child_settings_or_groups
+    return matching_children
+  
+  def _filter_matching_dicts(self, matching_dicts, matching_children, prefixes_to_ignore):
+    filtered_matching_dicts = collections.OrderedDict()
+    
+    for path, dict_ in matching_dicts.items():
+      if self._IGNORE_LOAD_TAG in dict_.get('tags', []) and path not in matching_children:
+        prefixes_to_ignore.add(path)
+      
+      if any(path.startswith(prefix) for prefix in prefixes_to_ignore):
+        continue
+      
+      filtered_matching_dicts[path] = dict_
+    
+    return filtered_matching_dicts
   
   def _update_setting(self, setting, setting_dict):
+    if self._IGNORE_LOAD_TAG in setting.tags:
+      return
+    
     try:
       setting.set_value(setting_dict['value'])
     except settings_.SettingValueError:
       setting.reset()
   
-  def _add_setting_to_parent_group(self, dict_, path, matching_child_settings_or_groups):
+  def _add_setting_to_parent_group(self, dict_, path, matching_children):
     parent_path = path.rsplit(utils_.SETTING_PATH_SEPARATOR, 1)[0]
     
-    # If the assertion fails, `matching_dicts` does not contain children
-    # in depth-first order for some reason, which should not happen.
-    assert parent_path in matching_child_settings_or_groups
+    # If the assertion fails for some reason, then `matching_dicts` does not
+    # contain children in depth-first order or children of ignored parents are
+    # not ignored.
+    assert parent_path in matching_children
     
-    parent_group = matching_child_settings_or_groups[parent_path]
+    parent_group = matching_children[parent_path]
     
     child_setting_dict = dict(dict_)
     child_setting_dict.pop('value', None)
@@ -231,16 +264,17 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     if 'value' in dict_:
       self._update_setting(child_setting, dict_)
     
-    matching_child_settings_or_groups[child_setting.get_path()] = child_setting
+    matching_children[child_setting.get_path()] = child_setting
   
-  def _add_group_to_parent_group(self, dict_, path, matching_child_settings_or_groups):
+  def _add_group_to_parent_group(self, dict_, path, matching_children):
     parent_path = path.rsplit(utils_.SETTING_PATH_SEPARATOR, 1)[0]
     
-    # If the assertion fails, `matching_dicts` does not contain children
-    # in depth-first order for some reason, which should not happen.
-    assert parent_path in matching_child_settings_or_groups
+    # If the assertion fails for some reason, then `matching_dicts` does not
+    # contain children in depth-first order or children of ignored parents are
+    # not ignored.
+    assert parent_path in matching_children
     
-    parent_group = matching_child_settings_or_groups[parent_path]
+    parent_group = matching_children[parent_path]
     
     child_group_kwargs = dict(dict_)
     # Child settings will be created separately.
@@ -249,7 +283,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     parent_group.add([child_group])
     
-    matching_child_settings_or_groups[child_group.get_path()] = child_group
+    matching_children[child_group.get_path()] = child_group
   
   def write(self, settings_or_groups):
     """Writes data representing settings specified in the `settings_or_groups`
@@ -294,6 +328,9 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         raise TypeError('settings_or_groups must contain only Setting or Group instances')
   
   def _setting_to_data(self, group_list, setting):
+    if self._IGNORE_SAVE_TAG in setting.tags:
+      return
+    
     setting_dict, index = self._find_dict(group_list, setting)
     
     if setting_dict is not None:
@@ -303,6 +340,9 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       group_list.append(setting.to_dict(source_type=self.source_type))
   
   def _group_to_data(self, group_list, group):
+    if self._IGNORE_SAVE_TAG in group.tags:
+      return
+    
     settings_or_groups_and_dicts = [(group, group_list)]
     
     while settings_or_groups_and_dicts:
@@ -311,6 +351,9 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       if isinstance(setting_or_group, settings_.Setting):
         self._setting_to_data(parent_list, setting_or_group)
       elif isinstance(setting_or_group, group_.Group):
+        if self._IGNORE_SAVE_TAG in setting_or_group.tags:
+          continue
+        
         current_group_dict = self._find_dict(parent_list, setting_or_group)[0]
         
         if current_group_dict is None:
