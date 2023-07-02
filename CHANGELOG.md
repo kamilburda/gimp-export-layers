@@ -1,3 +1,8 @@
+3.3.7
+=====
+
+* Fixed a bug that was causing the plug-in to fail for GIMP 2.8.
+
 3.3.6
 =====
 

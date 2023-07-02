@@ -160,7 +160,8 @@ def _insert_merged_tagged_layer(image, exporter, tag, position=0):
 def _remove_locks_from_layer(layer):
   pdb.gimp_item_set_lock_content(layer, False)
   if not isinstance(layer, gimp.GroupLayer):
-    pdb.gimp_item_set_lock_position(layer, False)
+    if gimp.version >= (2, 10):
+      pdb.gimp_item_set_lock_position(layer, False)
     pdb.gimp_layer_set_lock_alpha(layer, False)
 
 
