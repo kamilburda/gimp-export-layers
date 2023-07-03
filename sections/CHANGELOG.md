@@ -52,6 +52,12 @@ Bug fixes:
 * Fixed array widgets in edit dialog for custom procedures having incorrect height when pressing Reset and then Cancel.
 
 
+3.3.7
+=====
+
+* Fixed a bug that was causing the plug-in to fail for GIMP 2.8.
+
+
 3.3.6
 =====
 
