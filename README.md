@@ -10,7 +10,7 @@ Features
 * Customize export with additional procedures and constraints
 
 
-[**Download latest release**](https://github.com/kamilburda/gimp-export-layers/releases/tag/3.3.6) (3.3.6, June 06, 2023)
+[**Download latest release**](https://github.com/kamilburda/gimp-export-layers/releases/tag/3.3.7) (3.3.7, July 03, 2023)
 
 See the [documentation](https://kamilburda.github.io/gimp-export-layers/sections) for information about installation, usage and known issues.
 
