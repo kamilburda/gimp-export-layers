@@ -229,7 +229,8 @@ def copy_and_paste_layer(
   if remove_lock_attributes:
     pdb.gimp_item_set_lock_content(layer_copy, False)
     if not isinstance(layer_copy, gimp.GroupLayer):
-      pdb.gimp_item_set_lock_position(layer_copy, False)
+      if gimp.version >= (2, 10):
+        pdb.gimp_item_set_lock_position(layer_copy, False)
       pdb.gimp_layer_set_lock_alpha(layer_copy, False)
   
   if set_visible:
