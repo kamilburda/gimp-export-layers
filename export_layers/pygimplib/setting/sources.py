@@ -63,9 +63,6 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   _MAX_LENGTH_OF_OBJECT_AS_STRING_ON_ERROR_OUTPUT = 512
   
-  _IGNORE_LOAD_TAG = 'ignore_load'
-  _IGNORE_SAVE_TAG = 'ignore_save'
-  
   def __init__(self, source_name, source_type):
     self.source_name = source_name
     self.source_type = source_type
@@ -159,7 +156,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     return data_dict
   
   def _update_group(self, group, group_dict, group_path, data_dict):
-    if self._IGNORE_LOAD_TAG in group.tags:
+    if utils_.IGNORE_LOAD_TAG in group.tags:
       return
     
     matching_dicts = self._get_matching_dicts_for_group_path(data_dict, group_path)
@@ -201,7 +198,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     for child in group.walk(include_groups=True):
       child_path = child.get_path()
       
-      if self._IGNORE_LOAD_TAG in child.tags:
+      if utils_.IGNORE_LOAD_TAG in child.tags:
         prefixes_to_ignore.add(child_path)
       
       if any(child_path.startswith(prefix) for prefix in prefixes_to_ignore):
@@ -225,7 +222,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     filtered_matching_dicts = collections.OrderedDict()
     
     for path, dict_ in matching_dicts.items():
-      if self._IGNORE_LOAD_TAG in dict_.get('tags', []) and path not in matching_children:
+      if utils_.IGNORE_LOAD_TAG in dict_.get('tags', []) and path not in matching_children:
         prefixes_to_ignore.add(path)
       
       if any(path.startswith(prefix) for prefix in prefixes_to_ignore):
@@ -236,7 +233,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     return filtered_matching_dicts
   
   def _update_setting(self, setting, setting_dict):
-    if self._IGNORE_LOAD_TAG in setting.tags:
+    if utils_.IGNORE_LOAD_TAG in setting.tags:
       return
     
     try:
@@ -328,7 +325,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         raise TypeError('settings_or_groups must contain only Setting or Group instances')
   
   def _setting_to_data(self, group_list, setting):
-    if self._IGNORE_SAVE_TAG in setting.tags:
+    if utils_.IGNORE_SAVE_TAG in setting.tags:
       return
     
     setting_dict, index = self._find_dict(group_list, setting)
@@ -340,7 +337,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       group_list.append(setting.to_dict(source_type=self.source_type))
   
   def _group_to_data(self, group_list, group):
-    if self._IGNORE_SAVE_TAG in group.tags:
+    if utils_.IGNORE_SAVE_TAG in group.tags:
       return
     
     settings_or_groups_and_dicts = [(group, group_list)]
@@ -351,7 +348,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       if isinstance(setting_or_group, settings_.Setting):
         self._setting_to_data(parent_list, setting_or_group)
       elif isinstance(setting_or_group, group_.Group):
-        if self._IGNORE_SAVE_TAG in setting_or_group.tags:
+        if utils_.IGNORE_SAVE_TAG in setting_or_group.tags:
           continue
         
         current_group_dict = self._find_dict(parent_list, setting_or_group)[0]

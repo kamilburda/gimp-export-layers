@@ -22,7 +22,6 @@ def create_test_settings():
       'name': 'flatten',
       'default_value': False,
       'display_name': 'Flatten',
-      'setting_sources': ['persistent']
     },
     {
       'type': 'options',
@@ -77,16 +76,16 @@ def create_test_settings_hierarchical():
   return settings
 
 
-def create_test_settings_load_save():
+def create_test_settings_with_specific_setting_sources():
   main_settings = group_.Group(
     name='main',
-    setting_attributes={'setting_sources': ['session', 'persistent']})
+    setting_attributes={'setting_sources': ['persistent']})
   
   main_settings.add([
     {
       'type': 'file_extension',
       'name': 'file_extension',
-      'default_value': 'bmp',
+      'default_value': 'png',
     },
   ])
   
@@ -98,7 +97,8 @@ def create_test_settings_load_save():
       'type': 'boolean',
       'name': 'flatten',
       'default_value': False,
-      'setting_sources': ['persistent', 'session']
+      'setting_sources': ['persistent', 'session'],
+      'tags': ['ignore_load', 'ignore_save'],
     },
     {
       'type': 'boolean',

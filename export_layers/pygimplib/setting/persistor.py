@@ -10,6 +10,7 @@ from future.builtins import *
 import collections
 
 from . import _sources_errors
+from . import utils as utils_
 
 __all__ = [
   'Persistor',
@@ -68,14 +69,14 @@ class Persistor(object):
     """Loads values from the specified settings or groups, or creates new
     settings within the specified groups if they do not exist.
     
-    The order of sources in the `setting_sources` list indicates the preference
-    of the sources, beginning with the first source in the list. If not all
+    The order of setting sources in `settings_or_groups` indicates the
+    preference of the sources, beginning with the first source. If not all
     settings could be found in the first source, the second source is read to
     assign values to the remaining settings. This continues until all sources
     are read or all settings are found.
     
-    If the source(s) contain an invalid value for a setting, the default value
-    for the setting will be assigned.
+    If the setting source(s) contain an invalid value for a setting, the default
+    value for the setting will be assigned.
     Settings not found in any of the sources will also have their default values
     assigned.
     
@@ -105,11 +106,13 @@ class Persistor(object):
     
     * `setting_sources` - Dictionary or list of setting sources or `None`. If a
       dictionary, it must contain (key, setting source) pairs or
-      (key, list of setting sources) pairs. If a list, it must contain keys and
-      all keys must have a mapping to one of the default sources as returned by
-      `get_default_setting_sources()`.
+      (key, list of setting sources) pairs.
       See `set_default_setting_sources()` for more information on the key.
-      If `setting_sources` is `None`, the default sources will be used.
+      If a list, it must contain keys and all keys must have a
+      mapping to one of the default sources as returned by
+      `get_default_setting_sources()`.
+      If `None`, default setting sources are used as returned by
+      `get_default_setting_sources()`.
     
     * `trigger_events` - If `True`, trigger `'before-load'` and `'after-load'`
       events for each setting. If `False`, these events are not triggered.
@@ -128,41 +131,53 @@ class Persistor(object):
     if not setting_sources:
       return cls._result(cls.FAIL)
     
-    setting_sources_list = cls._get_source_list(setting_sources)
+    processed_setting_sources = cls._process_setting_sources(setting_sources)
     
-    if not setting_sources_list:
+    if not processed_setting_sources:
       return cls._result(cls.FAIL)
     
-    if trigger_events:
-      for setting in cls._list_settings(settings_or_groups):
-        setting.invoke_event('before-load')
+    cls._trigger_event(settings_or_groups, 'before-load', trigger_events)
     
+    settings_not_found, statuses_per_source, messages_per_source = cls._load(
+      settings_or_groups, processed_setting_sources)
+    
+    cls._trigger_event(settings_or_groups, 'after-load', trigger_events)
+    
+    return cls._get_return_result(settings_not_found, statuses_per_source, messages_per_source)
+  
+  @classmethod
+  def _load(cls, settings_or_groups, setting_sources):
     settings_to_load = settings_or_groups
+    
+    filtered_settings = cls._list_settings(
+      settings_or_groups, include_setting_func=lambda s: utils_.IGNORE_LOAD_TAG not in s.tags)
     
     statuses_per_source = {}
     messages_per_source = {}
     
-    for source in setting_sources_list:
-      try:
-        source.read(settings_to_load)
-      except _sources_errors.SourceError as e:
-        statuses_per_source[source] = cls.FAIL
-        messages_per_source[source] = str(e)
-      else:
-        statuses_per_source[source] = cls.SUCCESS
-        messages_per_source[source] = ''
-        
-        if source.settings_not_found:
-          settings_to_load = source.settings_not_found
+    for source_name, sources in setting_sources.items():
+      settings_to_ignore = cls._set_up_settings_to_ignore(
+        utils_.IGNORE_LOAD_TAG, source_name, filtered_settings)
+      
+      for source in sources:
+        try:
+          source.read(settings_to_load)
+        except _sources_errors.SourceError as e:
+          statuses_per_source[source] = cls.FAIL
+          messages_per_source[source] = str(e)
         else:
-          settings_to_load = []
-          break
-    
-    if trigger_events:
-      for setting in cls._list_settings(settings_or_groups):
-        setting.invoke_event('after-load')
-    
-    return cls._get_return_result(settings_to_load, statuses_per_source, messages_per_source)
+          statuses_per_source[source] = cls.SUCCESS
+          messages_per_source[source] = ''
+          
+          if source.settings_not_found:
+            settings_to_load = source.settings_not_found
+          else:
+            cls._clean_up_settings_to_ignore(settings_to_ignore, utils_.IGNORE_LOAD_TAG)
+            return [], statuses_per_source, messages_per_source
+      
+      cls._clean_up_settings_to_ignore(settings_to_ignore, utils_.IGNORE_LOAD_TAG)
+      
+    return settings_to_load, statuses_per_source, messages_per_source
   
   @classmethod
   def save(cls, settings_or_groups, setting_sources=None, trigger_events=True):
@@ -201,33 +216,45 @@ class Persistor(object):
     if not setting_sources:
       return cls._result(cls.FAIL)
     
-    setting_sources_list = cls._get_source_list(setting_sources)
+    processed_setting_sources = cls._process_setting_sources(setting_sources)
     
-    if not setting_sources_list:
+    if not processed_setting_sources:
       return cls._result(cls.FAIL)
     
-    if trigger_events:
-      for setting in cls._list_settings(settings_or_groups):
-        setting.invoke_event('before-save')
+    cls._trigger_event(settings_or_groups, 'before-save', trigger_events)
+    
+    statuses_per_source, messages_per_source = cls._save(
+      settings_or_groups, processed_setting_sources)
+    
+    cls._trigger_event(settings_or_groups, 'after-save', trigger_events)
+    
+    return cls._get_return_result([], statuses_per_source, messages_per_source)
+  
+  @classmethod
+  def _save(cls, settings_or_groups, setting_sources):
+    filtered_settings = cls._list_settings(
+      settings_or_groups, include_setting_func=lambda s: utils_.IGNORE_SAVE_TAG not in s.tags)
     
     statuses_per_source = {}
     messages_per_source = {}
     
-    for source in setting_sources_list:
-      try:
-        source.write(settings_or_groups)
-      except _sources_errors.SourceError as e:
-        statuses_per_source[source] = cls.FAIL
-        messages_per_source[source] = str(e)
-      else:
-        statuses_per_source[source] = cls.SUCCESS
-        messages_per_source[source] = ''
+    for source_name, sources in setting_sources.items():
+      settings_to_ignore = cls._set_up_settings_to_ignore(
+        utils_.IGNORE_SAVE_TAG, source_name, filtered_settings)
+      
+      for source in sources:
+        try:
+          source.write(settings_or_groups)
+        except _sources_errors.SourceError as e:
+          statuses_per_source[source] = cls.FAIL
+          messages_per_source[source] = str(e)
+        else:
+          statuses_per_source[source] = cls.SUCCESS
+          messages_per_source[source] = ''
+      
+      cls._clean_up_settings_to_ignore(settings_to_ignore, utils_.IGNORE_SAVE_TAG)
     
-    if trigger_events:
-      for setting in cls._list_settings(settings_or_groups):
-        setting.invoke_event('after-save')
-    
-    return cls._get_return_result([], statuses_per_source, messages_per_source)
+    return statuses_per_source, messages_per_source
   
   @classmethod
   def clear(cls, setting_sources=None):
@@ -242,11 +269,33 @@ class Persistor(object):
     if setting_sources is None:
       setting_sources = cls._DEFAULT_SETTING_SOURCES
     
-    setting_sources_list = cls._get_source_list(setting_sources)
+    processed_setting_sources = cls._process_setting_sources(setting_sources)
     
     if setting_sources is not None:
-      for source in setting_sources_list:
-        source.clear()
+      for sources in processed_setting_sources.values():
+        for source in sources:
+          source.clear()
+  
+  @classmethod
+  def _trigger_event(cls, settings_or_groups, event_name, trigger_events):
+    if trigger_events:
+      for setting in cls._list_settings(settings_or_groups):
+        setting.invoke_event(event_name)
+  
+  @classmethod
+  def _set_up_settings_to_ignore(cls, ignore_tag, source_name, filtered_settings):
+    settings_to_ignore = []
+    for setting in filtered_settings:
+      if setting.setting_sources is not None and source_name not in setting.setting_sources:
+        setting.tags.add(ignore_tag)
+        settings_to_ignore.append(setting)
+    
+    return settings_to_ignore
+  
+  @classmethod
+  def _clean_up_settings_to_ignore(cls, settings_to_ignore, ignore_tag):
+    for setting in settings_to_ignore:
+      setting.tags.discard(ignore_tag)
   
   @staticmethod
   def _result(status, settings_not_found=None, statuses_per_source=None, messages_per_source=None):
@@ -273,37 +322,45 @@ class Persistor(object):
         cls.PARTIAL_SUCCESS, settings_not_found, statuses_per_source, messages_per_source)
   
   @classmethod
-  def _get_source_list(cls, setting_sources):
+  def _process_setting_sources(cls, setting_sources):
+    processed_setting_sources = collections.OrderedDict()
+    
     if not isinstance(setting_sources, dict):
-      setting_sources_list = []
-      
       for key in setting_sources:
+        if key not in processed_setting_sources:
+          processed_setting_sources[key] = []
+        
         try:
           source = cls._DEFAULT_SETTING_SOURCES[key]
         except KeyError:
+          # Causes `Persistor.load()` or `Persistor.save()` to return `FAIL`
           return []
         else:
           if isinstance(source, collections.Iterable):
-            setting_sources_list.extend(source)
+            for item in source:
+              processed_setting_sources[key].append(item)
           else:
-            setting_sources_list.append(source)
+            processed_setting_sources[key].append(source)
     else:
-      setting_sources_list = []
-      for source in setting_sources.values():
+      for key, source in setting_sources.items():
+        if key not in processed_setting_sources:
+          processed_setting_sources[key] = []
+        
         if isinstance(source, collections.Iterable):
-          setting_sources_list.extend(source)
+          for item in source:
+            processed_setting_sources[key].append(item)
         else:
-          setting_sources_list.append(source)
+          processed_setting_sources[key].append(source)
     
-    return setting_sources_list
+    return processed_setting_sources
   
   @staticmethod
-  def _list_settings(settings_or_groups):
+  def _list_settings(settings_or_groups, **walk_kwargs):
     settings = []
     for setting_or_group in settings_or_groups:
       if isinstance(setting_or_group, collections.Iterable):
         group = setting_or_group
-        settings.extend(list(group.walk()))
+        settings.extend(list(group.walk(**walk_kwargs)))
       else:
         setting = setting_or_group
         settings.append(setting)

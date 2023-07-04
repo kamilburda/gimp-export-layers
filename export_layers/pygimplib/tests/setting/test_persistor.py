@@ -157,7 +157,7 @@ class TestPersistor(unittest.TestCase):
     
     self.assertEqual(self.session_source.read.call_count, 1)
     self.assertEqual(self.session_source.write.call_count, 1)
-    # `read` should not be called as all settings have been found in `spy_session_source`.
+    # `read` should not be called as all settings have been found in `self.session_source`.
     self.assertEqual(self.persistent_source.read.call_count, 0)
     self.assertEqual(self.persistent_source.write.call_count, 1)
   
@@ -282,6 +282,29 @@ class TestPersistor(unittest.TestCase):
       [settings['advanced/overwrite_mode'], settings['advanced/arguments/tag']])
     self.assertFalse(self.persistent_source.settings_not_found)
   
+  def test_load_ignore_settings_with_source_name_not_matching_specified_sources(
+        self, mock_gimp_module, mock_gimp_shelf):
+    settings = stubs_group.create_test_settings_with_specific_setting_sources()
+    
+    persistor_.Persistor.set_default_setting_sources(self.sources_for_persistor)
+    
+    settings['main/file_extension'].set_value('jpg')
+    settings['advanced/flatten'].set_value(True)
+    settings['advanced/use_layer_size'].set_value(True)
+    
+    self.persistent_source.write([settings])
+    self.session_source.write([settings])
+    
+    settings['main/file_extension'].reset()
+    settings['advanced/use_layer_size'].reset()
+    
+    result = persistor_.Persistor.load([settings], ['session'])
+    
+    self.assertEqual(result.status, persistor_.Persistor.SUCCESS)
+    self.assertEqual(settings['main/file_extension'].value, 'png')
+    self.assertEqual(settings['advanced/flatten'].value, True)
+    self.assertEqual(settings['advanced/use_layer_size'].value, True)
+  
   def test_load_fail_for_one_source(self, mock_gimp_module, mock_gimp_shelf):
     persistor_.Persistor.save([self.settings], self.sources_for_persistor)
     
@@ -334,6 +357,52 @@ class TestPersistor(unittest.TestCase):
     result = persistor_.Persistor.save([self.settings], ['persistent'])
     
     self.assertEqual(result.status, persistor_.Persistor.FAIL)
+  
+  def test_save_ignore_settings_with_source_name_not_matching_specified_sources(
+        self, mock_gimp_module, mock_gimp_shelf):
+    settings = stubs_group.create_test_settings_with_specific_setting_sources()
+    
+    persistor_.Persistor.set_default_setting_sources(self.sources_for_persistor)
+    
+    settings['main/file_extension'].set_value('jpg')
+    settings['advanced/flatten'].set_value(True)
+    settings['advanced/use_layer_size'].set_value(True)
+    
+    save_result = persistor_.Persistor.save([settings], ['session'])
+    
+    settings['main/file_extension'].reset()
+    settings['advanced/flatten'].reset()
+    settings['advanced/use_layer_size'].reset()
+    
+    load_result = persistor_.Persistor.load([settings], ['session'])
+    
+    self.assertEqual(save_result.status, persistor_.Persistor.SUCCESS)
+    self.assertEqual(load_result.status, persistor_.Persistor.SUCCESS)
+    self.assertEqual(settings['main/file_extension'].value, 'png')
+    # This setting is ignored
+    self.assertEqual(settings['advanced/flatten'].value, False)
+    self.assertEqual(settings['advanced/use_layer_size'].value, True)
+    
+    settings['main/file_extension'].set_value('jpg')
+    
+    save_result = persistor_.Persistor.save([settings], ['persistent'])
+    
+    settings['main/file_extension'].reset()
+    settings['advanced/flatten'].reset()
+    settings['advanced/use_layer_size'].reset()
+    
+    load_result = persistor_.Persistor.load([settings], ['persistent'])
+    
+    self.assertEqual(save_result.status, persistor_.Persistor.SUCCESS)
+    self.assertEqual(load_result.status, persistor_.Persistor.SUCCESS)
+    self.assertEqual(settings['main/file_extension'].value, 'jpg')
+    # This setting is ignored
+    self.assertEqual(settings['advanced/flatten'].value, False)
+    self.assertEqual(settings['advanced/use_layer_size'].value, False)
+    
+    self.assertFalse(settings['main/file_extension'].tags)
+    self.assertSetEqual(settings['advanced/flatten'].tags, set(['ignore_load', 'ignore_save']))
+    self.assertFalse(settings['advanced/use_layer_size'].tags)
   
   def test_save_fail_for_one_source(self, mock_gimp_module, mock_gimp_shelf):
     self.session_source.read_data_from_source = mock.Mock(

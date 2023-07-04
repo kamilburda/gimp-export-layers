@@ -27,6 +27,9 @@ __all__ = [
 
 SETTING_PATH_SEPARATOR = '/'
 SETTING_ATTRIBUTE_SEPARATOR = '.'
+  
+IGNORE_LOAD_TAG = 'ignore_load'
+IGNORE_SAVE_TAG = 'ignore_save'
 
 
 class SettingParentMixin(object):
