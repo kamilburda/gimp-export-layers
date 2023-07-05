@@ -84,6 +84,8 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   * `tags` - A set of arbitrary tags attached to the group. Tags can be used to
     e.g. iterate over a specific subset of settings.
   
+  * `setting_sources` - See the `setting_sources` property.
+  
   * `setting_attributes` (read-only) - Dictionary of (setting attribute: value)
     pairs to assign to each setting in the group. Attributes in individual
     settings override these attributes.
@@ -95,6 +97,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         display_name=None,
         description=None,
         tags=None,
+        setting_sources=None,
         setting_attributes=None):
     super().__init__()
     
@@ -108,6 +111,8 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       description, self._display_name)
     
     self._tags = set(tags) if tags is not None else set()
+    
+    self._setting_sources = setting_sources
     
     self._setting_attributes = (
       setting_attributes if setting_attributes is not None else {})
@@ -130,12 +135,22 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     return self._description
   
   @property
-  def setting_attributes(self):
-    return self._setting_attributes
-  
-  @property
   def tags(self):
     return self._tags
+  
+  @property
+  def setting_sources(self):
+    """Groups of setting sources to use when loading or saving the group
+    (including all its children).
+    
+    If `None`, default settings sources as returned by
+    `setting.persistor.Persistor.get_default_setting_sources()` are used.
+    """
+    return self._setting_sources
+  
+  @property
+  def setting_attributes(self):
+    return self._setting_attributes
   
   def __str__(self):
     return pgutils.stringify_object(self, self.name)
