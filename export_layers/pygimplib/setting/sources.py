@@ -61,17 +61,24 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     currently running GIMP instance is closed).
   """
   
+  _IGNORE_LOAD_TAG = 'ignore_load'
+  _IGNORE_SAVE_TAG = 'ignore_save'
+  
   _MAX_LENGTH_OF_OBJECT_AS_STRING_ON_ERROR_OUTPUT = 512
   
   def __init__(self, source_name, source_type):
     self.source_name = source_name
     self.source_type = source_type
     
-    self._settings_not_found = []
+    self._settings_not_loaded = []
   
   @property
-  def settings_not_found(self):
-    return list(self._settings_not_found)
+  def settings_not_loaded(self):
+    """List of all settings and groups that were not found in the data or their
+    `setting_source` attribute is not `None` and does does not contain
+    `source_type`.
+    """
+    return list(self._settings_not_loaded)
   
   def read(self, settings_or_groups):
     """Reads setting attributes from data and assigns them to existing settings
@@ -81,9 +88,20 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     If a setting value from the source is invalid, the setting will be reset to
     its default value.
     
-    All settings that were not found in the source will be stored in the
-    `settings_not_found` property. This property is reset on each call to
+    All settings that were not loaded in the source will be stored in the
+    `settings_not_loaded` property. This property is reset on each call to
     `read()`.
+    
+    The following criteria determine whether a setting specified in
+    `setting_or_groups` is not loaded:
+    
+    * The setting is not found in the source.
+    
+    * The setting or any of its parent groups contains 'ignore_load' in its
+      `tags` attribute.
+    
+    * The setting does not contain `source_type` in its `setting_sources`
+      attribute.
     
     Raises:
     
@@ -97,7 +115,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       raise SourceNotFoundError(
         _('Could not find setting source "{}".').format(self.source_name))
     
-    self._settings_not_found = []
+    self._settings_not_loaded = []
     
     self._update_settings(settings_or_groups, data)
   
@@ -119,7 +137,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         else:
           raise TypeError('settings_or_groups must contain only Setting or Group instances')
       else:
-        self._settings_not_found.append(setting_or_group)
+        self._settings_not_loaded.append(setting_or_group)
   
   def _create_data_dict(self, data):
     # Creates a (setting/group path, dict/list representing the setting/group) mapping.
@@ -156,7 +174,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     return data_dict
   
   def _update_group(self, group, group_dict, group_path, data_dict):
-    if utils_.IGNORE_LOAD_TAG in group.tags:
+    if not self._should_group_be_loaded(group):
       return
     
     matching_dicts = self._get_matching_dicts_for_group_path(data_dict, group_path)
@@ -198,7 +216,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     for child in group.walk(include_groups=True):
       child_path = child.get_path()
       
-      if utils_.IGNORE_LOAD_TAG in child.tags:
+      if self._IGNORE_LOAD_TAG in child.tags:
         prefixes_to_ignore.add(child_path)
       
       if any(child_path.startswith(prefix) for prefix in prefixes_to_ignore):
@@ -210,9 +228,9 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         if isinstance(child, group_.Group):
           # Only append empty groups since non-empty groups are further descended.
           if len(child) == 0:
-            self._settings_not_found.append(child)
+            self._settings_not_loaded.append(child)
         else:
-          self._settings_not_found.append(child)
+          self._settings_not_loaded.append(child)
     
     matching_children[group_path] = group
     
@@ -222,7 +240,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     filtered_matching_dicts = collections.OrderedDict()
     
     for path, dict_ in matching_dicts.items():
-      if utils_.IGNORE_LOAD_TAG in dict_.get('tags', []) and path not in matching_children:
+      if self._IGNORE_LOAD_TAG in dict_.get('tags', []) and path not in matching_children:
         prefixes_to_ignore.add(path)
       
       if any(path.startswith(prefix) for prefix in prefixes_to_ignore):
@@ -233,7 +251,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     return filtered_matching_dicts
   
   def _update_setting(self, setting, setting_dict):
-    if utils_.IGNORE_LOAD_TAG in setting.tags:
+    if not self._should_setting_be_loaded(setting):
       return
     
     try:
@@ -241,7 +259,30 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     except settings_.SettingValueError:
       setting.reset()
   
+  def _should_setting_be_loaded(self, setting):
+    if self._IGNORE_LOAD_TAG in setting.tags:
+      return False
+    
+    if setting.setting_sources is not None and self.source_type not in setting.setting_sources:
+      self._settings_not_loaded.append(setting)
+      return False
+    
+    return True
+  
+  def _should_group_be_loaded(self, group):
+    return self._IGNORE_LOAD_TAG not in group.tags
+  
+  def _should_dict_be_loaded(self, dict_):
+    setting_sources = dict_.get('setting_sources', None)
+    if setting_sources is not None and self.source_type not in setting_sources:
+      return False
+    
+    return True
+  
   def _add_setting_to_parent_group(self, dict_, path, matching_children):
+    if not self._should_dict_be_loaded(dict_):
+      return
+    
     parent_path = path.rsplit(utils_.SETTING_PATH_SEPARATOR, 1)[0]
     
     # If the assertion fails for some reason, then `matching_dicts` does not
@@ -289,6 +330,15 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     Settings in the source but not specified in `settings_or_groups` are kept
     intact.
     
+    Some settings may not be saved. The following criteria determine whether a
+    setting is not saved:
+    
+    * The setting or any of its parent groups contains 'ignore_save' in its
+      `tags` attribute.
+    
+    * The setting does not contain `source_type` in its `setting_sources`
+      attribute.
+    
     Raises:
     
     * `SourceInvalidFormatError` - Existing data in the source have an invalid
@@ -325,7 +375,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         raise TypeError('settings_or_groups must contain only Setting or Group instances')
   
   def _setting_to_data(self, group_list, setting):
-    if utils_.IGNORE_SAVE_TAG in setting.tags:
+    if self._IGNORE_SAVE_TAG in setting.tags:
       return
     
     setting_dict, index = self._find_dict(group_list, setting)
@@ -337,7 +387,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       group_list.append(setting.to_dict(source_type=self.source_type))
   
   def _group_to_data(self, group_list, group):
-    if utils_.IGNORE_SAVE_TAG in group.tags:
+    if self._IGNORE_SAVE_TAG in group.tags:
       return
     
     settings_or_groups_and_dicts = [(group, group_list)]
@@ -348,7 +398,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       if isinstance(setting_or_group, settings_.Setting):
         self._setting_to_data(parent_list, setting_or_group)
       elif isinstance(setting_or_group, group_.Group):
-        if utils_.IGNORE_SAVE_TAG in setting_or_group.tags:
+        if self._IGNORE_SAVE_TAG in setting_or_group.tags:
           continue
         
         current_group_dict = self._find_dict(parent_list, setting_or_group)[0]

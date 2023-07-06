@@ -103,7 +103,7 @@ def create_test_settings_with_specific_setting_sources():
     {
       'type': 'boolean',
       'name': 'use_layer_size',
-      'default_value': False
+      'default_value': False,
     },
   ])
   

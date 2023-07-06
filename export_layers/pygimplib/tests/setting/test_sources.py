@@ -304,17 +304,17 @@ class TestSourceRead(unittest.TestCase):
        self.settings['main/procedures/use_layer_size']])
     
     self.assertListEqual(
-      self.source.settings_not_found,
+      self.source.settings_not_loaded,
       [self.settings['main/file_extension'],
        self.settings['main/procedures/insert_background_layers'],
        # Missing settings and empty groups must be expanded.
        self.settings['main/procedures/use_layer_size/enabled'],
        self.settings['main/procedures/use_layer_size/arguments']])
     
-    # Test if `settings_not_found` is reset on each call to `read()`
+    # Test if `settings_not_loaded` is reset on each call to `read()`
     self.source.read([self.settings['main/constraints']])
     
-    self.assertListEqual(self.source.settings_not_found, [self.settings['main/constraints']])
+    self.assertListEqual(self.source.settings_not_loaded, [self.settings['main/constraints']])
   
   def test_read_creates_new_child_groups_and_settings_if_missing(self):
     self.source.data = _test_data_for_read_write()
@@ -420,7 +420,7 @@ class TestSourceRead(unittest.TestCase):
     
     self.source.read([self.settings])
     
-    self.assertFalse(bool(self.source.settings_not_found))
+    self.assertFalse(self.source.settings_not_loaded)
     # The tag was not found in the code. Any attribute except 'value' in the
     # source is ignored. Therefore, the setting value is overridden.
     self.assertEqual(self.settings['main/file_extension'].value, 'png')
@@ -436,7 +436,7 @@ class TestSourceRead(unittest.TestCase):
     # Setting does not exist in the code, exists in the source but is not loaded
     self.assertNotIn('new_setting', self.settings['main/procedures'])
     # The tag exists in a group in the code and any child in the source is ignored
-    self.assertFalse(bool(list(self.settings['main/constraints'])))
+    self.assertFalse(list(self.settings['main/constraints']))
   
   def test_read_invalid_setting_value_set_to_default_value(self):
     setting_dict = {

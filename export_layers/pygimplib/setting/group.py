@@ -530,6 +530,9 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     """Loads settings in the current group from the specified setting source(s).
     
     See `setting.persistor.Persistor.load()` for information about parameters.
+    
+    If the `tags` attribute contains `'ignore_load'`, this method will have no
+    effect.
     """
     return persistor_.Persistor.load([self], **kwargs)
   
@@ -538,6 +541,9 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     source(s).
     
     See `setting.persistor.Persistor.save()` for information about parameters.
+    
+    If the `tags` attribute contains `'ignore_save'`, this method will have no
+    effect.
     """
     return persistor_.Persistor.save([self], **kwargs)
   

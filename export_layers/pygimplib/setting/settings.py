@@ -291,6 +291,8 @@ class Setting(
       This parameter does not have any effect if the GUI type used in
       this setting cannot provide automatic GUI-to-setting update.
     
+    * `setting_sources` - See the `setting_sources` property.
+    
     * `error_messages`- A dictionary containing (message name, message contents)
       pairs. Use this to pass custom error messages. This way, you may also
       override default error messages defined in classes.
@@ -608,6 +610,9 @@ class Setting(
     source(s).
     
     See `setting.persistor.Persistor.load()` for information about parameters.
+    
+    If the `tags` attribute contains `'ignore_load'`, this method will have no
+    effect.
     """
     return persistor_.Persistor.load([self], **kwargs)
   
@@ -615,6 +620,9 @@ class Setting(
     """Saves the current setting value to the specified setting source(s).
     
     See `setting.persistor.Persistor.save()` for information about parameters.
+    
+    If the `tags` attribute contains `'ignore_save'`, this method will have no
+    effect.
     """
     return persistor_.Persistor.save([self], **kwargs)
   

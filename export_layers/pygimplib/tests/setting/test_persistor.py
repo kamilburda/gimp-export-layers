@@ -232,7 +232,7 @@ class TestPersistor(unittest.TestCase):
   def test_load_settings_source_not_found(self, mock_gimp_module, mock_gimp_shelf):
     result = persistor_.Persistor.load([self.settings], self.sources_for_persistor)
     self.assertEqual(result.status, persistor_.Persistor.FAIL)
-    self.assertTrue(bool(result.settings_not_found))
+    self.assertTrue(bool(result.settings_not_loaded))
   
   def test_load_settings_not_found(self, mock_gimp_module, mock_gimp_shelf):
     self.session_source.write([self.settings['flatten']])
@@ -242,11 +242,11 @@ class TestPersistor(unittest.TestCase):
       [self.settings['overwrite_mode']], self.sources_for_persistor)
     
     self.assertEqual(result.status, persistor_.Persistor.PARTIAL_SUCCESS)
-    self.assertTrue(bool(result.settings_not_found))
+    self.assertTrue(bool(result.settings_not_loaded))
     self.assertListEqual(
-      self.session_source.settings_not_found, [self.settings['overwrite_mode']])
+      self.session_source.settings_not_loaded, [self.settings['overwrite_mode']])
     self.assertListEqual(
-      self.persistent_source.settings_not_found, [self.settings['overwrite_mode']])
+      self.persistent_source.settings_not_loaded, [self.settings['overwrite_mode']])
   
   def test_load_child_settings_not_found_in_first_but_subsequent_sources(
         self, mock_gimp_module, mock_gimp_shelf):
@@ -278,11 +278,11 @@ class TestPersistor(unittest.TestCase):
     
     self.assertEqual(result.status, persistor_.Persistor.SUCCESS)
     self.assertListEqual(
-      self.session_source.settings_not_found,
+      self.session_source.settings_not_loaded,
       [settings['advanced/overwrite_mode'], settings['advanced/arguments/tag']])
-    self.assertFalse(self.persistent_source.settings_not_found)
+    self.assertFalse(self.persistent_source.settings_not_loaded)
   
-  def test_load_ignore_settings_with_source_name_not_matching_specified_sources(
+  def test_load_do_not_load_settings_with_source_name_not_matching_specified_sources(
         self, mock_gimp_module, mock_gimp_shelf):
     settings = stubs_group.create_test_settings_with_specific_setting_sources()
     
@@ -300,7 +300,8 @@ class TestPersistor(unittest.TestCase):
     
     result = persistor_.Persistor.load([settings], ['session'])
     
-    self.assertEqual(result.status, persistor_.Persistor.SUCCESS)
+    self.assertEqual(result.status, persistor_.Persistor.PARTIAL_SUCCESS)
+    self.assertEqual(result.settings_not_loaded, [settings['main/file_extension']])
     self.assertEqual(settings['main/file_extension'].value, 'png')
     self.assertEqual(settings['advanced/flatten'].value, True)
     self.assertEqual(settings['advanced/use_layer_size'].value, True)
@@ -377,7 +378,8 @@ class TestPersistor(unittest.TestCase):
     load_result = persistor_.Persistor.load([settings], ['session'])
     
     self.assertEqual(save_result.status, persistor_.Persistor.SUCCESS)
-    self.assertEqual(load_result.status, persistor_.Persistor.SUCCESS)
+    self.assertEqual(load_result.status, persistor_.Persistor.PARTIAL_SUCCESS)
+    self.assertEqual(load_result.settings_not_loaded, [settings['main/file_extension']])
     self.assertEqual(settings['main/file_extension'].value, 'png')
     # This setting is ignored
     self.assertEqual(settings['advanced/flatten'].value, False)
@@ -394,7 +396,8 @@ class TestPersistor(unittest.TestCase):
     load_result = persistor_.Persistor.load([settings], ['persistent'])
     
     self.assertEqual(save_result.status, persistor_.Persistor.SUCCESS)
-    self.assertEqual(load_result.status, persistor_.Persistor.SUCCESS)
+    self.assertEqual(load_result.status, persistor_.Persistor.PARTIAL_SUCCESS)
+    self.assertEqual(load_result.settings_not_loaded, [settings['advanced/use_layer_size']])
     self.assertEqual(settings['main/file_extension'].value, 'jpg')
     # This setting is ignored
     self.assertEqual(settings['advanced/flatten'].value, False)
@@ -437,6 +440,113 @@ class TestPersistor(unittest.TestCase):
     self.assertEqual(
       result.statuses_per_source[self.sources_for_persistor['session']],
       persistor_.Persistor.FAIL)
+
+
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
+  new_callable=stubs_gimp.ShelfStub)
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimp',
+  new_callable=stubs_gimp.GimpModuleStub)
+class TestLoadSaveFromSettingsAndGroups(unittest.TestCase):
+  
+  @classmethod
+  def setUpClass(cls):
+    cls.orig_default_setting_sources = persistor_.Persistor.get_default_setting_sources()
+  
+  @classmethod
+  def tearDownClass(cls):
+    persistor_.Persistor.set_default_setting_sources(cls.orig_default_setting_sources)
+  
+  @mock.patch(
+    pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
+    new=stubs_gimp.ShelfStub())
+  @mock.patch(
+    pgutils.get_pygimplib_module_path() + '.setting.sources.gimp.directory',
+    new='gimp_directory')
+  def setUp(self):
+    self.settings = stubs_group.create_test_settings_with_specific_setting_sources()
+    self.session_source = sources_.GimpShelfSource('')
+    self.persistent_source = sources_.GimpParasiteSource('')
+    
+    self.sources_for_persistor = collections.OrderedDict([
+      ('session', self.session_source),
+      ('persistent', self.persistent_source)])
+  
+  def test_load_save_setting(self, mock_gimp_module, mock_gimp_shelf):
+    self.settings['main/file_extension'].set_value('jpg')
+    self.settings['advanced/flatten'].set_value(True)
+    self.settings['advanced/use_layer_size'].set_value(True)
+    
+    self.settings['main/file_extension'].save()
+    
+    self.settings['main/file_extension'].reset()
+    self.settings['advanced/flatten'].reset()
+    self.settings['advanced/use_layer_size'].reset()
+    
+    self.settings['main/file_extension'].load()
+    
+    self.assertEqual(self.settings['main/file_extension'].value, 'jpg')
+    self.assertEqual(self.settings['advanced/flatten'].value, False)
+    self.assertEqual(self.settings['advanced/use_layer_size'].value, False)
+  
+  def test_load_setting_has_no_effect_if_setting_has_ignore_tag(
+        self, mock_gimp_module, mock_gimp_shelf):
+    self.settings['main/file_extension'].tags.add('ignore_load')
+    
+    self.settings['main/file_extension'].set_value('jpg')
+    self.settings['advanced/flatten'].set_value(True)
+    self.settings['advanced/use_layer_size'].set_value(True)
+    
+    self.settings['main/file_extension'].save()
+    
+    self.settings['main/file_extension'].reset()
+    self.settings['advanced/flatten'].reset()
+    self.settings['advanced/use_layer_size'].reset()
+    
+    self.settings['main/file_extension'].load()
+    
+    self.assertEqual(self.settings['main/file_extension'].value, 'png')
+    self.assertEqual(self.settings['advanced/flatten'].value, False)
+    self.assertEqual(self.settings['advanced/use_layer_size'].value, False)
+  
+  def test_load_save_group(self, mock_gimp_module, mock_gimp_shelf):
+    self.settings['main/file_extension'].set_value('jpg')
+    self.settings['advanced/flatten'].set_value(True)
+    self.settings['advanced/use_layer_size'].set_value(True)
+    
+    self.settings['advanced'].save()
+    
+    self.settings['main/file_extension'].reset()
+    self.settings['advanced/flatten'].reset()
+    self.settings['advanced/use_layer_size'].reset()
+    
+    self.settings['advanced'].load()
+    
+    self.assertEqual(self.settings['main/file_extension'].value, 'png')
+    # Setting is ignored
+    self.assertEqual(self.settings['advanced/flatten'].value, False)
+    self.assertEqual(self.settings['advanced/use_layer_size'].value, True)
+  
+  def test_load_group_has_no_effect_if_group_has_ignore_tag(
+        self, mock_gimp_module, mock_gimp_shelf):
+    self.settings['advanced'].tags.add('ignore_load')
+    
+    self.settings['main/file_extension'].set_value('jpg')
+    self.settings['advanced/flatten'].set_value(True)
+    self.settings['advanced/use_layer_size'].set_value(True)
+    
+    self.settings['advanced'].save()
+    
+    self.settings['main/file_extension'].reset()
+    self.settings['advanced/flatten'].reset()
+    self.settings['advanced/use_layer_size'].reset()
+    
+    self.settings['advanced'].load()
+    
+    self.assertEqual(self.settings['main/file_extension'].value, 'png')
+    self.assertEqual(self.settings['advanced/flatten'].value, False)
+    self.assertEqual(self.settings['advanced/use_layer_size'].value, False)
 
 
 @mock.patch(

@@ -128,7 +128,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(status, update.CLEAR_SETTINGS)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     self.assertEqual(load_result.status, pg.setting.Persistor.PARTIAL_SUCCESS)
-    self.assertTrue(bool(load_result.settings_not_found))
+    self.assertTrue(bool(load_result.settings_not_loaded))
   
   def test_ask_to_clear_positive_response(
         self,
@@ -148,7 +148,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(status, update.CLEAR_SETTINGS)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     self.assertEqual(load_result.status, pg.setting.Persistor.PARTIAL_SUCCESS)
-    self.assertTrue(bool(load_result.settings_not_found))
+    self.assertTrue(bool(load_result.settings_not_loaded))
   
   def test_ask_to_clear_negative_response(
         self,
