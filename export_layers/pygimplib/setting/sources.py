@@ -375,7 +375,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         raise TypeError('settings_or_groups must contain only Setting or Group instances')
   
   def _setting_to_data(self, group_list, setting):
-    if self._IGNORE_SAVE_TAG in setting.tags:
+    if not self._should_setting_be_saved(setting):
       return
     
     setting_dict, index = self._find_dict(group_list, setting)
@@ -387,7 +387,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       group_list.append(setting.to_dict(source_type=self.source_type))
   
   def _group_to_data(self, group_list, group):
-    if self._IGNORE_SAVE_TAG in group.tags:
+    if not self._should_group_be_saved(group):
       return
     
     settings_or_groups_and_dicts = [(group, group_list)]
@@ -412,6 +412,18 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
             0, (child_setting_or_group, current_group_dict['settings']))
       else:
         raise TypeError('only Setting or Group instances are allowed as the first element')
+  
+  def _should_setting_be_saved(self, setting):
+    if self._IGNORE_SAVE_TAG in setting.tags:
+      return False
+    
+    if setting.setting_sources is not None and self.source_type not in setting.setting_sources:
+      return False
+    
+    return True
+  
+  def _should_group_be_saved(self, group):
+    return self._IGNORE_SAVE_TAG not in group.tags
   
   def _find_dict(self, data_list, setting_or_group):
     self._check_if_is_list(data_list)

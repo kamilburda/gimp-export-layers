@@ -111,3 +111,42 @@ def create_test_settings_with_specific_setting_sources():
   settings.add([main_settings, advanced_settings])
   
   return settings
+
+
+def create_test_data_with_specific_setting_sources():
+  return [
+    {
+      'name': 'settings',
+      'settings': [
+        {
+          'name': 'main',
+          'settings': [
+            {
+              'type': 'file_extension',
+              'name': 'file_extension',
+              'value': 'png',
+              'setting_sources': ['persistent'],
+            },
+          ],
+        },
+        {
+          'name': 'advanced',
+          'settings': [
+            {
+              'type': 'boolean',
+              'name': 'flatten',
+              'value': False,
+              'setting_sources': ['persistent', 'session'],
+              'tags': ['ignore_load', 'ignore_save'],
+            },
+            {
+              'type': 'boolean',
+              'name': 'use_layer_size',
+              'value': False,
+              'setting_sources': ['session'],
+            },
+          ],
+        },
+      ],
+    }
+  ]
