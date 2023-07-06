@@ -671,3 +671,24 @@ class TestLoadSaveEvents(unittest.TestCase):
       persistor_.Persistor.save([self.setting], self.session_source_dict)
     
     self.assertEqual(self.flatten.value, True)
+  
+  def test_event_triggering_is_not_enabled(self, mock_session_source):
+    self.setting.set_value('gif')
+    
+    self.setting.connect_event(
+      'before-save', stubs_setting.on_file_extension_changed, self.flatten)
+    
+    self.setting.connect_event(
+      'before-load', stubs_setting.on_file_extension_changed, self.flatten)
+    
+    persistor_.Persistor.save(
+      [self.setting, self.flatten], self.session_source_dict, trigger_events=False)
+    
+    self.assertEqual(self.setting.value, 'gif')
+    self.assertEqual(self.flatten.value, False)
+    
+    persistor_.Persistor.load(
+      [self.setting, self.flatten], self.session_source_dict, trigger_events=False)
+    
+    self.assertEqual(self.setting.value, 'gif')
+    self.assertEqual(self.flatten.value, False)
