@@ -470,6 +470,19 @@ class TestSourceRead(unittest.TestCase):
     self.assertIn('advanced/tag', settings)
     self.assertNotIn('advanced/enabled', settings)
   
+  def test_read_order_of_settings_in_source_has_no_effect_if_settings_exist_in_memory(self):
+    self.settings['main/procedures'].reorder('use_layer_size', 1)
+    
+    self.settings['main/procedures/use_layer_size/enabled'].set_value(False)
+    self.settings['main/procedures/insert_background_layers/enabled'].set_value(False)
+    
+    self.source.data = _test_data_for_read_write()
+    
+    self.source.read([self.settings])
+    
+    self.assertEqual(self.settings['main/procedures/use_layer_size/enabled'].value, True)
+    self.assertEqual(self.settings['main/procedures/insert_background_layers/enabled'].value, True)
+  
   def test_read_invalid_setting_value_set_to_default_value(self):
     setting_dict = {
       'name': 'some_number',
