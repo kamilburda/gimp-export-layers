@@ -366,6 +366,56 @@ class TestGroup(unittest.TestCase):
         'nonexistent_setting': 'jpg',
       })
   
+  @parameterized.parameterized.expand([
+    ('positive_index',
+     'file_extension',
+     2,
+     ['flatten', 'overwrite_mode', 'file_extension']),
+    
+    ('positive_index_beyond_group_length',
+     'file_extension',
+     4,
+     ['flatten', 'overwrite_mode', 'file_extension']),
+    
+    ('same_index',
+     'file_extension',
+     0,
+     ['file_extension', 'flatten', 'overwrite_mode']),
+    
+    ('negative_index',
+     'file_extension',
+     -2,
+     ['flatten', 'file_extension', 'overwrite_mode']),
+  ])
+  def test_reorder(self, test_case_name_suffix, setting_name, new_position, expected_names):
+    self.settings.reorder(setting_name, new_position)
+    
+    expected_list = [self.settings[name] for name in expected_names]
+    
+    self.assertListEqual(list(self.settings), expected_list)
+  
+  def test_reorder_multiple_times(self):
+    self.settings.reorder('file_extension', 2)
+    self.settings.reorder('file_extension', 1)
+    
+    expected_list = [
+      self.settings[name] for name in ['flatten', 'file_extension', 'overwrite_mode']]
+    
+    self.assertListEqual(list(self.settings), expected_list)
+  
+  def test_reorder_does_not_affect_order_outside_current_group(self):
+    settings = stubs_group.create_test_settings_hierarchical()
+    
+    settings['main'].add([{'name': 'enabled', 'type': 'boolean'}])
+    
+    settings['advanced'].reorder('flatten', 1)
+    
+    self.assertListEqual(
+      list(settings.walk(include_groups=True)),
+      [settings[path] for path in [
+        'main', 'main/file_extension', 'main/enabled',
+        'advanced', 'advanced/overwrite_mode', 'advanced/flatten']])
+  
   def test_remove_settings(self):
     self.settings.remove(['file_extension', 'flatten'])
     self.assertNotIn('file_extension', self.settings)

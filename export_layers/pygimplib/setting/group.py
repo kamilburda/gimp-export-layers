@@ -113,6 +113,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       setting_attributes if setting_attributes is not None else {})
     
     self._settings = collections.OrderedDict()
+    self._setting_list = []
     
     # Used in `_next()`
     self._settings_iterator = None
@@ -197,19 +198,21 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     return setting
   
   def __iter__(self):
-    """
-    Iterate over settings in the order they were created or added.
+    """Iterates over child settings or groups.
     
     This method does not iterate over nested groups. Use `walk()` in that case.
+    
+    By default, the children are iterated in the order they were created or
+    added into the group. The order of children can be modified via `reorder()`.
     """
-    for setting in self._settings.values():
+    for setting in self._setting_list:
       yield setting
   
   def __len__(self):
     return len(self._settings)
   
   def __reversed__(self):
-    return reversed(self._settings.values())
+    return reversed(self._setting_list)
   
   def get_path(self, relative_path_group=None):
     """
@@ -267,6 +270,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       raise ValueError('cannot add {} as a child of itself'.format(setting))
     
     self._settings[setting.name] = setting
+    self._setting_list.append(setting)
     
     return setting
   
@@ -316,6 +320,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       raise TypeError(message)
     
     self._settings[setting_data_copy['name']] = setting
+    self._setting_list.append(setting)
     
     return setting
   
@@ -424,6 +429,29 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     for setting_name, value in settings_and_values.items():
       self[setting_name].set_value(value)
   
+  def reorder(self, setting_name, new_position):
+    """Reorders a child setting to the new position.
+    
+    `setting_name` is the name of the child setting.
+    
+    A negative position functions as an n-th to last position (-1 for last, -2
+    for second to last, etc.).
+      
+    Raises:
+    * `ValueError` - `setting_name` does not match any child setting.
+    """
+    try:
+      setting = self._settings[setting_name]
+    except KeyError:
+      raise KeyError('setting "{}" not found'.format(setting_name))
+    
+    self._setting_list.remove(setting)
+    
+    if new_position < 0:
+      new_position = max(len(self._setting_list) + new_position + 1, 0)
+    
+    self._setting_list.insert(new_position, setting)
+  
   def remove(self, setting_names):
     """
     Remove settings from the group specified by their names.
@@ -432,7 +460,9 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     """
     for setting_name in setting_names:
       if setting_name in self._settings:
+        setting = self._settings[setting_name]
         del self._settings[setting_name]
+        self._setting_list.remove(setting)
       else:
         raise KeyError('setting "{}" not found'.format(setting_name))
   
@@ -505,7 +535,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     Return the next element when iterating the settings. Used by `walk()`.
     """
     if self._settings_iterator is None:
-      self._settings_iterator = self._settings.itervalues()
+      self._settings_iterator = iter(self._setting_list)
     
     try:
       next_element = next(self._settings_iterator)
