@@ -390,8 +390,8 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     if not self._should_group_be_saved(group):
       return
     
-    # Remove the group completely from the data as its child settings may be
-    # reordered or removed.
+    # Clear the group in the source as its child settings may be reordered or
+    # removed in the memory.
     self._clear_group_in_data(group, group_list)
     
     settings_or_groups_and_dicts = [(group, group_list)]
