@@ -390,6 +390,10 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     if not self._should_group_be_saved(group):
       return
     
+    # Remove the group completely from the data as its child settings may be
+    # reordered or removed.
+    self._clear_group_in_data(group, group_list)
+    
     settings_or_groups_and_dicts = [(group, group_list)]
     
     while settings_or_groups_and_dicts:
@@ -398,7 +402,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
       if isinstance(setting_or_group, settings_.Setting):
         self._setting_to_data(parent_list, setting_or_group)
       elif isinstance(setting_or_group, group_.Group):
-        if self._IGNORE_SAVE_TAG in setting_or_group.tags:
+        if not self._should_group_be_saved(setting_or_group):
           continue
         
         current_group_dict = self._find_dict(parent_list, setting_or_group)[0]
@@ -424,6 +428,12 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
   
   def _should_group_be_saved(self, group):
     return self._IGNORE_SAVE_TAG not in group.tags
+  
+  def _clear_group_in_data(self, group, parent_list):
+    group_in_parent, index = self._find_dict(parent_list, group)
+    
+    if group_in_parent is not None:
+      parent_list[index]['settings'] = []
   
   def _find_dict(self, data_list, setting_or_group):
     self._check_if_is_list(data_list)

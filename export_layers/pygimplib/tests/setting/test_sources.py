@@ -648,6 +648,7 @@ class TestSourceWrite(unittest.TestCase):
     expected_data[0]['settings'][2]['value'] = 'something_else'
     
     self.source.data = _test_data_for_read_write()
+    
     self.source.write([self.settings['main/procedures'], self.settings['standalone_setting']])
     
     self.assertListEqual(self.source.data, expected_data)
@@ -709,7 +710,7 @@ class TestSourceWrite(unittest.TestCase):
     
     self.assertListEqual(self.source.data, expected_data)
   
-  def test_write_ignore_settings_with_ignore_save_tag(self):
+  def test_write_ignores_settings_with_ignore_save_tag(self):
     self.source.data = _test_data_for_read_write()
     
     self.settings['main/file_extension'].set_value('jpg')
@@ -729,18 +730,13 @@ class TestSourceWrite(unittest.TestCase):
     
     self.assertEqual(
       self.source.data[0]['settings'][0]['settings'][0]['value'], 'jpg')
-    # The tag exists in the setting
-    self.assertTrue(
-      self.source.data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][0]['value'])
-    # The tag exists in the parent
-    self.assertTrue(
-      self.source.data[0]['settings'][0]['settings'][1]['settings'][1]['settings'][0]['value'])
-    self.assertEqual(
-      self.source.data[0]['settings'][0]['settings'][1]['settings'][1]['settings'][1][
-        'settings'][0]['value'],
-      'background')
+    # 'main/procedures/use_layer_size/enabled' setting is not saved
+    self.assertFalse(
+      self.source.data[0]['settings'][0]['settings'][1]['settings'][0]['settings'][0]['settings'])
+    # 'main/procedures/insert_background_layers' group is not saved
+    self.assertEqual(len(self.source.data[0]['settings'][0]['settings'][1]['settings']), 1)
     # Child not present in data and the tag exists in the parent
-    self.assertFalse(self.source.data[0]['settings'][0]['settings'][2]['settings'])
+    self.assertEqual(len(self.source.data[0]['settings'][0]['settings']), 2)
   
   def test_write_settings_with_specific_setting_sources(self):
     settings = stubs_group.create_test_settings_with_specific_setting_sources()
@@ -756,6 +752,48 @@ class TestSourceWrite(unittest.TestCase):
     del expected_data[0]['settings'][1]['settings'][0]
     
     self.source.write([settings])
+    
+    self.assertEqual(self.source.data, expected_data)
+  
+  def test_write_setting_is_completely_overridden_and_extra_attributes_in_data_are_removed(self):
+    self.source.data = _test_data_for_read_write()
+    self.source.data[0]['settings'][0]['settings'][0]['setting_sources'] = ['session']
+    
+    expected_data = _test_data_for_read_write()
+    
+    self.source.write([self.settings])
+    
+    self.assertEqual(self.source.data, expected_data)
+  
+  def test_write_group_is_removed_and_stored_anew_in_data(self):
+    self.source.data = _test_data_for_read_write()
+    self.source.data[0]['settings'][0]['settings'][1]['settings'].append(
+      {
+        'name': 'new_group',
+        'settings': [
+          {
+            'name': 'enabled',
+            'type': 'boolean',
+          },
+        ],
+      })
+    
+    expected_data = _test_data_for_read_write()
+    
+    self.source.write([self.settings])
+    
+    self.assertEqual(self.source.data, expected_data)
+  
+  def test_write_current_order_of_settings_within_group_is_applied_to_data(self):
+    self.settings['main/procedures'].reorder('use_layer_size', 1)
+    
+    self.source.data = _test_data_for_read_write()
+    
+    expected_data = _test_data_for_read_write()
+    use_layer_size_dict = expected_data[0]['settings'][0]['settings'][1]['settings'].pop(0)
+    expected_data[0]['settings'][0]['settings'][1]['settings'].append(use_layer_size_dict)
+    
+    self.source.write([self.settings])
     
     self.assertEqual(self.source.data, expected_data)
   
