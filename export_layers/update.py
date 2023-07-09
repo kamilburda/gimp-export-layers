@@ -263,30 +263,6 @@ def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_nam
         ])
       
       action.remove([orig_name])
-  
-  for added_data_dict in actions['_added_data'].value:
-    if orig_name in added_data_dict:
-      added_data_dict[new_name] = added_data_dict[orig_name]
-      del added_data_dict[orig_name]
-  
-  added_data_values_keys_to_rename = [
-    key for key in actions['_added_data_values'].value
-    if key.endswith(pg.setting.SETTING_PATH_SEPARATOR + orig_name)
-  ]
-  for key in added_data_values_keys_to_rename:
-    new_key = re.sub(
-      pg.setting.SETTING_PATH_SEPARATOR + orig_name + r'$',
-      pg.setting.SETTING_PATH_SEPARATOR + new_name,
-      key)
-    actions['_added_data_values'].value[new_key] = actions['_added_data_values'].value[key]
-    del actions['_added_data_values'].value[key]
-
-
-def _get_action_settings(settings):
-  return [
-    setting for setting in settings.walk()
-    if isinstance(setting, pg.setting.Setting) and 'action' in setting.parent.tags
-  ]
 
 
 def _get_actions(settings):
