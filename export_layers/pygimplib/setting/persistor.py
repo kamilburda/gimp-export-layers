@@ -79,8 +79,8 @@ class Persistor(object):
     Settings not found in any of the sources will also have their default values
     assigned.
     
-    The following events for each `Setting` instance (including child settings
-    in `Group` instances) within `settings_or_groups` are triggered:
+    The following events are triggered for each `Setting` and `Group` instance
+    within `settings_or_groups`, including child settings and groups:
     
     * `'before-load'` - invoked before loading settings. The event will not be
       triggered for settings present in the source but not in memory as they are
@@ -261,7 +261,7 @@ class Persistor(object):
   @classmethod
   def _trigger_event(cls, settings_or_groups, event_name, trigger_events):
     if trigger_events:
-      for setting in cls._list_settings(settings_or_groups):
+      for setting in cls._list_settings(settings_or_groups, include_groups=True):
         setting.invoke_event(event_name)
   
   @classmethod
@@ -343,6 +343,7 @@ class Persistor(object):
     for setting_or_group in settings_or_groups:
       if isinstance(setting_or_group, collections.Iterable):
         group = setting_or_group
+        settings.append(group)
         settings.extend(list(group.walk(**walk_kwargs)))
       else:
         setting = setting_or_group

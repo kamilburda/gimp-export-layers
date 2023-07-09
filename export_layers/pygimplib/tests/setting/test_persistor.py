@@ -672,6 +672,18 @@ class TestLoadSaveEvents(unittest.TestCase):
     
     self.assertEqual(self.flatten.value, True)
   
+  def test_events_are_triggered_for_groups_including_top_group(self, mock_session_source):
+    settings = stubs_group.create_test_settings_hierarchical()
+    
+    test_list = []
+    
+    settings.connect_event('before-save', lambda group: test_list.append(2))
+    settings['main'].connect_event('before-save', lambda group: test_list.append(4))
+    
+    persistor_.Persistor.save([settings])
+    
+    self.assertEqual(test_list, [2, 4])
+  
   def test_event_triggering_is_not_enabled(self, mock_session_source):
     self.setting.set_value('gif')
     
