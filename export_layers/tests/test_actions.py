@@ -363,6 +363,27 @@ class TestManageActions(unittest.TestCase):
     self.assertEqual(len(procedures), 1)
     self.assertIn('autocrop', procedures)
     self.assertNotIn('autocrop_background', procedures)
+  
+  def test_clear_triggers_events(self):
+    procedures = actions_.create('procedures', [self.autocrop_dict])
+    
+    for action_name in ['autocrop_background', 'autocrop_foreground']:
+      actions_.add(procedures, self.test_procedures[action_name])
+    
+    before_add_action_list = []
+    after_add_action_list = []
+    
+    procedures.connect_event(
+      'before-add-action', lambda group, dict_: before_add_action_list.append(dict_))
+    procedures.connect_event(
+      'after-add-action', lambda group, action, dict_: after_add_action_list.append(dict_))
+    
+    actions_.clear(procedures, add_initial_actions=True)
+    
+    self.assertEqual(len(before_add_action_list), 1)
+    self.assertEqual(before_add_action_list[0]['name'], 'autocrop')
+    self.assertEqual(len(after_add_action_list), 1)
+    self.assertEqual(after_add_action_list[0]['name'], 'autocrop')
 
 
 class TestWalkActions(unittest.TestCase):
@@ -565,6 +586,28 @@ class TestLoadSaveActions(unittest.TestCase):
     self.assertNotIn('autocrop', procedures)
     self.assertIn('autocrop_background', procedures)
     self.assertIn('autocrop_foreground', procedures)
+  
+  def test_load_triggers_after_add_action_events(
+        self, mock_persistent_source, mock_session_source):
+    procedures = actions_.create('procedures')
+    
+    for action_name in ['autocrop_background', 'autocrop_foreground']:
+      actions_.add(procedures, self.test_procedures[action_name])
+    
+    after_add_action_list = []
+    
+    procedures.connect_event(
+      'after-add-action',
+      lambda group, action, dict_: after_add_action_list.append((action, dict_)))
+    
+    procedures.save()
+    procedures.load()
+    
+    self.assertEqual(len(after_add_action_list), 2)
+    self.assertIn(after_add_action_list[0][0].name, 'autocrop_background')
+    self.assertIsNone(after_add_action_list[0][1])
+    self.assertIn(after_add_action_list[1][0].name, 'autocrop_foreground')
+    self.assertIsNone(after_add_action_list[1][1])
 
 
 class TestManagePdbProceduresAsActions(unittest.TestCase):

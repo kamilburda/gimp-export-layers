@@ -9,8 +9,6 @@ These events include:
 
 * `'before-add-action'` - invoked when:
   * calling `add()` before adding an action,
-  * calling `setting.Group.load()` or `setting.Persistor.load()` before loading
-    an action (loading an action counts as adding),
   * calling `clear()` before resetting actions (due to initial actions
     being added back).
   
@@ -19,12 +17,18 @@ These events include:
 * `'after-add-action'` - invoked when:
   * calling `add()` after adding an action,
   * calling `setting.Group.load()` or `setting.Persistor.load()` after loading
-    an action (loading an action counts as adding),
+    an action (loading an action counts as adding).
   * calling `clear()` after resetting actions (due to initial actions
     being added back).
   
-  Arguments: created action, original action dictionary (same as in
-  `'before-add-action'`)
+  Arguments:
+  
+  * created action,
+  
+  * original action dictionary (same as in `'before-add-action'`). When this
+    event is triggered in `setting.Group.load()` or `setting.Persistor.load()`,
+    this argument is `None` as there is no way to obtain the original
+    dictionary.
 
 * `'before-reorder-action'` - invoked when calling `reorder()` before
   reordering an action.
@@ -167,6 +171,7 @@ def create(name, initial_actions=None):
   _create_initial_actions(actions, initial_actions)
   
   actions.connect_event('before-load', lambda group: clear(group, add_initial_actions=False))
+  actions.connect_event('after-load', _trigger_after_add_action_after_loading)
   
   return actions
 
@@ -175,6 +180,11 @@ def _create_initial_actions(actions, initial_actions):
   if initial_actions is not None:
     for action_dict in initial_actions:
       add(actions, action_dict)
+
+
+def _trigger_after_add_action_after_loading(actions):
+  for action in actions:
+    actions.invoke_event('after-add-action', action, None)
 
 
 def add(actions, action_dict_or_function):
