@@ -605,7 +605,7 @@ class Setting(
     
     self.invoke_event('after-set-gui')
   
-  def load(self, **kwargs):
+  def load(self, *args, **kwargs):
     """Loads a value for the current setting from the specified setting
     source(s).
     
@@ -614,9 +614,9 @@ class Setting(
     If the `tags` attribute contains `'ignore_load'`, this method will have no
     effect.
     """
-    return persistor_.Persistor.load([self], **kwargs)
+    return persistor_.Persistor.load([self], *args, **kwargs)
   
-  def save(self, **kwargs):
+  def save(self, *args, **kwargs):
     """Saves the current setting value to the specified setting source(s).
     
     See `setting.persistor.Persistor.save()` for information about parameters.
@@ -624,7 +624,7 @@ class Setting(
     If the `tags` attribute contains `'ignore_save'`, this method will have no
     effect.
     """
-    return persistor_.Persistor.save([self], **kwargs)
+    return persistor_.Persistor.save([self], *args, **kwargs)
   
   def is_value_empty(self):
     """Returns `True` if the setting value is one of the empty values defined
