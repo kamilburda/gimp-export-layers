@@ -189,20 +189,6 @@ class TestSetting(unittest.TestCase):
         'gui_type': 'stub',
       })
   
-  def test_to_dict_with_varargs(self):
-    setting = stubs_setting.StubWithVarargsOnInitSetting(
-      'file_extension', 'one', 'two', default_value='png')
-    
-    self.assertDictEqual(
-      setting.to_dict(),
-      {
-        'name': 'file_extension',
-        'value': 'png',
-        'type': 'stub_with_varargs_on_init',
-        'default_value': 'png',
-        '_varargs': ['one', 'two'],
-      })
-  
   def test_to_dict_with_tags(self):
     tags = set(['ignore_reset', 'ignore_load'])
     expected_tags = list(tags)

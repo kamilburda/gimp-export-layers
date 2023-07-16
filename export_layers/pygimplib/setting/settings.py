@@ -667,8 +667,6 @@ class Setting(
       subclass
     * all positional and keyword argument names and values passed to
       `__init__()` that were used to instantiate the setting.
-    * `'_varargs'` containing a list of variable arguments (usually named
-      `*args`) if `__init__()` for a particular subclass accepts them.
     
     The dictionary can only contain keys as strings and values of one of the
     following types: `int`, `float`, `bool`, `str`, `list`, `dict`, `None`.

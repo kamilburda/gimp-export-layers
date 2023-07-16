@@ -120,14 +120,6 @@ class StubWithGuiSetting(StubSetting):
     StubWithoutGuiElementCreationPresenter]
 
 
-class StubWithVarargsOnInitSetting(settings_.Setting):
-  
-  def __init__(self, name, *args, **kwargs):
-    self.args = args
-    
-    settings_.Setting.__init__(self, name, **kwargs)
-
-
 def on_file_extension_changed(file_extension, flatten):
   if file_extension.value == 'png':
     flatten.set_value(False)

@@ -122,7 +122,9 @@ class SettingMeta(type):
           self._dict_on_init[arg_name] = arg
         
         if inspect.getargspec(orig_init)[1] is not None:
-          self._dict_on_init['_varargs'] = list(args[len(arg_names):])
+          raise TypeError(
+            ('__init__ in Setting subclasses must not accept variable positional arguments'
+             ' (found in "{}")').format(self.__class__.__name__))
       
       orig_init(self, *args, **kwargs)
     
