@@ -3,6 +3,10 @@
 """Main API to create plug-in settings and their associated GUI elements."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+
+# Workaround for `ColorSetting` to handle integer values properly.
+old_int = int
+
 from future.builtins import *
 import future.utils
 
@@ -1741,7 +1745,9 @@ class ColorSetting(Setting):
   
   def _raw_to_value(self, raw_value):
     if isinstance(raw_value, list):
-      return gimpcolor.RGB(*raw_value)
+      # `gimpcolor.RGB` expects native int types for some reason, so we
+      # cast the `newint` from the `future` library to its native Python counterpart.
+      return gimpcolor.RGB(*(old_int(future.utils.native(item)) for item in raw_value))
     else:
       return raw_value
   
