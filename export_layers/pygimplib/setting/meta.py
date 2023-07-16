@@ -186,20 +186,25 @@ def _register_type_and_aliases(namespace, cls, type_name, type_map, base_class_n
   processed_type_name = pgutils.safe_decode(type_name, 'utf-8')
   human_readable_name = _get_human_readable_class_name(processed_type_name, base_class_name)
   
-  if human_readable_name not in type_map._name_to_type_map and not namespace['_ABSTRACT']:
-    type_map._name_to_type_map[human_readable_name] = cls
-    type_map._type_to_names_map[cls].append(human_readable_name)
-    
-    if '_ALIASES' in namespace:
-      for alias in namespace['_ALIASES']:
-        if alias not in type_map._name_to_type_map:
-          type_map._name_to_type_map[alias] = cls
-        else:
-          raise TypeError(
-            'alias "{}" matches a {} class name or is already specified'.format(
-              alias, base_class_name))
-        
-        type_map._type_to_names_map[cls].append(alias)
+  if human_readable_name not in type_map._name_to_type_map:
+    if not namespace['_ABSTRACT']:
+      type_map._name_to_type_map[human_readable_name] = cls
+      type_map._type_to_names_map[cls].append(human_readable_name)
+      
+      if '_ALIASES' in namespace:
+        for alias in namespace['_ALIASES']:
+          if alias not in type_map._name_to_type_map:
+            type_map._name_to_type_map[alias] = cls
+          else:
+            raise TypeError(
+              'alias "{}" matches a {} class name or is already specified'.format(
+                alias, base_class_name))
+          
+          type_map._type_to_names_map[cls].append(alias)
+  else:
+    raise TypeError(
+      'Setting subclass with the name "{}" already exists ({})'.format(
+        cls.__name__, type_map._name_to_type_map[human_readable_name]))
 
 
 def _get_human_readable_class_name(name, suffix_to_strip=None):
