@@ -171,7 +171,7 @@ def create(name, initial_actions=None):
   _create_initial_actions(actions, initial_actions)
   
   actions.connect_event('before-load', lambda group: clear(group, add_initial_actions=False))
-  actions.connect_event('after-load', _trigger_after_add_action_after_loading)
+  actions.connect_event('after-load', _set_up_action_after_loading)
   
   return actions
 
@@ -182,8 +182,9 @@ def _create_initial_actions(actions, initial_actions):
       add(actions, action_dict)
 
 
-def _trigger_after_add_action_after_loading(actions):
+def _set_up_action_after_loading(actions):
   for action in actions:
+    _set_up_action_post_creation(action)
     actions.invoke_event('after-add-action', action, None)
 
 
@@ -305,12 +306,6 @@ def _create_action(
       enabled_for_previews=True,
       display_options_on_create=False,
       orig_name=None):
-  
-  def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
-    setting_display_name.set_gui(
-      gui_type='check_button_label',
-      gui_element=setting_enabled.gui.element)
-  
   action = pg.setting.Group(
     name,
     tags=tags,
@@ -402,14 +397,7 @@ def _create_action(
     },
   ])
   
-  action['enabled'].connect_event(
-    'after-set-gui',
-    _set_display_name_for_enabled_gui,
-    action['display_name'])
-  
-  if action['origin'].is_item('gimp_pdb'):
-    _connect_events_to_sync_array_and_array_length_arguments(action)
-    _hide_gui_for_run_mode_and_array_length_arguments(action)
+  _set_up_action_post_creation(action)
   
   return action
 
@@ -466,6 +454,23 @@ def _create_constraint(
   ])
   
   return constraint
+
+
+def _set_up_action_post_creation(action):
+  action['enabled'].connect_event(
+    'after-set-gui',
+    _set_display_name_for_enabled_gui,
+    action['display_name'])
+  
+  if action['origin'].is_item('gimp_pdb'):
+    _connect_events_to_sync_array_and_array_length_arguments(action)
+    _hide_gui_for_run_mode_and_array_length_arguments(action)
+
+
+def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
+  setting_display_name.set_gui(
+    gui_type='check_button_label',
+    gui_element=setting_enabled.gui.element)
 
 
 def _connect_events_to_sync_array_and_array_length_arguments(action):
