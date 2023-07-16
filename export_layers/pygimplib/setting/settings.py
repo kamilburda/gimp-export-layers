@@ -669,8 +669,8 @@ class Setting(
     * `value` attribute
     * `type` attribute - a stringified, human-readable name of the `Setting`
       subclass
-    * all positional and keyword argument names and values passed to
-      `__init__()` that were used to instantiate the setting.
+    * all keyword argument names and values passed to `__init__()` that were
+      used to instantiate the setting.
     
     The dictionary can only contain keys as strings and values of one of the
     following types: `int`, `float`, `bool`, `str`, `list`, `dict`, `None`.
@@ -685,8 +685,6 @@ class Setting(
       'type': pgutils.safe_decode(SettingTypes[self.__class__], 'utf-8'),
     }
     
-    dict_on_init_processed = {}
-    
     for key, val in self._dict_on_init.items():
       if key == 'gui_type' and val is not None and not isinstance(val, types.StringTypes):
         try:
@@ -696,15 +694,13 @@ class Setting(
             ('invalid value for field "gui_type": "{}";'
              ' the value must be one of the setting.Presenter classes').format(val))
         
-        dict_on_init_processed['gui_type'] = pgutils.safe_decode(gui_type_name, 'utf-8')
+        settings_dict['gui_type'] = pgutils.safe_decode(gui_type_name, 'utf-8')
       elif key == 'default_value':
-        dict_on_init_processed[key] = self._value_to_raw(val, source_type)
+        settings_dict[key] = self._value_to_raw(val, source_type)
       elif key == 'tags':
-        dict_on_init_processed[key] = list(val)
+        settings_dict[key] = list(val)
       else:
-        dict_on_init_processed[key] = val
-    
-    settings_dict.update(dict_on_init_processed)
+        settings_dict[key] = val
     
     return settings_dict
   

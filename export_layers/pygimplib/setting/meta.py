@@ -123,8 +123,47 @@ class SettingMeta(type):
         
         if inspect.getargspec(orig_init)[1] is not None:
           raise TypeError(
-            ('__init__ in Setting subclasses must not accept variable positional arguments'
+            ('__init__ in Setting subclasses cannot accept variable positional arguments'
              ' (found in "{}")').format(self.__class__.__name__))
+      
+      orig_init(self, *args, **kwargs)
+    
+    return init_wrapper
+
+
+class GroupMeta(type):
+  """Metaclass for the `setting.Group` class.
+  
+  The metaclass is responsible for the following:
+  
+  * Tracking names and values of arguments passed to instantiation of a group.
+    The names and values are then passed to `Group.to_dict()` to allow
+    persisting the group with the arguments it was instantiated with.
+  """
+  
+  def __new__(mcls, name, bases, namespace):  # @NoSelf
+    _set_init_wrapper(mcls, namespace)
+    
+    cls = super(GroupMeta, mcls).__new__(mcls, name, bases, namespace)
+    
+    return cls
+  
+  @staticmethod
+  def _get_init_wrapper(orig_init):
+    
+    @functools.wraps(orig_init)
+    def init_wrapper(self, *args, **kwargs):
+      # This check prevents a parent class' `__init__()` from overriding the
+      # contents of `_dict_on_init`, which may have different arguments.
+      if not hasattr(self, '_dict_on_init'):
+        self._dict_on_init = dict(kwargs)
+        # Exclude `self` as the first argument
+        arg_names = inspect.getargspec(orig_init)[0][1:]
+        for arg_name, arg in zip(arg_names, args):
+          self._dict_on_init[arg_name] = arg
+        
+        if inspect.getargspec(orig_init)[1] is not None:
+          raise TypeError('Group.__init__() cannot accept variable positional arguments')
       
       orig_init(self, *args, **kwargs)
     

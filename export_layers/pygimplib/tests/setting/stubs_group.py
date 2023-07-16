@@ -120,6 +120,7 @@ def create_test_data_with_specific_setting_sources():
       'settings': [
         {
           'name': 'main',
+          'setting_attributes': {'setting_sources': ['persistent']},
           'settings': [
             {
               'type': 'file_extension',
@@ -131,6 +132,7 @@ def create_test_data_with_specific_setting_sources():
         },
         {
           'name': 'advanced',
+          'setting_attributes': {'setting_sources': ['session']},
           'settings': [
             {
               'type': 'boolean',

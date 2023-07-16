@@ -362,7 +362,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         parent_dict = self._find_dict(current_list, parent)[0]
         
         if parent_dict is None:
-          parent_dict = {'name': parent.name, 'settings': []}
+          parent_dict = dict(settings=[], **parent.to_dict())
           current_list.append(parent_dict)
         
         current_list = parent_dict['settings']
@@ -408,7 +408,7 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
         current_group_dict = self._find_dict(parent_list, setting_or_group)[0]
         
         if current_group_dict is None:
-          current_group_dict = {'name': setting_or_group.name, 'settings': []}
+          current_group_dict = dict(settings=[], **setting_or_group.to_dict())
           parent_list.append(current_group_dict)
         
         for child_setting_or_group in reversed(setting_or_group):

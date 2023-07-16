@@ -475,6 +475,15 @@ class TestGroup(unittest.TestCase):
     self.assertNotEqual(
       self.settings['special/first_plugin_run'].value,
       self.settings['special/first_plugin_run'].default_value)
+  
+  def test_to_dict(self):
+    group = group_.Group('main', tags=['ignore_load'], setting_attributes={'gui_type': None})
+    
+    group.add([self.first_plugin_run_setting_dict])
+    
+    self.assertDictEqual(
+      group.to_dict(),
+      {'name': 'main', 'tags': ['ignore_load'], 'setting_attributes': {'gui_type': None}})
 
 
 class TestGroupHierarchical(unittest.TestCase):

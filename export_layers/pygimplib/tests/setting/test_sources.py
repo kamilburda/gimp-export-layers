@@ -46,10 +46,12 @@ def _test_settings_for_read_write():
     'groups': [
       {
         'name': 'use_layer_size',
+        'tags': ['action', 'procedure'],
         'setting_attributes': {'gui_type': None},
       },
       {
         'name': 'insert_background_layers',
+        'tags': ['action', 'procedure'],
         'setting_attributes': {'gui_type': None},
       },
     ]
@@ -114,6 +116,7 @@ def _test_data_for_read_write():
       'settings': [
         {
           'name': 'main',
+          'setting_attributes': {'gui_type': None},
           'settings': [
             {
               'type': 'string',
@@ -127,6 +130,8 @@ def _test_data_for_read_write():
               'settings': [
                 {
                   'name': 'use_layer_size',
+                  'tags': ['action', 'procedure'],
+                  'setting_attributes': {'gui_type': None},
                   'settings': [
                     {
                       'type': 'bool',
@@ -138,11 +143,14 @@ def _test_data_for_read_write():
                     {
                       'name': 'arguments',
                       'settings': [],
+                      'setting_attributes': {'gui_type': None},
                     },
                   ],
                 },
                 {
                   'name': 'insert_background_layers',
+                  'tags': ['action', 'procedure'],
+                  'setting_attributes': {'gui_type': None},
                   'settings': [
                     {
                       'type': 'bool',
@@ -153,6 +161,7 @@ def _test_data_for_read_write():
                     },
                     {
                       'name': 'arguments',
+                      'setting_attributes': {'gui_type': None},
                       'settings': [
                         {
                           'type': 'string',
@@ -170,11 +179,13 @@ def _test_data_for_read_write():
             {
               'name': 'constraints',
               'settings': [],
+              'setting_attributes': {'gui_type': None},
             },
           ],
         },
         {
           'name': 'special',
+          'setting_attributes': {'gui_type': None},
           'settings': [
             {
               'type': 'bool',
@@ -332,6 +343,7 @@ class TestSourceRead(unittest.TestCase):
     # Add 'main/constraints/visible'
     visible_constraint = {
       'name': 'visible',
+      'tags': ['action', 'constraint'],
       'setting_attributes': {'gui_type': None},
       'settings': [
         {
@@ -371,6 +383,8 @@ class TestSourceRead(unittest.TestCase):
         'default_value': 'background',
         'gui_type': None,
       })
+    self.assertSetEqual(
+      self.settings['main/constraints/visible'].tags, set(['action', 'constraint']))
     self.assertDictEqual(
       self.settings['main/constraints/visible/enabled'].to_dict(),
       {

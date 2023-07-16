@@ -11,6 +11,7 @@ import inspect
 
 from .. import utils as pgutils
 
+from . import meta as meta_
 from . import persistor as persistor_
 from . import settings as settings_
 from . import utils as utils_
@@ -61,7 +62,9 @@ def create_groups(setting_dict):
 
 
 @future.utils.python_2_unicode_compatible
-class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
+class Group(
+    future.utils.with_metaclass(
+      meta_.GroupMeta, utils_.SettingParentMixin, utils_.SettingEventsMixin)):
   """
   This class:
   * allows to create a group of related settings (`Setting` objects),
@@ -96,7 +99,8 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         description=None,
         tags=None,
         setting_attributes=None):
-    super().__init__()
+    utils_.SettingParentMixin.__init__(self)
+    utils_.SettingEventsMixin.__init__(self)
     
     self._name = name
     utils_.check_setting_name(self._name)
@@ -646,6 +650,29 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         setting=exception_settings[0],
         messages=exception_messages,
         settings=exception_settings)
+  
+  def to_dict(self):
+    """Returns a dictionary representing the group, appropriate for saving it
+    (e.g. via `Group.save()`).
+    
+    The dictionary contains (attribute name, attribute value) pairs.
+    Specifically, the dictionary contains:
+    * `name` attribute
+    * all keyword argument names and values passed to `__init__()` that were
+      used to instantiate the group.
+    
+    The list of child settings is not provided by this method.
+    """
+    group_dict = dict(self._dict_on_init)
+    
+    if 'tags' in group_dict:
+      group_dict['tags'] = list(group_dict['tags'])
+    
+    if 'name' not in group_dict:
+      # This should not happen since `name` is required in `__init__`, but just in case.
+      group_dict['name'] = self.name
+    
+    return group_dict
 
 
 class GroupWalkCallbacks(object):
