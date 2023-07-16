@@ -7,9 +7,9 @@ settings being reorganized or removed).
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import ast
 import collections
 import os
+import pickle
 import re
 import shutil
 import types
@@ -21,6 +21,7 @@ import gtk
 import gimp
 from gimp import pdb
 import gimpenums
+import gimpshelf
 
 from export_layers import pygimplib as pg
 
@@ -82,17 +83,8 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   
   current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
   
-  load_result = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
-  
-  if pg.setting.Persistor.FAIL in load_result.statuses_per_source.values():
-    fix_element_paths_for_pickle(
-      sources, _FIX_PICKLE_HANDLERS, current_version, pg.config.SOURCE_NAME.encode('utf-8'))
-    
-    load_result = pg.setting.Persistor.load([settings['main/plugin_version']], sources)
-  
-  load_message = '\n'.join(list(load_result.messages_per_source.values()))
-  
-  previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
+  previous_version, load_result, load_message = (
+    _get_version_from_sources_and_update_setting_format(settings, sources, current_version))
   
   if load_result.status == pg.setting.Persistor.SUCCESS and previous_version == current_version:
     return NO_ACTION, load_message
@@ -136,6 +128,268 @@ def _get_persistent_sources(sources):
     return persistent_sources
 
 
+def _get_version_from_sources_and_update_setting_format(settings, sources, current_version):
+  key = pg.config.SOURCE_NAME.encode('utf-8')
+  previous_version = _parse_version_using_old_format(sources, key)
+  
+  if previous_version is not None:
+    _update_setting_format(settings, sources, current_version)
+    
+    load_result = pg.setting.Persistor.SUCCESS
+    load_message = ''
+  else:
+    load_result = settings['main/plugin_version'].load()
+    load_message = '\n'.join(load_result.messages_per_source.values())
+    previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
+  
+  return previous_version, load_result, load_message
+
+
+def _parse_version_using_old_format(sources, key):
+  parsed_version = None
+  
+  for source in sources.values():
+    if isinstance(source, pg.setting.sources.GimpShelfSource):
+      parsed_version = _parse_version_from_session_source(key)
+    elif isinstance(source, pg.setting.sources.GimpParasiteSource):
+      parsed_version = _parse_version_from_persistent_source(key)
+    
+    if parsed_version is not None:
+      break
+  
+  if parsed_version is not None:
+    return pg.version.Version.parse(parsed_version)
+  else:
+    return None
+
+
+def _parse_version_from_session_source(key):
+  try:
+    session_data = gimp.get_data(key)
+  except gimp.error:
+    return None
+  else:
+    return _parse_version(session_data)
+
+
+def _parse_version_from_persistent_source(key):
+  parasite = gimp.parasite_find(key)
+  
+  if parasite is not None:
+    return _parse_version(parasite.data)
+  else:
+    return None
+
+
+def _parse_version(str_):
+  str_match = re.search(r'main/plugin_version.*?\n.*?\n.*?([0-9]+\.[0-9]+(\.[0-9]+)?)', str_)
+  
+  if str_match is not None:
+    return str_match.groups()[0]
+  else:
+    return None
+
+
+def _update_setting_format(settings, sources, current_version):
+  fix_element_paths_for_pickle(
+    sources, _FIX_PICKLE_HANDLERS, current_version, pg.config.SOURCE_NAME.encode('utf-8'))
+  
+  _rename_settings_with_specific_settings(sources)
+  
+  settings_not_loaded = list(settings.walk())
+  
+  for source in sources.values():
+    if isinstance(source, pg.setting.sources.GimpShelfSource):
+      settings_not_loaded = _update_source_format(
+        settings_not_loaded, OldGimpShelfSource, 'session')
+    elif isinstance(source, pg.setting.sources.GimpParasiteSource):
+      settings_not_loaded = _update_source_format(
+        settings_not_loaded, OldGimpParasiteSource, 'persistent')
+  
+  _update_format_of_actions(settings['main/procedures'])
+  _update_format_of_actions(settings['main/constraints'])
+  
+  for source in sources.values():
+    if isinstance(
+          source, (pg.setting.sources.GimpShelfSource, pg.setting.sources.GimpParasiteSource)):
+      source.write([settings])
+
+
+def _rename_settings_with_specific_settings(sources):
+  _rename_settings(
+    [
+      ('gui/export_name_preview_sensitive',
+       'gui/name_preview_sensitive'),
+      ('gui/export_image_preview_sensitive',
+       'gui/image_preview_sensitive'),
+      ('gui/export_image_preview_automatic_update',
+       'gui/image_preview_automatic_update'),
+      ('gui/export_image_preview_automatic_update_if_below_maximum_duration',
+       'gui/image_preview_automatic_update_if_below_maximum_duration'),
+      ('gui/dialog_position',
+       'gui/size/dialog_position'),
+      ('gui/dialog_size',
+       'gui/size/dialog_size'),
+      ('gui/paned_outside_previews_position',
+       'gui/size/paned_outside_previews_position'),
+      ('gui/paned_between_previews_position',
+       'gui/size/paned_between_previews_position'),
+      ('gui/settings_vpane_position',
+       'gui/size/settings_vpane_position'),
+      ('gui_session/export_name_preview_layers_collapsed_state',
+       'gui_session/name_preview_layers_collapsed_state'),
+      ('gui_session/export_image_preview_displayed_layers',
+       'gui_session/image_preview_displayed_layers'),
+      ('gui_persistent/export_name_preview_layers_collapsed_state',
+       'gui_persistent/name_preview_layers_collapsed_state'),
+      ('gui_persistent/export_image_preview_displayed_layers',
+       'gui_persistent/image_preview_displayed_layers'),
+    ],
+    sources)
+
+
+def _rename_settings(settings_to_rename, sources):
+  for source in sources.values():
+    data = source.read_data_from_source()
+    
+    if data:
+      for orig_setting_name, new_setting_name in settings_to_rename:
+        if orig_setting_name in data:
+          data[new_setting_name] = data[orig_setting_name]
+          del data[orig_setting_name]
+      
+      source.write_data_to_source(data)
+
+
+def _update_source_format(settings, source_class, source_type):
+  source = source_class(pg.config.SOURCE_NAME, source_type)
+  
+  settings_not_loaded = settings
+  
+  if source.has_data():
+    settings_not_loaded = source.read(settings)
+    source.clear()
+  
+  return settings_not_loaded
+
+
+class OldSource(pg.setting.sources.Source):
+  
+  def read(self, settings):
+    settings_not_loaded = []
+    
+    settings_from_source = self.read_data_from_source()
+    if settings_from_source is None:
+      return
+    
+    for setting in settings:
+      try:
+        value = settings_from_source[setting.get_path('root')]
+      except KeyError:
+        settings_not_loaded.append(setting)
+      else:
+        try:
+          setting.set_value(value)
+        except pg.setting.SettingValueError:
+          setting.reset()
+    
+    return settings_not_loaded
+
+
+class OldGimpShelfSource(OldSource):
+  
+  def clear(self):
+    gimpshelf.shelf[self._get_key()] = None
+  
+  def has_data(self):
+    return (
+      gimpshelf.shelf.has_key(self._get_key())
+      and gimpshelf.shelf[self._get_key()] is not None)
+  
+  def read_data_from_source(self):
+    try:
+      return gimpshelf.shelf[self._get_key()]
+    except Exception:
+      return None
+  
+  def write_data_to_source(self, setting_names_and_values):
+    gimpshelf.shelf[self._get_key()] = setting_names_and_values
+  
+  def _get_key(self):
+    return pg.utils.safe_encode_gimp(self.source_name)
+
+
+class OldGimpParasiteSource(OldSource):
+  
+  def clear(self):
+    if gimp.parasite_find(self.source_name) is None:
+      return
+    
+    gimp.parasite_detach(self.source_name)
+  
+  def has_data(self):
+    return gimp.parasite_find(self.source_name) is not None
+  
+  def read_data_from_source(self):
+    parasite = gimp.parasite_find(self.source_name)
+    if parasite is None:
+      return None
+    
+    try:
+      settings_from_source = pickle.loads(parasite.data)
+    except Exception:
+      return None
+    
+    return settings_from_source
+  
+  def write_data_to_source(self, setting_names_and_values):
+    data = pickle.dumps(setting_names_and_values)
+    gimp.parasite_attach(
+      gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, data))
+
+
+def _update_format_of_actions(actions):
+  action_dicts = actions['_added_data']
+  setting_values = actions['_added_data_values']
+  
+  actions.remove(['_added_data'])
+  actions.remove(['_added_data_values'])
+  
+  for action_dict in action_dicts:
+    if 'function' in action_dict and callable(action_dict['function']):
+      # Built-in actions have their functions defined in the code.
+      action_dict['function'] = ''
+    
+    if 'operation_groups' in action_dict:
+      action_dict['action_groups'] = action_dict['operation_groups']
+      
+      del action_dict['operation_groups']
+    
+    if 'subfilter' in action_dict:
+      del action_dict['subfilter']
+    
+    if 'is_pdb_procedure' in action_dict:
+      if action_dict['is_pdb_procedure']:
+        action_dict['origin'] = 'gimp_pdb'
+      else:
+        action_dict['origin'] = 'builtin'
+      
+      del action_dict['is_pdb_procedure']
+    
+    actions_.add(actions, action_dict)
+  
+  for path, value in setting_values.items():
+    if path.endswith('/operation_groups'):
+      path = re.sub(r'/operation_groups$', r'/action_groups', path)
+    
+    # Skip obsolete settings and settings guaranteed to be read-only.
+    if any(path.endswith(suffix) for suffix in ['/is_pdb_procedure', '/subfilter', '/function']):
+      continue
+    
+    if path in actions:
+      actions[path].set_value(value)
+
+
 def clear_setting_sources(settings, sources=None):
   if sources is None:
     sources = pg.setting.Persistor.get_default_setting_sources()
@@ -155,19 +409,6 @@ def fix_element_paths_for_pickle(sources, fix_pickle_handlers, current_version, 
   for version_str, fix_pickle_handler in fix_pickle_handlers.items():
     if pg.version.Version.parse(version_str) <= current_version:
       fix_pickle_handler(sources, key)
-
-
-def rename_settings(settings_to_rename, sources):
-  for source in sources.values():
-    data = source.read_data_from_source()
-    
-    if data:
-      for orig_setting_name, new_setting_name in settings_to_rename:
-        if orig_setting_name in data:
-          data[new_setting_name] = data[orig_setting_name]
-          del data[orig_setting_name]
-      
-      source.write_data_to_source(data)
 
 
 def replace_field_arguments_in_pattern(
@@ -247,24 +488,6 @@ def _remove_actions(actions_list, actions_root, action_prefix):
   return removed_actions_and_indexes
 
 
-def _rename_generic_setting_in_actions(actions_list, actions, orig_name, new_name, new_type):
-  for action in actions_list:
-    if orig_name in action:
-      if new_name in action:
-        action[new_name].set_value(action[orig_name].value)
-      else:
-        action.add([
-          {
-            'type': new_type,
-            'name': new_name,
-            'default_value': action[orig_name].value,
-            'gui_type': None,
-          },
-        ])
-      
-      action.remove([orig_name])
-
-
 def _get_actions(settings):
   return [
     setting for setting in settings.walk(include_groups=True)
@@ -289,27 +512,6 @@ def _try_remove_file(filepath):
 
 
 def _update_to_3_3_1(settings, sources):
-  rename_settings(
-    [
-      ('gui/export_name_preview_sensitive',
-       'gui/name_preview_sensitive'),
-      ('gui/export_image_preview_sensitive',
-       'gui/image_preview_sensitive'),
-      ('gui/export_image_preview_automatic_update',
-       'gui/image_preview_automatic_update'),
-      ('gui/export_image_preview_automatic_update_if_below_maximum_duration',
-       'gui/image_preview_automatic_update_if_below_maximum_duration'),
-      ('gui_session/export_name_preview_layers_collapsed_state',
-       'gui_session/name_preview_layers_collapsed_state'),
-      ('gui_session/export_image_preview_displayed_layers',
-       'gui_session/image_preview_displayed_layers'),
-      ('gui_persistent/export_name_preview_layers_collapsed_state',
-       'gui_persistent/name_preview_layers_collapsed_state'),
-      ('gui_persistent/export_image_preview_displayed_layers',
-       'gui_persistent/image_preview_displayed_layers'),
-    ],
-    sources)
-  
   settings['main/layer_filename_pattern'].load(sources)
   settings['main/layer_filename_pattern'].set_value(
     replace_field_arguments_in_pattern(
@@ -342,10 +544,8 @@ def _update_to_3_3_2(settings, sources):
   settings['main/layer_filename_pattern'].save(sources)
   
   settings['main/procedures'].load(sources)
-  settings['main/constraints'].load(sources)
   
   procedures = _get_actions(settings['main/procedures'])
-  constraints = _get_actions(settings['main/constraints'])
   
   _refresh_actions(
     procedures,
@@ -363,15 +563,7 @@ def _update_to_3_3_2(settings, sources):
     builtin_procedures.BUILTIN_PROCEDURES,
   )
   
-  _rename_generic_setting_in_actions(
-    procedures, settings['main/procedures'], 'operation_groups', 'action_groups', 'list')
-  _rename_generic_setting_in_actions(
-    constraints, settings['main/constraints'], 'operation_groups', 'action_groups', 'list')
-  
   settings['main/procedures'].save(sources)
-  actions_.clear(settings['main/procedures'])
-  settings['main/constraints'].save(sources)
-  actions_.clear(settings['main/constraints'])
 
 
 def _update_to_3_3_5(settings, sources):
@@ -384,21 +576,6 @@ def _update_to_3_4(settings, sources):
   _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.pyc'))
   _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.py'))
   _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.pyc'))
-  
-  rename_settings(
-    [
-      ('gui/dialog_position',
-       'gui/size/dialog_position'),
-      ('gui/dialog_size',
-       'gui/size/dialog_size'),
-      ('gui/paned_outside_previews_position',
-       'gui/size/paned_outside_previews_position'),
-      ('gui/paned_between_previews_position',
-       'gui/size/paned_between_previews_position'),
-      ('gui/settings_vpane_position',
-       'gui/size/settings_vpane_position'),
-    ],
-    sources)
   
   settings['main/procedures'].load(sources)
   
@@ -446,16 +623,7 @@ def _update_to_3_4(settings, sources):
     new_action['arguments/file_extension'].set_value(settings['main/file_extension'].value)
     new_action['arguments/use_file_extension_in_item_name'].set_value(old_action['enabled'].value)
   
-  for action in actions_.walk(settings['main/procedures']):
-    if action.get_value('is_pdb_procedure', False):
-      action['origin'].set_item('gimp_pdb')
-    
-    if action['origin'].is_item('builtin'):
-      action['function'].set_value('')
-  
   settings['main/procedures'].save(sources)
-  
-  actions_.clear(settings['main/procedures'])
   
   settings['main/constraints'].load(sources)
   
@@ -531,19 +699,7 @@ def _update_to_3_4(settings, sources):
     builtin_constraints.BUILTIN_CONSTRAINTS,
   )
   
-  for action in actions_.walk(settings['main/constraints']):
-    if action.get_value('is_pdb_procedure', False):
-      action['origin'].set_item('gimp_pdb')
-    
-    if action['origin'].is_item('builtin'):
-      action['function'].set_value('')
-    
-    if 'subfilter' in action:
-      action.remove(['subfilter'])
-  
   settings['main/constraints'].save(sources)
-  
-  actions_.clear(settings['main/constraints'])
 
 
 def _remove_obsolete_pygimplib_files_3_3_2():
@@ -582,8 +738,6 @@ def _fix_pickle_paths(paths_to_rename, sources, key):
       _fix_pickle_paths_in_session_source(paths_to_rename, key)
     elif isinstance(source, pg.setting.sources.GimpParasiteSource):
       _fix_pickle_paths_in_persistent_source(paths_to_rename, key)
-    elif isinstance(source, pg.setting.sources.PickleFileSource):
-      _fix_pickle_paths_in_pickle_file_source(paths_to_rename, key, source)
 
 
 def _fix_pickle_paths_in_session_source(paths_to_rename, key):
@@ -607,32 +761,6 @@ def _fix_pickle_paths_in_persistent_source(paths_to_rename, key):
       new_data = new_data.replace(old_path, new_path)
     
     gimp.parasite_attach(gimp.Parasite(key, gimpenums.PARASITE_PERSISTENT, new_data))
-
-
-def _fix_pickle_paths_in_pickle_file_source(paths_to_rename, key, source):
-  # Silently ignore errors. The update will eventually throw an error later
-  # outside this function which are properly handled and the error message is
-  # displayed to the user.
-  try:
-    all_data = source.read_all_data()
-  except Exception:
-    return
-  
-  if all_data is None or key not in all_data:
-    return
-  
-  contents = ast.literal_eval(all_data[key])
-  
-  new_contents = contents
-  for old_path, new_path in paths_to_rename:
-    new_contents = new_contents.replace(old_path, new_path)
-  
-  all_data[key] = repr(new_contents)
-  
-  try:
-    source.write_all_data(all_data)
-  except Exception:
-    return
 
 
 def _fix_pickle_paths_3_3_2(sources, key):
@@ -670,8 +798,8 @@ def _fix_pickle_paths_3_4(sources, key):
        b'background_foreground\ninsert_background_layer'),
       (b'builtin_procedures\ninsert_foreground_layer',
        b'background_foreground\ninsert_foreground_layer'),
-      (b'builtin_procedures\nis_path_visible',
-       b'builtin_procedures\nis_visible'),
+      (b'builtin_constraints\nis_path_visible',
+       b'builtin_constraints\nis_visible'),
       (b'builtin_procedures\nautocrop_tagged_layer',
        b'export_layers.pygimplib.utils\nempty_func'),
       (b'builtin_procedures\nuse_file_extension_in_item_name',
