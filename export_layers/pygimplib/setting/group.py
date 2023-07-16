@@ -556,7 +556,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     for setting in self.walk(include_setting_func=_has_ignore_reset_tag):
       setting.reset()
   
-  def load(self, **kwargs):
+  def load(self, *args, **kwargs):
     """Loads settings in the current group from the specified setting source(s).
     
     See `setting.persistor.Persistor.load()` for information about parameters.
@@ -564,9 +564,9 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     If the `tags` attribute contains `'ignore_load'`, this method will have no
     effect.
     """
-    return persistor_.Persistor.load([self], **kwargs)
+    return persistor_.Persistor.load([self], *args, **kwargs)
   
-  def save(self, **kwargs):
+  def save(self, *args, **kwargs):
     """Saves values of settings from the current group to the specified setting
     source(s).
     
@@ -575,7 +575,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     If the `tags` attribute contains `'ignore_save'`, this method will have no
     effect.
     """
-    return persistor_.Persistor.save([self], **kwargs)
+    return persistor_.Persistor.save([self], *args, **kwargs)
   
   def initialize_gui(self, custom_gui=None):
     """
