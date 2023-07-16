@@ -10,6 +10,7 @@ from .. import utils as pgutils
 
 from .setting import stubs_setting
 
+
 class TestReprifyObject(unittest.TestCase):
   
   def test_reprify_object_without_name(self):
@@ -17,7 +18,8 @@ class TestReprifyObject(unittest.TestCase):
     
     self.assertEqual(
       pgutils.reprify_object(s),
-      '<pygimplib.tests.setting.stubs_setting.StubSetting object at {}>'.format(
+      '<{}.tests.setting.stubs_setting.StubSetting object at {}>'.format(
+        pgutils.get_pygimplib_module_path(),
         hex(id(s)).rstrip('L')))
   
   def test_reprify_object_with_name(self):
@@ -25,7 +27,8 @@ class TestReprifyObject(unittest.TestCase):
     
     self.assertEqual(
       pgutils.reprify_object(s, 'file_extension'),
-      '<pygimplib.tests.setting.stubs_setting.StubSetting "file_extension" at {}>'.format(
+      '<{}.tests.setting.stubs_setting.StubSetting "file_extension" at {}>'.format(
+        pgutils.get_pygimplib_module_path(),
         hex(id(s)).rstrip('L')))
 
 
