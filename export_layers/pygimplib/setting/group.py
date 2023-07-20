@@ -88,8 +88,16 @@ class Group(
     e.g. iterate over a specific subset of settings.
   
   * `setting_attributes` (read-only) - Dictionary of (setting attribute: value)
-    pairs to assign to each setting in the group. Attributes in individual
-    settings override these attributes.
+    pairs to assign to each new setting created in the group. Attributes in
+    individual settings override these attributes. `setting_attributes` are not
+    applied to already created settings that are later added to the group via
+    `add()`.
+  
+  * `recurse_setting_attributes` (read-only) - If `True`, `setting_attributes`
+    is recursively applied to child settings of any depth. If a child group
+    defines its own `setting_attributes`, it will override its parent's
+    `setting_attributes`. If `False`, `setting_attributes` will only be applied
+    to immediate child settings.
   """
   
   def __init__(
@@ -98,7 +106,8 @@ class Group(
         display_name=None,
         description=None,
         tags=None,
-        setting_attributes=None):
+        setting_attributes=None,
+        recurse_setting_attributes=True):
     utils_.SettingParentMixin.__init__(self)
     utils_.SettingEventsMixin.__init__(self)
     
@@ -113,8 +122,8 @@ class Group(
     
     self._tags = set(tags) if tags is not None else set()
     
-    self._setting_attributes = (
-      setting_attributes if setting_attributes is not None else {})
+    self._setting_attributes = setting_attributes
+    self._recurse_setting_attributes = recurse_setting_attributes
     
     self._settings = collections.OrderedDict()
     self._setting_list = []
@@ -140,7 +149,12 @@ class Group(
   
   @property
   def setting_attributes(self):
-    return self._setting_attributes
+    # Return a copy to prevent modification.
+    return dict(self._setting_attributes) if self._setting_attributes is not None else None
+  
+  @property
+  def recurse_setting_attributes(self):
+    return self._recurse_setting_attributes
   
   def __str__(self):
     return pgutils.stringify_object(self, self.name)
@@ -303,13 +317,30 @@ class Group(
     if setting_data_copy['name'] in self._settings:
       raise ValueError('setting "{}" already exists'.format(setting_data_copy['name']))
     
-    for setting_attribute, setting_attribute_value in self._setting_attributes.items():
+    for setting_attribute, setting_attribute_value in self._get_setting_attributes().items():
       if setting_attribute not in setting_data_copy:
         setting_data_copy[setting_attribute] = setting_attribute_value
     
     setting = self._instantiate_setting(setting_type, setting_data_copy)
     
     return setting
+  
+  def _get_setting_attributes(self):
+    setting_attributes = self._setting_attributes
+    
+    if setting_attributes is None:
+      for group_or_parent in reversed(self.parents):
+        if not group_or_parent.recurse_setting_attributes:
+          break
+        
+        if group_or_parent.setting_attributes is not None:
+          setting_attributes = group_or_parent.setting_attributes
+          break
+    
+    if setting_attributes is None:
+      setting_attributes = {}
+    
+    return setting_attributes
   
   def _instantiate_setting(self, setting_type, setting_data_copy):
     try:

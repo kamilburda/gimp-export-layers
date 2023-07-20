@@ -47,15 +47,15 @@ def _test_settings_for_read_write():
       {
         'name': 'use_layer_size',
         'tags': ['action', 'procedure'],
-        'setting_attributes': {'gui_type': None},
       },
       {
         'name': 'insert_background_layers',
         'tags': ['action', 'procedure'],
-        'setting_attributes': {'gui_type': None},
       },
     ]
   })
+  
+  settings['main'].add([procedures])
   
   procedures['use_layer_size'].add([
     {
@@ -63,7 +63,7 @@ def _test_settings_for_read_write():
       'name': 'enabled',
       'default_value': True,
     },
-    group_.Group(name='arguments', setting_attributes={'gui_type': None}),
+    group_.Group(name='arguments'),
   ])
   
   procedures['insert_background_layers'].add([
@@ -72,7 +72,7 @@ def _test_settings_for_read_write():
       'name': 'enabled',
       'default_value': True,
     },
-    group_.Group(name='arguments', setting_attributes={'gui_type': None}),
+    group_.Group(name='arguments'),
   ])
   
   procedures['insert_background_layers/arguments'].add([
@@ -83,9 +83,7 @@ def _test_settings_for_read_write():
     }
   ])
   
-  settings['main'].add([procedures])
-  
-  constraints = group_.Group(name='constraints', setting_attributes={'gui_type': None})
+  constraints = group_.Group(name='constraints')
   
   settings['main'].add([constraints])
   
@@ -131,7 +129,6 @@ def _test_data_for_read_write():
                 {
                   'name': 'use_layer_size',
                   'tags': ['action', 'procedure'],
-                  'setting_attributes': {'gui_type': None},
                   'settings': [
                     {
                       'type': 'bool',
@@ -143,14 +140,12 @@ def _test_data_for_read_write():
                     {
                       'name': 'arguments',
                       'settings': [],
-                      'setting_attributes': {'gui_type': None},
                     },
                   ],
                 },
                 {
                   'name': 'insert_background_layers',
                   'tags': ['action', 'procedure'],
-                  'setting_attributes': {'gui_type': None},
                   'settings': [
                     {
                       'type': 'bool',
@@ -161,7 +156,6 @@ def _test_data_for_read_write():
                     },
                     {
                       'name': 'arguments',
-                      'setting_attributes': {'gui_type': None},
                       'settings': [
                         {
                           'type': 'string',
@@ -179,7 +173,6 @@ def _test_data_for_read_write():
             {
               'name': 'constraints',
               'settings': [],
-              'setting_attributes': {'gui_type': None},
             },
           ],
         },

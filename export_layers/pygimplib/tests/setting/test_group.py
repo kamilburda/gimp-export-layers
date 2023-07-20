@@ -119,12 +119,10 @@ class TestGroupAddFromDict(unittest.TestCase):
       {
        'type': 'boolean',
        'name': 'flatten',
-       'default_value': False,
       },
       {
        'type': 'boolean',
        'name': 'use_layer_size',
-       'default_value': False,
       }
     ])
     
@@ -134,15 +132,10 @@ class TestGroupAddFromDict(unittest.TestCase):
   def test_add_with_group_level_attributes_overridden_by_setting_attributes(self):
     settings = group_.Group(name='main', setting_attributes={'pdb_type': None})
     settings.add([
-      {
-       'type': 'boolean',
-       'name': 'flatten',
-       'default_value': False,
-      },
+      {'type': 'boolean', 'name': 'flatten'},
       {
        'type': 'boolean',
        'name': 'use_layer_size',
-       'default_value': False,
        'pdb_type': settings_.SettingPdbTypes.int16
       }
     ])
@@ -154,24 +147,12 @@ class TestGroupAddFromDict(unittest.TestCase):
   def test_add_with_group_level_attributes_overridden_by_child_group_attributes(self):
     additional_settings = group_.Group(
       name='additional', setting_attributes={'pdb_type': settings_.SettingPdbTypes.int16})
-    
-    additional_settings.add([
-      {
-       'type': 'boolean',
-       'name': 'use_layer_size',
-       'default_value': False
-      }
-    ])
+    additional_settings.add([{'type': 'boolean', 'name': 'use_layer_size'}])
     
     settings = group_.Group(
       name='main', setting_attributes={'pdb_type': None, 'display_name': 'Setting name'})
-    
     settings.add([
-      {
-       'type': 'boolean',
-       'name': 'flatten',
-       'default_value': False,
-      },
+      {'type': 'boolean', 'name': 'flatten'},
       additional_settings
     ])
     
@@ -180,6 +161,42 @@ class TestGroupAddFromDict(unittest.TestCase):
       settings['additional/use_layer_size'].pdb_type, settings_.SettingPdbTypes.int16)
     self.assertEqual(settings['flatten'].display_name, 'Setting name')
     self.assertEqual(settings['additional/use_layer_size'].display_name, 'Use layer size')
+  
+  def test_add_with_top_group_attributes_applied_recursively(self):
+    settings = group_.Group(
+      name='main', setting_attributes={'pdb_type': settings_.SettingPdbTypes.int16})
+    
+    additional_settings = group_.Group(name='additional')
+    
+    settings.add([
+      {'type': 'boolean', 'name': 'flatten'},
+      additional_settings
+    ])
+    
+    additional_settings.add([{'type': 'boolean', 'name': 'use_layer_size'}])
+    
+    self.assertEqual(settings['flatten'].pdb_type, settings_.SettingPdbTypes.int16)
+    self.assertEqual(
+      settings['additional/use_layer_size'].pdb_type, settings_.SettingPdbTypes.int16)
+  
+  def test_add_with_top_group_attributes_not_applied_recursively_if_disabled(self):
+    settings = group_.Group(
+      name='main',
+      setting_attributes={'pdb_type': settings_.SettingPdbTypes.int16},
+      recurse_setting_attributes=False)
+    
+    additional_settings = group_.Group(name='additional')
+    
+    settings.add([
+      {'type': 'boolean', 'name': 'flatten'},
+      additional_settings,
+    ])
+    
+    additional_settings.add([{'type': 'boolean', 'name': 'use_layer_size'}])
+    
+    self.assertEqual(settings['flatten'].pdb_type, settings_.SettingPdbTypes.int16)
+    self.assertEqual(
+      settings['additional/use_layer_size'].pdb_type, settings_.SettingPdbTypes.int32)
 
 
 class TestGroupCreateGroupsFromDict(unittest.TestCase):
