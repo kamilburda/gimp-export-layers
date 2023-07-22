@@ -14,6 +14,7 @@ import collections
 import copy
 import inspect
 import os
+import sys
 import types
 
 import gimp
@@ -32,44 +33,6 @@ from . import presenter as presenter_
 # classes defined there are properly registered and `SettingGuiTypes` is filled.
 from . import presenters_gtk  # @UnusedImport
 from . import utils as utils_
-
-__all__ = [
-  'SettingTypes',
-  'SettingGuiTypes',
-  'PDB_TYPES_TO_SETTING_TYPES_MAP',
-  'SettingPdbTypes',
-  'Setting',
-  'GenericSetting',
-  'IntSetting',
-  'FloatSetting',
-  'BoolSetting',
-  'EnumSetting',
-  'StringSetting',
-  'ImageSetting',
-  'ItemSetting',
-  'DrawableSetting',
-  'LayerSetting',
-  'ChannelSetting',
-  'SelectionSetting',
-  'VectorsSetting',
-  'ColorSetting',
-  'ParasiteSetting',
-  'DisplaySetting',
-  'PdbStatusSetting',
-  'FileExtensionSetting',
-  'DirpathSetting',
-  'BrushSetting',
-  'FontSetting',
-  'GradientSetting',
-  'PaletteSetting',
-  'PatternSetting',
-  'ImageIdsAndDirectoriesSetting',
-  'ArraySetting',
-  'SettingValueError',
-  'SettingDefaultValueError',
-  'process_setting_type',
-  'process_setting_gui_type',
-]
 
 
 SettingTypes = meta_.SettingTypes
@@ -2714,3 +2677,20 @@ def _process_type(type_or_name, type_map, error_message):
     return type_map[type_or_name]
   else:
     return type_or_name
+
+
+__all__ = [
+  'SettingTypes',
+  'SettingGuiTypes',
+  'PDB_TYPES_TO_SETTING_TYPES_MAP',
+  'SettingPdbTypes',
+  'SettingValueError',
+  'SettingDefaultValueError',
+  'process_setting_type',
+  'process_setting_gui_type',
+  'Setting',
+]
+
+for name, class_ in inspect.getmembers(sys.modules[__name__], inspect.isclass):
+  if issubclass(class_, Setting) and class_ is not Setting:
+    __all__.append(name)

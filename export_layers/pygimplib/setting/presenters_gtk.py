@@ -5,6 +5,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
+import inspect
+import sys
+
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -16,10 +19,6 @@ from .. import gui as pggui
 from .. import utils as pgutils
 
 from . import presenter as presenter_
-
-__all__ = [
-  'GtkPresenter',
-]
 
 
 class GtkPresenter(presenter_.Presenter):
@@ -791,3 +790,12 @@ def _create_item_combo_box(item_combo_box_type, setting):
       constraint=_image_matches_setting_image, data=setting.value.image)
   else:
     return item_combo_box_type()
+
+
+__all__ = [
+  'GtkPresenter',
+]
+
+for name, class_ in inspect.getmembers(sys.modules[__name__], inspect.isclass):
+  if issubclass(class_, GtkPresenter) and class_ is not GtkPresenter:
+    __all__.append(name)
