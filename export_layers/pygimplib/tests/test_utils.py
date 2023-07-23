@@ -6,25 +6,29 @@ from future.builtins import *
 import inspect
 import unittest
 
-from ..setting import settings as pgsettings
 from .. import utils as pgutils
+
+from .setting import stubs_setting
 
 
 class TestReprifyObject(unittest.TestCase):
   
   def test_reprify_object_without_name(self):
-    s = pgsettings.Setting('file_extension')
+    s = stubs_setting.StubSetting('file_extension')
     
     self.assertEqual(
       pgutils.reprify_object(s),
-      '<pygimplib.setting.settings.Setting object at {}>'.format(hex(id(s)).rstrip('L')))
+      '<{}.tests.setting.stubs_setting.StubSetting object at {}>'.format(
+        pgutils.get_pygimplib_module_path(),
+        hex(id(s)).rstrip('L')))
   
   def test_reprify_object_with_name(self):
-    s = pgsettings.Setting('file_extension')
+    s = stubs_setting.StubSetting('file_extension')
     
     self.assertEqual(
       pgutils.reprify_object(s, 'file_extension'),
-      '<pygimplib.setting.settings.Setting "file_extension" at {}>'.format(
+      '<{}.tests.setting.stubs_setting.StubSetting "file_extension" at {}>'.format(
+        pgutils.get_pygimplib_module_path(),
         hex(id(s)).rstrip('L')))
 
 

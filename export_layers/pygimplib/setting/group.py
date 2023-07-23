@@ -11,6 +11,7 @@ import inspect
 
 from .. import utils as pgutils
 
+from . import meta as meta_
 from . import persistor as persistor_
 from . import settings as settings_
 from . import utils as utils_
@@ -61,7 +62,9 @@ def create_groups(setting_dict):
 
 
 @future.utils.python_2_unicode_compatible
-class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
+class Group(
+    future.utils.with_metaclass(
+      meta_.GroupMeta, utils_.SettingParentMixin, utils_.SettingEventsMixin)):
   """
   This class:
   * allows to create a group of related settings (`Setting` objects),
@@ -81,12 +84,20 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
   * `description` (read-only) - A more detailed description of the group. By
     default, description is derived from `display_name`.
   
-  * `tags` - A set of arbitrary tags attached to the setting. Tags can be used
-    to e.g. iterate over a specific subset of settings.
+  * `tags` - A set of arbitrary tags attached to the group. Tags can be used to
+    e.g. iterate over a specific subset of settings.
   
   * `setting_attributes` (read-only) - Dictionary of (setting attribute: value)
-    pairs to assign to each setting in the group. Attributes in individual
-    settings override these attributes.
+    pairs to assign to each new setting created in the group. Attributes in
+    individual settings override these attributes. `setting_attributes` are not
+    applied to already created settings that are later added to the group via
+    `add()`.
+  
+  * `recurse_setting_attributes` (read-only) - If `True`, `setting_attributes`
+    is recursively applied to child settings of any depth. If a child group
+    defines its own `setting_attributes`, it will override its parent's
+    `setting_attributes`. If `False`, `setting_attributes` will only be applied
+    to immediate child settings.
   """
   
   def __init__(
@@ -95,8 +106,10 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         display_name=None,
         description=None,
         tags=None,
-        setting_attributes=None):
-    super().__init__()
+        setting_attributes=None,
+        recurse_setting_attributes=True):
+    utils_.SettingParentMixin.__init__(self)
+    utils_.SettingEventsMixin.__init__(self)
     
     self._name = name
     utils_.check_setting_name(self._name)
@@ -109,10 +122,11 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     
     self._tags = set(tags) if tags is not None else set()
     
-    self._setting_attributes = (
-      setting_attributes if setting_attributes is not None else {})
+    self._setting_attributes = setting_attributes
+    self._recurse_setting_attributes = recurse_setting_attributes
     
     self._settings = collections.OrderedDict()
+    self._setting_list = []
     
     # Used in `_next()`
     self._settings_iterator = None
@@ -130,12 +144,17 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     return self._description
   
   @property
-  def setting_attributes(self):
-    return self._setting_attributes
-  
-  @property
   def tags(self):
     return self._tags
+  
+  @property
+  def setting_attributes(self):
+    # Return a copy to prevent modification.
+    return dict(self._setting_attributes) if self._setting_attributes is not None else None
+  
+  @property
+  def recurse_setting_attributes(self):
+    return self._recurse_setting_attributes
   
   def __str__(self):
     return pgutils.stringify_object(self, self.name)
@@ -197,19 +216,21 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     return setting
   
   def __iter__(self):
-    """
-    Iterate over settings in the order they were created or added.
+    """Iterates over child settings or groups.
     
     This method does not iterate over nested groups. Use `walk()` in that case.
+    
+    By default, the children are iterated in the order they were created or
+    added into the group. The order of children can be modified via `reorder()`.
     """
-    for setting in self._settings.values():
+    for setting in self._setting_list:
       yield setting
   
   def __len__(self):
     return len(self._settings)
   
   def __reversed__(self):
-    return reversed(self._settings.values())
+    return reversed(self._setting_list)
   
   def get_path(self, relative_path_group=None):
     """
@@ -267,6 +288,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       raise ValueError('cannot add {} as a child of itself'.format(setting))
     
     self._settings[setting.name] = setting
+    self._setting_list.append(setting)
     
     return setting
   
@@ -295,13 +317,30 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     if setting_data_copy['name'] in self._settings:
       raise ValueError('setting "{}" already exists'.format(setting_data_copy['name']))
     
-    for setting_attribute, setting_attribute_value in self._setting_attributes.items():
+    for setting_attribute, setting_attribute_value in self._get_setting_attributes().items():
       if setting_attribute not in setting_data_copy:
         setting_data_copy[setting_attribute] = setting_attribute_value
     
     setting = self._instantiate_setting(setting_type, setting_data_copy)
     
     return setting
+  
+  def _get_setting_attributes(self):
+    setting_attributes = self._setting_attributes
+    
+    if setting_attributes is None:
+      for group_or_parent in reversed(self.parents):
+        if not group_or_parent.recurse_setting_attributes:
+          break
+        
+        if group_or_parent.setting_attributes is not None:
+          setting_attributes = group_or_parent.setting_attributes
+          break
+    
+    if setting_attributes is None:
+      setting_attributes = {}
+    
+    return setting_attributes
   
   def _instantiate_setting(self, setting_type, setting_data_copy):
     try:
@@ -316,6 +355,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       raise TypeError(message)
     
     self._settings[setting_data_copy['name']] = setting
+    self._setting_list.append(setting)
     
     return setting
   
@@ -424,6 +464,29 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     for setting_name, value in settings_and_values.items():
       self[setting_name].set_value(value)
   
+  def reorder(self, setting_name, new_position):
+    """Reorders a child setting to the new position.
+    
+    `setting_name` is the name of the child setting.
+    
+    A negative position functions as an n-th to last position (-1 for last, -2
+    for second to last, etc.).
+      
+    Raises:
+    * `ValueError` - `setting_name` does not match any child setting.
+    """
+    try:
+      setting = self._settings[setting_name]
+    except KeyError:
+      raise KeyError('setting "{}" not found'.format(setting_name))
+    
+    self._setting_list.remove(setting)
+    
+    if new_position < 0:
+      new_position = max(len(self._setting_list) + new_position + 1, 0)
+    
+    self._setting_list.insert(new_position, setting)
+  
   def remove(self, setting_names):
     """
     Remove settings from the group specified by their names.
@@ -432,7 +495,9 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     """
     for setting_name in setting_names:
       if setting_name in self._settings:
+        setting = self._settings[setting_name]
         del self._settings[setting_name]
+        self._setting_list.remove(setting)
       else:
         raise KeyError('setting "{}" not found'.format(setting_name))
   
@@ -505,7 +570,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     Return the next element when iterating the settings. Used by `walk()`.
     """
     if self._settings_iterator is None:
-      self._settings_iterator = self._settings.itervalues()
+      self._settings_iterator = iter(self._setting_list)
     
     try:
       next_element = next(self._settings_iterator)
@@ -526,113 +591,26 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
     for setting in self.walk(include_setting_func=_has_ignore_reset_tag):
       setting.reset()
   
-  def load(self, setting_sources=None):
-    """
-    Load all settings in this group. Ignore settings with the `'ignore_load'`
-    tag. If there are multiple combinations of setting sources within the group
-    (e.g. some settings within this group having their own setting sources),
-    loading is performed for each combination separately.
+  def load(self, *args, **kwargs):
+    """Loads settings in the current group from the specified setting source(s).
     
-    Return the status and the status message as per
-    `setting.persistor.Persistor.load()`. For multiple combinations of setting
-    sources, return the "worst" status (from the "best" to the "worst":
-    `SUCCESS`, `NOT_ALL_SETTINGS_FOUND`, `READ_FAIL` or `WRITE_FAIL`) and a
-    status message containing status messages of all calls to `load()`.
+    See `setting.persistor.Persistor.load()` for information about parameters.
     
-    If `setting_sources` is `None`, use the default setting sources for all
-    settings. If specified, only a subset of settings having `setting_sources`
-    will be loaded, and only from `setting_sources`.
+    If the `tags` attribute contains `'ignore_load'`, this method will have no
+    effect.
     """
-    return self._load_save_group(
-      'ignore_load',
-      persistor_.Persistor.load,
-      setting_sources,
-      'before-load-group',
-      'after-load-group')
+    return persistor_.Persistor.load([self], *args, **kwargs)
   
-  def save(self, setting_sources=None):
+  def save(self, *args, **kwargs):
+    """Saves values of settings from the current group to the specified setting
+    source(s).
+    
+    See `setting.persistor.Persistor.save()` for information about parameters.
+    
+    If the `tags` attribute contains `'ignore_save'`, this method will have no
+    effect.
     """
-    Save all settings in this group. Ignore settings with the `'ignore_save'`
-    tag. Return the status and the status message as per
-    `setting.persistor.Persistor.save()`.
-    
-    For more information, see `load()`.
-    """
-    return self._load_save_group(
-      'ignore_save',
-      persistor_.Persistor.save,
-      setting_sources,
-      'before-save-group',
-      'after-save-group')
-  
-  def _load_save_group(
-        self,
-        load_save_ignore_tag,
-        load_save_func,
-        setting_sources,
-        before_load_save_group_event_type,
-        after_load_save_group_event_type):
-    
-    def _should_not_ignore(setting):
-      return load_save_ignore_tag not in setting.tags
-    
-    for setting in self.walk(include_setting_func=_should_not_ignore):
-      setting.invoke_event(before_load_save_group_event_type)
-    
-    return_values = self._load_save(load_save_ignore_tag, load_save_func, setting_sources)
-    
-    for setting in self.walk(include_setting_func=_should_not_ignore):
-      setting.invoke_event(after_load_save_group_event_type)
-    
-    return return_values
-  
-  def _load_save(self, load_save_ignore_tag, load_save_func, setting_sources):
-    
-    def _get_worst_status(status_and_messages):
-      worst_status = persistor_.Persistor.SUCCESS
-      
-      if persistor_.Persistor.NOT_ALL_SETTINGS_FOUND in status_and_messages:
-        worst_status = persistor_.Persistor.NOT_ALL_SETTINGS_FOUND
-      
-      if persistor_.Persistor.READ_FAIL in status_and_messages:
-        worst_status = persistor_.Persistor.READ_FAIL
-      elif persistor_.Persistor.WRITE_FAIL in status_and_messages:
-        worst_status = persistor_.Persistor.WRITE_FAIL
-      
-      return worst_status
-    
-    setting_iterator = self.walk(
-      include_setting_func=lambda setting: load_save_ignore_tag not in setting.tags)
-    settings = [setting for setting in setting_iterator if setting.setting_sources]
-    
-    settings_per_sources = collections.OrderedDict()
-    
-    for setting in settings:
-      if setting_sources is None:
-        keys = tuple(setting.setting_sources)
-      else:
-        keys = tuple(key for key in setting.setting_sources if key in setting_sources)
-      
-      if keys:
-        if keys not in settings_per_sources:
-          settings_per_sources[keys] = []
-        
-        settings_per_sources[keys].append(setting)
-    
-    status_and_messages = collections.OrderedDict()
-    
-    for keys, settings in settings_per_sources.items():
-      if setting_sources is not None and isinstance(setting_sources, dict):
-        sources = collections.OrderedDict([(key, setting_sources[key]) for key in keys])
-      else:
-        sources = keys
-      
-      status, message = load_save_func(settings, sources)
-      status_and_messages[status] = message
-    
-    worst_status = _get_worst_status(status_and_messages)
-    
-    return worst_status, status_and_messages.get(worst_status, '')
+    return persistor_.Persistor.save([self], *args, **kwargs)
   
   def initialize_gui(self, custom_gui=None):
     """
@@ -651,7 +629,7 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
       file_extension_entry = gtk.Entry()
       ...
       main_settings.initialize_gui({
-        'file_extension': [SettingGuiTypes.text_entry, file_extension_entry]
+        'file_extension': [SettingGuiTypes.entry, file_extension_entry]
         ...
       })
     """
@@ -703,6 +681,29 @@ class Group(utils_.SettingParentMixin, utils_.SettingEventsMixin):
         setting=exception_settings[0],
         messages=exception_messages,
         settings=exception_settings)
+  
+  def to_dict(self):
+    """Returns a dictionary representing the group, appropriate for saving it
+    (e.g. via `Group.save()`).
+    
+    The dictionary contains (attribute name, attribute value) pairs.
+    Specifically, the dictionary contains:
+    * `name` attribute
+    * all keyword argument names and values passed to `__init__()` that were
+      used to instantiate the group.
+    
+    The list of child settings is not provided by this method.
+    """
+    group_dict = dict(self._dict_on_init)
+    
+    if 'tags' in group_dict:
+      group_dict['tags'] = list(group_dict['tags'])
+    
+    if 'name' not in group_dict:
+      # This should not happen since `name` is required in `__init__`, but just in case.
+      group_dict['name'] = self.name
+    
+    return group_dict
 
 
 class GroupWalkCallbacks(object):

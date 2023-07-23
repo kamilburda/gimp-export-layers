@@ -124,6 +124,5 @@ class TestListParamValues(unittest.TestCase):
     self.assertEqual(param_values[2], self.settings['advanced/overwrite_mode'].value)
 
   def test_list_param_values_ignore_run_mode(self):
-    param_values = pdbparams_.list_param_values(
-      [settings_.IntSetting('run_mode', 0), self.settings])
+    param_values = pdbparams_.list_param_values([settings_.IntSetting('run_mode'), self.settings])
     self.assertEqual(len(param_values), len(list(self.settings.walk())))

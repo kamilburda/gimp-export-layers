@@ -95,10 +95,7 @@ def reprify_object(object_, name=None):
   object_type = type(object_)
   
   if hasattr(object_type, '__module__'):
-    object_type_path = (
-      object_type.__module__[object_type.__module__.find('pygimplib'):]
-      + '.' + object_type.__name__
-    )
+    object_type_path = object_type.__module__ + '.' + object_type.__name__
   else:
     object_type_path = object_type.__name__
   

@@ -162,7 +162,7 @@ _BUILTIN_PROCEDURES_LIST = [
         'adjust_value': True,
       },
       {
-        'type': 'enumerated',
+        'type': 'options',
         'name': 'export_mode',
         'default_value': 'each_layer',
         'items': [
@@ -247,7 +247,7 @@ _BUILTIN_PROCEDURES_LIST = [
     'display_name': _('Merge background'),
     'arguments': [
       {
-        'type': 'enumerated',
+        'type': 'options',
         'name': 'merge_type',
         'default_value': 'expand_as_necessary',
         'items': [
@@ -265,7 +265,7 @@ _BUILTIN_PROCEDURES_LIST = [
     'display_name': _('Merge foreground'),
     'arguments': [
       {
-        'type': 'enumerated',
+        'type': 'options',
         'name': 'merge_type',
         'default_value': 'expand_as_necessary',
         'items': [

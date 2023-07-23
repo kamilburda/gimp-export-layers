@@ -17,10 +17,9 @@ import parameterized
 from ... import utils as pgutils
 from ... import path as pgpath
 
-from ...setting import persistor as persistor_
+from ...setting import presenter as presenter_
 from ...setting import presenters_gtk
 from ...setting import settings as settings_
-from ...setting import sources as sources_
 
 from .. import stubs_gimp
 from . import stubs_setting
@@ -29,37 +28,37 @@ from . import stubs_setting
 class TestSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = stubs_setting.SettingStub('file_extension', 'png')
+    self.setting = stubs_setting.StubSetting('file_extension', default_value='png')
   
   def test_str(self):
-    self.assertEqual(str(self.setting), '<SettingStub "file_extension">')
+    self.assertEqual(str(self.setting), '<StubSetting "file_extension">')
   
   def test_invalid_setting_name(self):
     with self.assertRaises(ValueError):
-      stubs_setting.SettingStub('file/extension', 'png')
+      stubs_setting.StubSetting('file/extension', default_value='png')
     
     with self.assertRaises(ValueError):
-      stubs_setting.SettingStub('file.extension', 'png')
+      stubs_setting.StubSetting('file.extension', default_value='png')
   
   def test_default_default_value(self):
-    self.assertEqual(stubs_setting.SettingStub('setting').default_value, 0)
+    self.assertEqual(stubs_setting.StubSetting('setting').default_value, 0)
   
   def test_callable_default_default_value(self):
     self.assertEqual(
-      stubs_setting.SettingStubWithCallableDefaultDefaultValue('setting').default_value,
+      stubs_setting.StubWithCallableDefaultDefaultValueSetting('setting').default_value,
       '_setting')
   
   def test_explicit_default_value(self):
     self.assertEqual(
-      stubs_setting.SettingStub('file_extension', 'png').default_value, 'png')
+      stubs_setting.StubSetting('file_extension', default_value='png').default_value, 'png')
   
   def test_invalid_default_value(self):
     with self.assertRaises(settings_.SettingDefaultValueError):
-      stubs_setting.SettingStub('setting', None)
+      stubs_setting.StubSetting('setting', default_value=None)
   
   def test_empty_value_as_default_value(self):
     try:
-      stubs_setting.SettingStub('setting', '')
+      stubs_setting.StubSetting('setting', default_value='')
     except settings_.SettingDefaultValueError:
       self.fail(
         'SettingDefaultValueError should not be raised - default value is an empty value')
@@ -69,8 +68,9 @@ class TestSetting(unittest.TestCase):
       self.setting.set_value('')
   
   def test_assign_empty_value_allowed(self):
-    setting = stubs_setting.SettingStub('setting', '', allow_empty_values=True)
+    setting = stubs_setting.StubSetting('setting', default_value='', allow_empty_values=True)
     setting.set_value('')
+    
     self.assertEqual(setting.value, '')
   
   def test_value_direct_assignment_not_allowed(self):
@@ -81,32 +81,39 @@ class TestSetting(unittest.TestCase):
     self.assertEqual(self.setting.display_name, 'File extension')
   
   def test_get_generated_description(self):
-    setting = stubs_setting.SettingStub(
-      'setting', 'default value', display_name='_Setting')
+    setting = stubs_setting.StubSetting(
+      'setting', default_value='default value', display_name='_Setting')
+    
     self.assertEqual(setting.display_name, '_Setting')
     self.assertEqual(setting.description, 'Setting')
   
   def test_get_custom_display_name_and_description(self):
-    setting = stubs_setting.SettingStub(
-      'setting', 'default value', display_name='_Setting', description='My description')
+    setting = stubs_setting.StubSetting(
+      'setting',
+      default_value='default value', display_name='_Setting', description='My description')
+    
     self.assertEqual(setting.display_name, '_Setting')
     self.assertEqual(setting.description, 'My description')
   
   def test_custom_error_messages(self):
-    setting = stubs_setting.SettingStub('setting', '')
+    setting = stubs_setting.StubSetting('setting', default_value='')
     
-    setting_with_custom_error_messages = stubs_setting.SettingStub(
-      'setting', '', error_messages={
+    setting_with_custom_error_messages = stubs_setting.StubSetting(
+      'setting',
+      default_value='',
+      error_messages={
         'invalid_value': 'this should override the original error message',
         'custom_message': 'custom message'})
+    
     self.assertIn('custom_message', setting_with_custom_error_messages.error_messages)
     self.assertNotEqual(
       setting.error_messages['invalid_value'],
       setting_with_custom_error_messages.error_messages['invalid_value'])
   
   def test_pdb_type_automatic_is_registrable(self):
-    setting = stubs_setting.SettingRegistrableToPdbStub(
-      'file_extension', 'png', pdb_type=settings_.SettingPdbTypes.string)
+    setting = stubs_setting.StubRegistrableToPdbSetting(
+      'file_extension', default_value='png', pdb_type=settings_.SettingPdbTypes.string)
+    
     self.assertTrue(setting.can_be_registered_to_pdb())
   
   def test_pdb_type_automatic_is_not_registrable(self):
@@ -114,11 +121,11 @@ class TestSetting(unittest.TestCase):
   
   def test_invalid_pdb_type(self):
     with self.assertRaises(ValueError):
-      stubs_setting.SettingStub(
-        'file_extension', 'png', pdb_type=settings_.SettingPdbTypes.string)
+      stubs_setting.StubSetting(
+        'file_extension', default_value='png', pdb_type=settings_.SettingPdbTypes.string)
   
   def test_get_pdb_param_for_registrable_setting(self):
-    setting = stubs_setting.SettingRegistrableToPdbStub('file_extension', 'png')
+    setting = stubs_setting.StubRegistrableToPdbSetting('file_extension', default_value='png')
     self.assertEqual(
       setting.get_pdb_param(),
       [(settings_.SettingPdbTypes.string, b'file-extension', b'File extension')])
@@ -132,7 +139,7 @@ class TestSetting(unittest.TestCase):
     self.assertEqual(self.setting.value, 'png')
   
   def test_reset_with_container_as_default_value(self):
-    setting = stubs_setting.SettingStub('image_IDs_and_directories', {})
+    setting = stubs_setting.StubSetting('image_ids_and_directories', default_value={})
     setting.value[1] = 'image_directory'
     
     setting.reset()
@@ -143,178 +150,68 @@ class TestSetting(unittest.TestCase):
     setting.reset()
     self.assertEqual(setting.value, {})
   
-  @parameterized.parameterized.expand([
-    ('default_source',
-     ['default'], None, True, ['default']),
-    
-    ('no_default_source',
-     None, None, True, []),
-    
-    ('parameter_not_in_empty_default_sources',
-     None, ['param'], True, []),
-    
-    ('parameter_not_in_default_sources',
-     ['default'], ['param'], True, []),
-    
-    ('parameter_matching_a_default_source',
-     ['one', 'two'], ['one'], True, ['one']),
-  ])
-  @mock.patch(pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.load')
-  def test_load(
-        self,
-        test_case_name_suffix,
-        sources_for_setting,
-        sources_as_parameters,
-        was_save_called,
-        sources_in_call_args,
-        mock_persistor_load):
-    self._test_load_save(
-      sources_for_setting,
-      sources_as_parameters,
-      was_save_called,
-      sources_in_call_args,
-      mock_persistor_load,
-      'load')
-  
-  @parameterized.parameterized.expand([
-    ('default_source',
-     ['default'], None, True, ['default']),
-    
-    ('no_default_source',
-     None, None, True, []),
-    
-    ('parameter_not_in_empty_default_sources',
-     None, ['param'], True, []),
-    
-    ('parameter_not_in_default_sources',
-     ['default'], ['param'], True, []),
-    
-    ('parameter_matching_a_default_source',
-     ['one', 'two'], ['one'], True, ['one']),
-  ])
-  @mock.patch(pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.save')
-  def test_save(
-        self,
-        test_case_name_suffix,
-        sources_for_setting,
-        sources_as_parameters,
-        was_save_called,
-        sources_in_call_args,
-        mock_persistor_save):
-    self._test_load_save(
-      sources_for_setting,
-      sources_as_parameters,
-      was_save_called,
-      sources_in_call_args,
-      mock_persistor_save,
-      'save')
-  
-  def _test_load_save(
-        self,
-        sources_for_setting,
-        sources_as_parameters,
-        was_save_called,
-        sources_in_call_args,
-        mock_load_save,
-        load_save_func_name):
-    setting = stubs_setting.SettingStub(
-      'image_IDs_and_directories', {}, setting_sources=sources_for_setting)
-    getattr(setting, load_save_func_name)(sources_as_parameters)
-    
-    if was_save_called:
-      self.assertTrue(mock_load_save.called)
-    else:
-      self.assertFalse(mock_load_save.called)
-    
-    sources = (
-      sources_for_setting if sources_for_setting is not None else []
-      + sources_as_parameters if sources_as_parameters is not None else [])
-    
-    for source in sources:
-      call_args = (
-        mock_load_save.call_args[0][1]
-        if mock_load_save.call_args[0][1] is not None else [])
-      
-      if source in sources_in_call_args:
-        self.assertIn(source, call_args)
-      else:
-        self.assertNotIn(source, call_args)
-  
-  def test_to_dict_without_dict_on_init(self):
+  def test_to_dict(self):
     self.assertDictEqual(
-      self.setting.to_dict(), {'name': self.setting.name, 'value': self.setting.value})
-  
-  def test_to_dict_with_dict_on_init(self):
-    setting = stubs_setting.SettingStub(
-      'file_extension', 'png',
-      dict_on_init={
-        'type': 'file_extension',
+      self.setting.to_dict(),
+      {
         'name': 'file_extension',
+        'value': 'png',
+        'type': 'stub',
         'default_value': 'png',
-        'gui_type': None,
       })
+  
+  def test_to_dict_when_default_value_object_is_passed_to_init(self):
+    setting = stubs_setting.StubSetting(
+      'file_extension', default_value=settings_.Setting.DEFAULT_VALUE)
     
     self.assertDictEqual(
       setting.to_dict(),
       {
-        'name': setting.name,
-        'value': setting.value,
-        'type': 'file_extension',
-        'default_value': 'png',
-        'gui_type': None,
+        'name': 'file_extension',
+        'value': 0,
+        'type': 'stub',
+        'default_value': 0,
       })
   
-  def test_to_dict_with_dict_on_init_with_types_as_objects(self):
-    setting = stubs_setting.SettingStub(
-      'file_extension', 'png',
-      dict_on_init={
-        'type': settings_.SettingTypes.file_extension,
-        'name': 'file_extension',
-        'default_value': 'png',
-        'gui_type': settings_.SettingGuiTypes.file_extension_entry,
-      })
+  def test_to_dict_with_gui_type_as_object(self):
+    setting = stubs_setting.StubWithGuiSetting(
+      'file_extension',
+      default_value='png',
+      gui_type=stubs_setting.StubPresenter)
     
     self.assertDictEqual(
       setting.to_dict(),
       {
-        'name': setting.name,
-        'value': setting.value,
-        'type': 'file_extension',
+        'name': 'file_extension',
+        'value': 'png',
+        'type': 'stub_with_gui',
         'default_value': 'png',
-        'gui_type': 'file_extension_entry',
+        'gui_type': 'stub',
       })
   
-  def test_to_dict_with_dict_on_init_with_type_as_invalid_object(self):
-    setting = stubs_setting.SettingStub(
-      'file_extension', 'png',
-      dict_on_init={
-        'type': object,
-        'name': 'file_extension',
-        'default_value': 'png',
-      })
+  def test_to_dict_with_tags(self):
+    tags = set(['ignore_reset', 'ignore_load'])
+    expected_tags = list(tags)
     
-    with self.assertRaises(TypeError):
-      setting.to_dict()
-  
-  def test_to_dict_with_dict_on_init_with_gui_type_as_invalid_object(self):
-    setting = stubs_setting.SettingStub(
-      'file_extension', 'png',
-      dict_on_init={
-        'type': 'file_extension',
-        'name': 'file_extension',
-        'default_value': 'png',
-        'gui_type': object,
-      })
+    setting = stubs_setting.StubSetting(
+      'file_extension', default_value='png', tags=tags)
     
-    with self.assertRaises(TypeError):
-      setting.to_dict()
+    self.assertDictEqual(
+      setting.to_dict(),
+      {
+        'name': 'file_extension',
+        'value': 'png',
+        'type': 'stub',
+        'default_value': 'png',
+        'tags': expected_tags,
+      })
 
 
 class TestSettingEvents(unittest.TestCase):
   
   def setUp(self):
-    self.setting = stubs_setting.SettingStub('file_extension', 'png')
-    self.flatten = settings_.BoolSetting('flatten', False)
+    self.setting = stubs_setting.StubSetting('file_extension', default_value='png')
+    self.flatten = settings_.BoolSetting('flatten', default_value=False)
   
   def test_connect_value_changed_event(self):
     self.setting.connect_event(
@@ -328,7 +225,7 @@ class TestSettingEvents(unittest.TestCase):
     self.setting.connect_event(
       'value-changed', stubs_setting.on_file_extension_changed, self.flatten)
     
-    use_layer_size = settings_.BoolSetting('use_layer_size', False)
+    use_layer_size = settings_.BoolSetting('use_layer_size', default_value=False)
     use_layer_size.connect_event(
       'value-changed', stubs_setting.on_use_layer_size_changed, self.setting)
     
@@ -348,148 +245,18 @@ class TestSettingEvents(unittest.TestCase):
     self.assertTrue(self.flatten.gui.get_sensitive())
 
 
-@mock.patch(
-  pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
-  new_callable=stubs_gimp.ShelfStub)
-class TestSettingLoadSaveEvents(unittest.TestCase):
-  
-  @mock.patch(
-    pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
-    new=stubs_gimp.ShelfStub())
-  def setUp(self):
-    self.setting = stubs_setting.SettingWithGuiStub('file_extension', 'png')
-    self.flatten = settings_.BoolSetting('flatten', False)
-    self.session_source = sources_.GimpShelfSource('')
-    
-    self.session_source_dict = {'session': self.session_source}
-  
-  def test_before_load_event(self, mock_session_source):
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    self.setting.set_value('gif')
-    
-    self.setting.connect_event(
-      'before-load', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.load([self.setting], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'png')
-    self.assertEqual(self.flatten.value, True)
-  
-  def test_after_load_event(self, mock_session_source):
-    self.flatten.set_value(True)
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    
-    self.setting.connect_event(
-      'after-load', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.load([self.setting], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'png')
-    self.assertEqual(self.flatten.value, False)
-  
-  def test_after_load_event_not_all_settings_found_invoke_for_all_settings(
-        self, mock_session_source):
-    self.setting.set_value('gif')
-    persistor_.Persistor.save([self.setting], self.session_source_dict)
-    
-    self.setting.connect_event(
-      'after-load', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.load([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, True)
-  
-  def test_after_load_event_read_fail(self, mock_session_source):
-    self.flatten.set_value(True)
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    
-    self.setting.connect_event(
-      'after-load', stubs_setting.on_file_extension_changed, self.flatten)
-    
-    with mock.patch(
-           pgutils.get_pygimplib_module_path()
-           + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
-      temp_mock_session_source.__getitem__.side_effect = sources_.SourceReadError
-      persistor_.Persistor.load([self.setting], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'png')
-    self.assertEqual(self.flatten.value, True)
-  
-  def test_before_save_event(self, mock_session_source):
-    self.setting.set_value('gif')
-    
-    self.setting.connect_event(
-      'before-save', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, True)
-    
-    persistor_.Persistor.load([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, True)
-  
-  def test_after_save_event(self, mock_session_source):
-    self.setting.set_value('gif')
-    
-    self.setting.connect_event(
-      'after-save', stubs_setting.on_file_extension_changed, self.flatten)
-    persistor_.Persistor.save([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, True)
-    
-    persistor_.Persistor.load([self.setting, self.flatten], self.session_source_dict)
-    
-    self.assertEqual(self.setting.value, 'gif')
-    self.assertEqual(self.flatten.value, False)
-  
-  def test_after_save_event_write_fail(self, mock_session_source):
-    self.setting.set_value('gif')
-    self.setting.connect_event(
-      'after-save', stubs_setting.on_file_extension_changed, self.flatten)
-    
-    with mock.patch(
-           pgutils.get_pygimplib_module_path()
-           + '.setting.sources.gimpshelf.shelf') as temp_mock_session_source:
-      temp_mock_session_source.__setitem__.side_effect = sources_.SourceWriteError
-      persistor_.Persistor.save([self.setting], self.session_source_dict)
-    
-    self.assertEqual(self.flatten.value, False)
-
-
 class TestSettingGui(unittest.TestCase):
   
-  @classmethod
-  def setUpClass(self):
-    settings_.register_setting_gui_type(
-      stubs_setting.CheckButtonPresenterStub, 'stub_check_button')
-    settings_.register_setting_gui_type(
-      stubs_setting.PresenterStub, 'stub_presenter')
-    settings_.register_setting_gui_type(
-      stubs_setting.YesNoToggleButtonPresenterStub, 'stub_yes_no_toggle_button')
-    settings_.register_setting_gui_type(
-      stubs_setting.PresenterWithoutGuiElementCreationStub, 'stub_presenter_without_creation')
-    settings_.register_setting_gui_type(
-      stubs_setting.PresenterWithValueChangedSignalStub, 'stub_presenter_value_changed_signal')
-  
-  @classmethod
-  def tearDownClass(cls):
-    settings_.unregister_setting_gui_type('stub_check_button')
-    settings_.unregister_setting_gui_type('stub_presenter')
-    settings_.unregister_setting_gui_type('stub_yes_no_toggle_button')
-    settings_.unregister_setting_gui_type('stub_presenter_without_creation')
-    settings_.unregister_setting_gui_type('stub_presenter_value_changed_signal')
-  
   def setUp(self):
-    self.setting = stubs_setting.SettingWithGuiStub('file_extension', 'png')
+    self.setting = stubs_setting.StubWithGuiSetting('file_extension', default_value='png')
     self.widget = stubs_setting.GuiWidgetStub('')
   
   def test_set_gui_updates_gui_value(self):
-    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.StubPresenter, self.widget)
     self.assertEqual(self.widget.value, 'png')
   
   def test_setting_set_value_updates_gui(self):
-    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.StubPresenter, self.widget)
     self.setting.set_value('gif')
     self.assertEqual(self.widget.value, 'gif')
   
@@ -498,67 +265,66 @@ class TestSettingGui(unittest.TestCase):
     self.setting.gui.set_visible(False)
     self.setting.set_value('gif')
     
-    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.StubPresenter, self.widget)
     
     self.assertFalse(self.setting.gui.get_sensitive())
     self.assertFalse(self.setting.gui.get_visible())
     self.assertEqual(self.widget.value, 'gif')
   
   def test_setting_gui_type(self):
-    setting = stubs_setting.SettingWithGuiStub(
-      'flatten', False, gui_type=stubs_setting.CheckButtonPresenterStub)
+    setting = stubs_setting.StubWithGuiSetting(
+      'flatten', default_value=False, gui_type=stubs_setting.CheckButtonStubPresenter)
     setting.set_gui()
-    self.assertIs(type(setting.gui), stubs_setting.CheckButtonPresenterStub)
+    self.assertIs(type(setting.gui), stubs_setting.CheckButtonStubPresenter)
     self.assertIs(type(setting.gui.element), stubs_setting.CheckButtonStub)
   
   def test_setting_different_gui_type(self):
-    setting = stubs_setting.SettingWithGuiStub(
-      'flatten', False, gui_type=stubs_setting.PresenterStub)
+    setting = stubs_setting.StubWithGuiSetting(
+      'flatten', default_value=False, gui_type=stubs_setting.StubPresenter)
     setting.set_gui()
-    self.assertIs(type(setting.gui), stubs_setting.PresenterStub)
+    self.assertIs(type(setting.gui), stubs_setting.StubPresenter)
     self.assertIs(type(setting.gui.element), stubs_setting.GuiWidgetStub)
   
   def test_setting_invalid_gui_type_raise_error(self):
     with self.assertRaises(ValueError):
-      stubs_setting.SettingWithGuiStub(
+      stubs_setting.StubWithGuiSetting(
         'flatten',
-        False,
-        gui_type=stubs_setting.YesNoToggleButtonPresenterStub)
+        default_value=False,
+        gui_type=stubs_setting.YesNoToggleButtonStubPresenter)
   
   def test_setting_null_gui_type(self):
-    setting = stubs_setting.SettingWithGuiStub(
-      'flatten', False, gui_type=settings_.SettingGuiTypes.none)
+    setting = stubs_setting.StubWithGuiSetting('flatten', default_value=False, gui_type='null')
     setting.set_gui()
-    self.assertIs(type(setting.gui), settings_.SettingGuiTypes.none)
+    self.assertIs(type(setting.gui), presenter_.NullPresenter)
   
   def test_set_gui_gui_type_is_specified_gui_element_is_none_raise_error(self):
-    setting = stubs_setting.SettingWithGuiStub('flatten', False)
+    setting = stubs_setting.StubWithGuiSetting('flatten', default_value=False)
     with self.assertRaises(ValueError):
-      setting.set_gui(gui_type=stubs_setting.CheckButtonPresenterStub)
+      setting.set_gui(gui_type=stubs_setting.CheckButtonStubPresenter)
   
   def test_set_gui_gui_type_is_none_gui_element_is_specified_raise_error(self):
-    setting = stubs_setting.SettingWithGuiStub('flatten', False)
+    setting = stubs_setting.StubWithGuiSetting('flatten', default_value=False)
     with self.assertRaises(ValueError):
       setting.set_gui(gui_element=stubs_setting.GuiWidgetStub)
   
   def test_set_gui_manual_gui_type(self):
-    setting = stubs_setting.SettingWithGuiStub('flatten', False)
+    setting = stubs_setting.StubWithGuiSetting('flatten', default_value=False)
     setting.set_gui(
-      gui_type=stubs_setting.YesNoToggleButtonPresenterStub,
+      gui_type=stubs_setting.YesNoToggleButtonStubPresenter,
       gui_element=stubs_setting.GuiWidgetStub(None))
-    self.assertIs(type(setting.gui), stubs_setting.YesNoToggleButtonPresenterStub)
+    self.assertIs(type(setting.gui), stubs_setting.YesNoToggleButtonStubPresenter)
     self.assertIs(type(setting.gui.element), stubs_setting.GuiWidgetStub)
   
   def test_set_gui_gui_element_is_none_presenter_has_no_wrapper_raise_error(self):
-    setting = stubs_setting.SettingWithGuiStub(
+    setting = stubs_setting.StubWithGuiSetting(
       'flatten',
-      False,
-      gui_type=stubs_setting.PresenterWithoutGuiElementCreationStub)
+      default_value=False,
+      gui_type=stubs_setting.StubWithoutGuiElementCreationPresenter)
     with self.assertRaises(ValueError):
       setting.set_gui()
   
   def test_update_setting_value_manually(self):
-    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.StubPresenter, self.widget)
     self.widget.set_value('jpg')
     self.assertEqual(self.setting.value, 'png')
     
@@ -567,15 +333,15 @@ class TestSettingGui(unittest.TestCase):
   
   def test_update_setting_value_automatically(self):
     self.setting.set_gui(
-      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.StubWithValueChangedSignalPresenter, self.widget)
     self.widget.set_value('jpg')
     self.assertEqual(self.setting.value, 'jpg')
   
   def test_update_setting_value_triggers_value_changed_event(self):
     self.setting.set_gui(
-      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.StubWithValueChangedSignalPresenter, self.widget)
     
-    flatten = settings_.BoolSetting('flatten', False)
+    flatten = settings_.BoolSetting('flatten', default_value=False)
     self.setting.connect_event('value-changed', stubs_setting.on_file_extension_changed, flatten)
     
     self.widget.set_value('jpg')
@@ -584,15 +350,15 @@ class TestSettingGui(unittest.TestCase):
     self.assertFalse(flatten.gui.get_sensitive())
   
   def test_reset_updates_gui(self):
-    self.setting.set_gui(stubs_setting.PresenterStub, self.widget)
+    self.setting.set_gui(stubs_setting.StubPresenter, self.widget)
     self.setting.set_value('jpg')
     self.setting.reset()
     self.assertEqual(self.widget.value, 'png')
   
   def test_update_setting_value_manually_for_automatically_updated_settings_when_reset_to_disallowed_empty_value(self):
-    setting = stubs_setting.SettingWithGuiStub('file_extension', '')
+    setting = stubs_setting.StubWithGuiSetting('file_extension', default_value='')
     setting.set_gui(
-      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.StubWithValueChangedSignalPresenter, self.widget)
     setting.set_value('jpg')
     setting.reset()
     
@@ -602,37 +368,37 @@ class TestSettingGui(unittest.TestCase):
       setting.gui.update_setting_value()
   
   def test_null_presenter_has_automatic_gui(self):
-    setting = stubs_setting.SettingWithGuiStub('file_extension', '')
+    setting = stubs_setting.StubWithGuiSetting('file_extension', default_value='')
     self.assertTrue(setting.gui.gui_update_enabled)
   
   def test_manual_gui_update_enabled_is_false(self):
-    setting = stubs_setting.SettingWithGuiStub('file_extension', '')
-    setting.set_gui(stubs_setting.PresenterStub, self.widget)
+    setting = stubs_setting.StubWithGuiSetting('file_extension', default_value='')
+    setting.set_gui(stubs_setting.StubPresenter, self.widget)
     self.assertFalse(setting.gui.gui_update_enabled)
   
   def test_automatic_gui_update_enabled_is_true(self):
-    setting = stubs_setting.SettingWithGuiStub('file_extension', '')
+    setting = stubs_setting.StubWithGuiSetting('file_extension', default_value='')
     setting.set_gui(
-      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.StubWithValueChangedSignalPresenter, self.widget)
     self.assertTrue(setting.gui.gui_update_enabled)
     
     self.widget.set_value('png')
     self.assertEqual(setting.value, 'png')
   
   def test_automatic_gui_update_enabled_is_false(self):
-    setting = stubs_setting.SettingWithGuiStub(
-      'file_extension', '', auto_update_gui_to_setting=False)
+    setting = stubs_setting.StubWithGuiSetting(
+      'file_extension', default_value='', auto_update_gui_to_setting=False)
     setting.set_gui(
-      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.StubWithValueChangedSignalPresenter, self.widget)
     self.assertFalse(setting.gui.gui_update_enabled)
     
     self.widget.set_value('png')
     self.assertEqual(setting.value, '')
   
   def test_set_gui_disable_automatic_setting_value_update(self):
-    setting = stubs_setting.SettingWithGuiStub('file_extension', '')
+    setting = stubs_setting.StubWithGuiSetting('file_extension', default_value='')
     setting.set_gui(
-      stubs_setting.PresenterWithValueChangedSignalStub,
+      stubs_setting.StubWithValueChangedSignalPresenter,
       self.widget, auto_update_gui_to_setting=False)
     self.assertFalse(setting.gui.gui_update_enabled)
     
@@ -640,18 +406,18 @@ class TestSettingGui(unittest.TestCase):
     self.assertEqual(setting.value, '')
   
   def test_automatic_gui_update_after_being_disabled(self):
-    setting = stubs_setting.SettingWithGuiStub(
-      'file_extension', '', auto_update_gui_to_setting=False)
+    setting = stubs_setting.StubWithGuiSetting(
+      'file_extension', default_value='', auto_update_gui_to_setting=False)
     setting.set_gui(
-      stubs_setting.PresenterWithValueChangedSignalStub, self.widget)
+      stubs_setting.StubWithValueChangedSignalPresenter, self.widget)
     setting.gui.auto_update_gui_to_setting(True)
     
     self.widget.set_value('png')
     self.assertEqual(setting.value, 'png')
   
   def test_automatic_gui_update_for_manual_gui_raises_value_error(self):
-    setting = stubs_setting.SettingWithGuiStub('file_extension', '')
-    setting.set_gui(stubs_setting.PresenterStub, self.widget)
+    setting = stubs_setting.StubWithGuiSetting('file_extension', default_value='')
+    setting.set_gui(stubs_setting.StubPresenter, self.widget)
     
     self.assertFalse(setting.gui.gui_update_enabled)
     
@@ -673,7 +439,8 @@ class TestGenericSetting(unittest.TestCase):
     setting.set_value([4, 6, 2])
     
     self.assertEqual(setting.value, (4, 6, 2))
-    self.assertDictEqual(setting.to_dict(), {'name': setting.name, 'value': [4, 6, 2]})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': setting.name, 'value': [4, 6, 2], 'type': 'generic'})
   
   def test_value_functions_as_none(self):
     setting = settings_.GenericSetting('selected_layers')
@@ -681,7 +448,8 @@ class TestGenericSetting(unittest.TestCase):
     setting.set_value([4, 6, 2])
     
     self.assertEqual(setting.value, [4, 6, 2])
-    self.assertDictEqual(setting.to_dict(), {'name': setting.name, 'value': repr([4, 6, 2])})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': setting.name, 'value': repr([4, 6, 2]), 'type': 'generic'})
   
   def test_value_functions_with_two_parameters(self):
     setting = settings_.GenericSetting(
@@ -695,8 +463,11 @@ class TestGenericSetting(unittest.TestCase):
       setting.value, ('selected_layers_4', 'selected_layers_6', 'selected_layers_2'))
     self.assertDictEqual(
       setting.to_dict(),
-      {'name': setting.name,
-       'value': ['selected_layers_4', 'selected_layers_6', 'selected_layers_2']})
+      {
+        'name': setting.name,
+        'value': ['selected_layers_4', 'selected_layers_6', 'selected_layers_2'],
+        'type': 'generic',
+      })
   
   def test_value_set_with_invalid_number_of_parameters_raises_error(self):
     with self.assertRaises(TypeError):
@@ -730,7 +501,7 @@ class TestGenericSetting(unittest.TestCase):
 class TestBoolSetting(unittest.TestCase):
   
   def test_description_from_display_name(self):
-    setting = settings_.BoolSetting('flatten', False, display_name='_Flatten')
+    setting = settings_.BoolSetting('flatten', default_value=False, display_name='_Flatten')
     self.assertEqual(setting.description, 'Flatten?')
 
 
@@ -810,7 +581,7 @@ class TestCreateEnumSetting(unittest.TestCase):
   def test_inconsistent_number_of_elements_raises_error(self):
     with self.assertRaises(ValueError):
       settings_.EnumSetting(
-        'overwrite_mode', 'replace', [('skip', 'Skip', 4), ('replace', 'Replace')])
+        'overwrite_mode', [('skip', 'Skip', 4), ('replace', 'Replace')], default_value='replace')
     
   def test_same_explicit_item_value_multiple_times_raises_error(self):
     with self.assertRaises(ValueError):
@@ -908,7 +679,7 @@ class TestEnumSetting(unittest.TestCase):
     self.assertFalse(setting.is_value_empty())
     setting.set_value(setting.items['choose'])
     self.assertTrue(setting.is_value_empty())
-    
+  
   def test_set_empty_value_not_allowed(self):
     setting = settings_.EnumSetting(
       'overwrite_mode',
@@ -918,6 +689,33 @@ class TestEnumSetting(unittest.TestCase):
     
     with self.assertRaises(settings_.SettingValueError):
       setting.set_value(setting.items['choose'])
+  
+  def test_to_dict(self):
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {
+        'name': 'overwrite_mode',
+        'value': 1,
+        'type': 'enum',
+        'default_value': 'replace',
+        'items': [['skip', 'Skip'], ['replace', 'Replace']],
+        'display_name': 'Overwrite mode',
+      })
+
+
+class TestStringSetting(unittest.TestCase):
+  
+  def test_to_dict_bytes_is_converted_to_str(self):
+    setting = settings_.StringSetting('file_extension', default_value=b'png')
+    
+    self.assertEqual(
+      setting.to_dict(),
+      {
+        'name': 'file_extension',
+        'value': 'png',
+        'type': 'string',
+        'default_value': 'png',
+      })
 
 
 @mock.patch(
@@ -933,7 +731,7 @@ class TestImageSetting(unittest.TestCase):
     
     self.image = self.pdb.gimp_image_new(2, 2, gimpenums.RGB)
     
-    self.setting = settings_.ImageSetting('image', self.image)
+    self.setting = settings_.ImageSetting('image', default_value=self.image)
   
   def test_set_value_with_object(self):
     image = self.pdb.gimp_image_new(2, 2, gimpenums.RGB)
@@ -987,9 +785,20 @@ class TestImageSetting(unittest.TestCase):
     with self.assertRaises(settings_.SettingValueError):
       self.setting.set_value(self.image)
   
+  def test_default_value_with_raw_type(self):
+    self.pdb.gimp_image_set_filename(self.image, 'file_path')
+    
+    with mock.patch(
+          pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
+      temp_mock_gimp_module.image_list.return_value = [self.image]
+      
+      setting = settings_.ImageSetting('image', default_value='file_path')
+    
+    self.assertEqual(setting.default_value, self.image)
+  
   def test_empty_value_as_default_value(self):
     try:
-      settings_.ImageSetting('image', None)
+      settings_.ImageSetting('image', default_value=None)
     except settings_.SettingDefaultValueError:
       self.fail(
         'SettingDefaultValueError should not be raised - default value is an empty value')
@@ -997,23 +806,50 @@ class TestImageSetting(unittest.TestCase):
   def test_to_dict(self):
     self.pdb.gimp_image_set_filename(self.image, 'file_path')
     
-    self.assertDictEqual(self.setting.to_dict(), {'name': 'image', 'value': 'file_path'})
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {
+        'name': 'image',
+        'value': 'file_path',
+        'type': 'image',
+        'default_value': 'file_path',
+      })
   
   def test_to_dict_if_image_is_none(self):
-    setting = settings_.ImageSetting('image', None)
+    setting = settings_.ImageSetting('image', default_value=None)
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'image', 'value': None})
+    self.assertDictEqual(
+      setting.to_dict(),
+      {
+        'name': 'image',
+        'value': None,
+        'type': 'image',
+        'default_value': None,
+      })
   
   def test_to_dict_with_missing_filename(self):
     self.pdb.gimp_image_set_filename(self.image, None)
     
-    self.assertDictEqual(self.setting.to_dict(), {'name': 'image', 'value': None})
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {
+        'name': 'image',
+        'value': None,
+        'type': 'image',
+        'default_value': None,
+      })
   
   def test_to_dict_with_session_source_type(self):
     self.image.ID = 2
     
     self.assertDictEqual(
-      self.setting.to_dict(source_type='session'), {'name': 'image', 'value': 2})
+      self.setting.to_dict(source_type='session'),
+      {
+        'name': 'image',
+        'value': 2,
+        'type': 'image',
+        'default_value': 2,
+      })
 
 
 @mock.patch(
@@ -1046,7 +882,7 @@ class TestGimpItemSetting(unittest.TestCase):
     self.parent_of_parent.children = [self.parent]
     self.parent.children = [self.layer]
     
-    self.setting = self.StubItemSetting('item', self.layer)
+    self.setting = self.StubItemSetting('item', default_value=self.layer)
   
   def test_set_value_with_object(self):
     layer = stubs_gimp.LayerStub(name='layer2')
@@ -1129,26 +965,68 @@ class TestGimpItemSetting(unittest.TestCase):
   def test_to_dict(self):
     self.assertDictEqual(
       self.setting.to_dict(),
-      {'name': 'item', 'value': ['image_filepath', 'LayerStub', 'group1/group2/layer']})
+      {
+        'name': 'item',
+        'value': ['image_filepath', 'LayerStub', 'group1/group2/layer'],
+        'type': 'stub_item',
+        'default_value': ['image_filepath', 'LayerStub', 'group1/group2/layer'],
+      })
+  
+  def test_to_dict_value_is_none(self):
+    self.assertDictEqual(
+      self.StubItemSetting('item', default_value=None).to_dict(),
+      {
+        'name': 'item',
+        'value': None,
+        'type': 'stub_item',
+        'default_value': None,
+      })
+  
+  def test_to_dict_value_is_none_and_source_type_is_session(self):
+    self.assertDictEqual(
+      self.StubItemSetting('item', default_value=None).to_dict(source_type='session'),
+      {
+        'name': 'item',
+        'value': None,
+        'type': 'stub_item',
+        'default_value': None,
+      })
   
   def test_to_dict_without_image_filename(self):
     self.image.filename = None
     
-    self.assertDictEqual(self.setting.to_dict(), {'name': 'item', 'value': None})
+    self.assertDictEqual(
+      self.setting.to_dict(),
+      {
+        'name': 'item',
+        'value': None,
+        'type': 'stub_item',
+        'default_value': None,
+      })
   
   def test_to_dict_without_parents(self):
     self.layer.parent = None
     
     self.assertDictEqual(
       self.setting.to_dict(),
-      {'name': 'item', 'value': ['image_filepath', 'LayerStub', 'layer']})
+      {
+        'name': 'item',
+        'value': ['image_filepath', 'LayerStub', 'layer'],
+        'type': 'stub_item',
+        'default_value': ['image_filepath', 'LayerStub', 'layer'],
+      })
   
   def test_to_dict_via_item_id(self):
     self.layer.ID = 2
     
     self.assertDictEqual(
       self.setting.to_dict(source_type='session'),
-      {'name': 'item', 'value': ['LayerStub', 2]})
+      {
+        'name': 'item',
+        'value': ['LayerStub', 2],
+        'type': 'stub_item',
+        'default_value': ['LayerStub', 2],
+      })
 
 
 class TestColorSetting(unittest.TestCase):
@@ -1180,13 +1058,15 @@ class TestColorSetting(unittest.TestCase):
     setting = settings_.ColorSetting('color')
     setting.set_value(gimpcolor.RGB(5, 2, 8))
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 255]})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 255], 'type': 'color'})
   
   def test_to_dict_with_four_values(self):
     setting = settings_.ColorSetting('color')
     setting.set_value(gimpcolor.RGB(5, 2, 8, 4))
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 4]})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'color', 'value': [5, 2, 8, 4], 'type': 'color'})
 
 
 @mock.patch(
@@ -1203,7 +1083,8 @@ class TestDisplaySetting(unittest.TestCase):
       
       setting.set_value(display)
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'display', 'value': None})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'display', 'value': None, 'type': 'display'})
 
 
 @mock.patch(
@@ -1243,7 +1124,8 @@ class TestParasiteSetting(unittest.TestCase):
     setting.set_value(parasite)
     
     self.assertDictEqual(
-      setting.to_dict(), {'name': 'parasite', 'value': ['parasite_stub', 1, 'data']})
+      setting.to_dict(),
+      {'name': 'parasite', 'value': ['parasite_stub', 1, 'data'], 'type': 'parasite'})
 
 
 class TestFileExtensionSetting(unittest.TestCase):
@@ -1291,9 +1173,11 @@ class TestBrushSetting(unittest.TestCase):
   def setUp(self):
     self.setting = settings_.BrushSetting('brush', default_value=('', -1, -1, -1))
   
-  def test_init_with_brush_name_only_raises_error(self):
-    with self.assertRaises(settings_.SettingDefaultValueError):
-      settings_.BrushSetting('brush', default_value='Clipboard')
+  def test_init_with_brush_name_only(self):
+    setting = settings_.BrushSetting('brush', default_value='Clipboard')
+    
+    self.assertEqual(setting.value, ('Clipboard',))
+    self.assertEqual(setting.default_value, ('Clipboard',))
   
   @parameterized.parameterized.expand([
     ('one_element', ('Clipboard',), ('Clipboard',)),
@@ -1321,13 +1205,19 @@ class TestBrushSetting(unittest.TestCase):
     self.setting.set_value(('Clipboard', 50.0, 10.0, -1))
     
     self.assertDictEqual(
-      self.setting.to_dict(), {'name': 'brush', 'value': ['Clipboard', 50.0, 10.0, -1]})
+      self.setting.to_dict(),
+      {
+        'name': 'brush',
+        'value': ['Clipboard', 50.0, 10.0, -1],
+        'type': 'brush',
+        'default_value': ['', -1, -1, -1],
+      })
 
 
-class TestImageIDsAndDirpathsSetting(unittest.TestCase):
+class TestImageIdsAndDirectoriesSetting(unittest.TestCase):
   
   def setUp(self):
-    self.setting = settings_.ImageIDsAndDirpathsSetting(
+    self.setting = settings_.ImageIdsAndDirectoriesSetting(
       'image_ids_and_directories', default_value={})
     
     self.image_ids_and_filepaths = [
@@ -1445,7 +1335,7 @@ class TestCreateArraySetting(unittest.TestCase):
       element_type='float',
       element_default_value=0.0)
     
-    self.assertEqual(setting.default_value, [1.0, 5.0, 10.0])
+    self.assertEqual(setting.default_value, (1.0, 5.0, 10.0))
     self.assertEqual(setting.value, (1.0, 5.0, 10.0))
   
   def test_create_with_additional_read_only_element_arguments(self):
@@ -1668,7 +1558,17 @@ class TestArraySetting(unittest.TestCase):
   
   def test_to_dict(self):
     self.assertDictEqual(
-      self.setting.to_dict(), {'name': 'coordinates', 'value': [1.0, 5.0, 10.0]})
+      self.setting.to_dict(),
+      {
+        'name': 'coordinates',
+        'value': [1.0, 5.0, 10.0],
+        'type': 'array',
+        'default_value': [1.0, 5.0, 10.0],
+        'element_type': 'float',
+        'element_default_value': 0.0,
+        'element_max_value': 100.0,
+        'element_min_value': -100.0,
+      })
   
   def test_to_dict_with_type_having_custom_to_dict(self):
     setting = settings_.ArraySetting(
@@ -1680,7 +1580,15 @@ class TestArraySetting(unittest.TestCase):
     setting.set_value(['Clipboard', 'Clipboard2'])
     
     self.assertDictEqual(
-      setting.to_dict(), {'name': 'coordinates', 'value': [['Clipboard'], ['Clipboard2']]})
+      setting.to_dict(),
+      {
+        'name': 'coordinates',
+        'value': [['Clipboard'], ['Clipboard2']],
+        'type': 'array',
+        'default_value': [],
+        'element_type': 'brush',
+        'element_default_value': [],
+      })
   
   @parameterized.parameterized.expand([
     ('first', 0, 1.0),
@@ -2040,7 +1948,8 @@ class TestContainerSettings(unittest.TestCase):
     
     setting.set_value(expected_value)
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'setting', 'value': [1, 4, 'five']})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'setting', 'value': [1, 4, 'five'], 'type': 'tuple'})
   
   def test_set_value_for_set_setting(self):
     expected_value = set([1, 4, 'five'])
@@ -2060,7 +1969,8 @@ class TestContainerSettings(unittest.TestCase):
 
     setting.set_value(expected_value)
     
-    self.assertDictEqual(setting.to_dict(), {'name': 'setting', 'value': list(expected_value)})
+    self.assertDictEqual(
+      setting.to_dict(), {'name': 'setting', 'value': list(expected_value), 'type': 'set'})
 
 
 class TestSettingTypeFunctions(unittest.TestCase):
@@ -2068,112 +1978,33 @@ class TestSettingTypeFunctions(unittest.TestCase):
   def test_process_setting_type_with_name(self):
     self.assertEqual(settings_.process_setting_type('int'), settings_.IntSetting)
   
-  def test_process_setting_type_with_type_alias(self):
-    self.assertEqual(
-      settings_.process_setting_type(settings_.SettingTypes.int), settings_.IntSetting)
-  
   def test_process_setting_type_with_type(self):
     self.assertEqual(settings_.process_setting_type(settings_.IntSetting), settings_.IntSetting)
   
   def test_process_setting_type_with_invalid_name(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(TypeError):
       self.assertEqual(settings_.process_setting_type('invalid_type'))
   
   def test_process_setting_type_with_invalid_type(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(TypeError):
       self.assertEqual(settings_.process_setting_type(object()))
-  
-  def test_register_setting_type(self):
-    settings_.register_setting_type(stubs_setting.SettingStub, 'stub')
-    
-    self.assertTrue(settings_.is_setting_type_registered(stubs_setting.SettingStub))
-    self.assertTrue(settings_.is_setting_type_registered('stub'))
-    
-    settings_.unregister_setting_type('stub')
-  
-  def test_register_setting_type_allows_multiple_names_for_the_same_type(self):
-    settings_.register_setting_type(stubs_setting.SettingStub, 'stub')
-    settings_.register_setting_type(stubs_setting.SettingStub, 'stub2')
-    
-    self.assertTrue(settings_.is_setting_type_registered(stubs_setting.SettingStub))
-    self.assertTrue(settings_.is_setting_type_registered('stub'))
-    self.assertTrue(settings_.is_setting_type_registered('stub2'))
-    
-    settings_.unregister_setting_type('stub')
-    settings_.unregister_setting_type('stub2')
-  
-  def test_register_setting_type_raises_error_on_already_registered_name(self):
-    settings_.register_setting_type(stubs_setting.SettingStub, 'stub')
-    with self.assertRaises(ValueError):
-      settings_.register_setting_type(stubs_setting.SettingWithGuiStub, 'stub')
-    
-    settings_.unregister_setting_type('stub')
-  
-  def test_unregister_setting_type_raises_error_on_unrecognized_name(self):
-    with self.assertRaises(ValueError):
-      settings_.unregister_setting_type('invalid_type')
-  
-  def test_unregister_setting_type_raises_error_when_attempting_to_remove_builtin_type(self):
-    with self.assertRaises(ValueError):
-      settings_.unregister_setting_type('int')
 
 
 class TestSettingGuiTypeFunctions(unittest.TestCase):
   
   def test_process_setting_gui_type_with_name(self):
     self.assertEqual(
-      settings_.process_setting_gui_type('check_button'), presenters_gtk.GtkCheckButtonPresenter)
-  
-  def test_process_setting_gui_type_with_type_alias(self):
-    self.assertEqual(
-      settings_.process_setting_gui_type(settings_.SettingGuiTypes.check_button),
-      presenters_gtk.GtkCheckButtonPresenter)
+      settings_.process_setting_gui_type('check_button'), presenters_gtk.CheckButtonPresenter)
   
   def test_process_setting_gui_type_with_type(self):
     self.assertEqual(
-      settings_.process_setting_gui_type(presenters_gtk.GtkCheckButtonPresenter),
-      presenters_gtk.GtkCheckButtonPresenter)
+      settings_.process_setting_gui_type(presenters_gtk.CheckButtonPresenter),
+      presenters_gtk.CheckButtonPresenter)
   
   def test_process_setting_gui_type_with_invalid_name(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(TypeError):
       self.assertEqual(settings_.process_setting_gui_type('invalid_type'))
   
   def test_process_setting_gui_type_with_invalid_type(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(TypeError):
       self.assertEqual(settings_.process_setting_gui_type(object()))
-  
-  def test_register_setting_gui_type(self):
-    settings_.register_setting_gui_type(stubs_setting.CheckButtonPresenterStub, 'stub')
-    
-    self.assertTrue(
-      settings_.is_setting_gui_type_registered(stubs_setting.CheckButtonPresenterStub))
-    self.assertTrue(settings_.is_setting_gui_type_registered('stub'))
-    
-    settings_.unregister_setting_gui_type('stub')
-  
-  def test_register_setting_gui_type_allows_multiple_names_for_the_same_type(self):
-    settings_.register_setting_gui_type(stubs_setting.CheckButtonPresenterStub, 'stub')
-    settings_.register_setting_gui_type(stubs_setting.CheckButtonPresenterStub, 'stub2')
-    
-    self.assertTrue(
-      settings_.is_setting_gui_type_registered(stubs_setting.CheckButtonPresenterStub))
-    self.assertTrue(settings_.is_setting_gui_type_registered('stub'))
-    self.assertTrue(settings_.is_setting_gui_type_registered('stub2'))
-    
-    settings_.unregister_setting_gui_type('stub')
-    settings_.unregister_setting_gui_type('stub2')
-  
-  def test_register_setting_gui_type_raises_error_on_already_registered_name(self):
-    settings_.register_setting_gui_type(stubs_setting.CheckButtonPresenterStub, 'stub')
-    with self.assertRaises(ValueError):
-      settings_.register_setting_gui_type(stubs_setting.PresenterStub, 'stub')
-    
-    settings_.unregister_setting_gui_type('stub')
-  
-  def test_unregister_setting_gui_type_raises_error_on_unrecognized_name(self):
-    with self.assertRaises(ValueError):
-      settings_.unregister_setting_gui_type('invalid_type')
-  
-  def test_unregister_setting_gui_type_raises_error_when_attempting_to_remove_builtin_type(self):
-    with self.assertRaises(ValueError):
-      settings_.unregister_setting_gui_type('check_button')

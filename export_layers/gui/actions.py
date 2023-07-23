@@ -16,7 +16,7 @@ import gimpui
 
 from export_layers import pygimplib as pg
 
-from export_layers import actions
+from export_layers import actions as actions_
 from export_layers.gui import messages as messages_
 
 
@@ -70,7 +70,7 @@ class ActionBox(pg.gui.ItemBox):
   
   def __init__(
         self,
-        actions_,
+        actions,
         builtin_actions=None,
         add_action_text=None,
         edit_action_text=None,
@@ -81,7 +81,7 @@ class ActionBox(pg.gui.ItemBox):
         **kwargs):
     super().__init__(item_spacing=item_spacing, *args, **kwargs)
     
-    self._actions = actions_
+    self._actions = actions
     self._builtin_actions = (
       builtin_actions if builtin_actions is not None else {})
     self._add_action_text = add_action_text
@@ -95,23 +95,23 @@ class ActionBox(pg.gui.ItemBox):
     
     self._after_add_action_event_id = self._actions.connect_event(
       'after-add-action',
-      lambda actions_, action, orig_action_dict: self._add_item_from_action(action))
+      lambda actions, action, orig_action_dict: self._add_item_from_action(action))
     
     self._after_reorder_action_event_id = self._actions.connect_event(
       'after-reorder-action',
-      lambda actions_, action, current_position, new_position: (
+      lambda actions, action, current_position, new_position: (
         self._reorder_action(action, new_position)))
     
     self._before_remove_action_event_id = self._actions.connect_event(
       'before-remove-action',
-      lambda actions_, action: self._remove_action(action))
+      lambda actions, action: self._remove_action(action))
     
     self._before_clear_actions_event_id = self._actions.connect_event(
-      'before-clear-actions', lambda actions_: self._clear())
+      'before-clear-actions', lambda actions: self._clear())
   
   def add_item(self, action_dict_or_function):
     self._actions.set_event_enabled(self._after_add_action_event_id, False)
-    action = actions.add(self._actions, action_dict_or_function)
+    action = actions_.add(self._actions, action_dict_or_function)
     self._actions.set_event_enabled(self._after_add_action_event_id, True)
     
     item = self._add_item_from_action(action)
@@ -124,7 +124,7 @@ class ActionBox(pg.gui.ItemBox):
     processed_new_position = self._reorder_item(item, new_position)
     
     self._actions.set_event_enabled(self._after_reorder_action_event_id, False)
-    actions.reorder(self._actions, item.action.name, processed_new_position)
+    actions_.reorder(self._actions, item.action.name, processed_new_position)
     self._actions.set_event_enabled(self._after_reorder_action_event_id, True)
     
     self.emit('action-box-item-reordered', item, new_position)
@@ -133,7 +133,7 @@ class ActionBox(pg.gui.ItemBox):
     self._remove_item(item)
     
     self._actions.set_event_enabled(self._before_remove_action_event_id, False)
-    actions.remove(self._actions, item.action.name)
+    actions_.remove(self._actions, item.action.name)
     self._actions.set_event_enabled(self._before_remove_action_event_id, True)
     
     self.emit('action-box-item-removed', item)
@@ -284,8 +284,8 @@ class ActionBox(pg.gui.ItemBox):
         pdb_procedure = pdb[pg.utils.safe_encode_gimp(procedure_name)]
         
         try:
-          pdb_proc_action_dict = actions.get_action_dict_for_pdb_procedure(pdb_procedure)
-        except actions.UnsupportedPdbProcedureError as e:
+          pdb_proc_action_dict = actions_.get_action_dict_for_pdb_procedure(pdb_procedure)
+        except actions_.UnsupportedPdbProcedureError as e:
           messages_.display_failure_message(
             main_message=_(
               'An error occurred while adding procedure "{}".'.format(e.procedure_name)),
@@ -556,7 +556,7 @@ class _ActionEditDialog(gimpui.Dialog):
       
       gui_element_to_attach = setting.gui.element
       
-      if not isinstance(setting.gui, pg.setting.SettingGuiTypes.none):
+      if not isinstance(setting.gui, pg.setting.SettingGuiTypes.null):
         if isinstance(setting, pg.setting.ArraySetting):
           if setting.element_type.get_allowed_gui_types():
             setting.gui.element.set_property('width-request', self._ARRAY_PARAMETER_GUI_WIDTH)

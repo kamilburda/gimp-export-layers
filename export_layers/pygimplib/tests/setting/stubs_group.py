@@ -6,7 +6,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 from ...setting import group as group_
-from ...setting import settings as settings_
 
 
 def create_test_settings():
@@ -23,10 +22,9 @@ def create_test_settings():
       'name': 'flatten',
       'default_value': False,
       'display_name': 'Flatten',
-      'setting_sources': ['persistent']
     },
     {
-      'type': 'enumerated',
+      'type': 'options',
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
       'items': [('replace', 'Replace'),
@@ -62,7 +60,7 @@ def create_test_settings_hierarchical():
       'display_name': 'Flatten',
     },
     {
-      'type': 'enumerated',
+      'type': 'options',
       'name': 'overwrite_mode',
       'default_value': 'rename_new',
       'items': [('replace', 'Replace'),
@@ -78,16 +76,16 @@ def create_test_settings_hierarchical():
   return settings
 
 
-def create_test_settings_load_save():
+def create_test_settings_with_specific_setting_sources():
   main_settings = group_.Group(
     name='main',
-    setting_attributes={'setting_sources': ['session', 'persistent']})
+    setting_attributes={'setting_sources': ['persistent']})
   
   main_settings.add([
     {
       'type': 'file_extension',
       'name': 'file_extension',
-      'default_value': 'bmp',
+      'default_value': 'png',
     },
   ])
   
@@ -99,12 +97,13 @@ def create_test_settings_load_save():
       'type': 'boolean',
       'name': 'flatten',
       'default_value': False,
-      'setting_sources': ['persistent', 'session']
+      'setting_sources': ['persistent', 'session'],
+      'tags': ['ignore_load', 'ignore_save'],
     },
     {
       'type': 'boolean',
       'name': 'use_layer_size',
-      'default_value': False
+      'default_value': False,
     },
   ])
   
@@ -112,3 +111,44 @@ def create_test_settings_load_save():
   settings.add([main_settings, advanced_settings])
   
   return settings
+
+
+def create_test_data_with_specific_setting_sources():
+  return [
+    {
+      'name': 'settings',
+      'settings': [
+        {
+          'name': 'main',
+          'setting_attributes': {'setting_sources': ['persistent']},
+          'settings': [
+            {
+              'type': 'file_extension',
+              'name': 'file_extension',
+              'value': 'png',
+              'setting_sources': ['persistent'],
+            },
+          ],
+        },
+        {
+          'name': 'advanced',
+          'setting_attributes': {'setting_sources': ['session']},
+          'settings': [
+            {
+              'type': 'boolean',
+              'name': 'flatten',
+              'value': False,
+              'setting_sources': ['persistent', 'session'],
+              'tags': ['ignore_load', 'ignore_save'],
+            },
+            {
+              'type': 'boolean',
+              'name': 'use_layer_size',
+              'value': False,
+              'setting_sources': ['session'],
+            },
+          ],
+        },
+      ],
+    }
+  ]

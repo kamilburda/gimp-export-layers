@@ -76,9 +76,10 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(status, update.FRESH_START)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     
-    status, unused_ = self.settings['main/plugin_version'].load()
+    load_result = self.settings['main/plugin_version'].load()
+    
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
-    self.assertEqual(status, pg.setting.Persistor.SUCCESS)
+    self.assertEqual(load_result.status, pg.setting.Persistor.SUCCESS)
   
   def test_minimum_version_or_later_is_overwritten_by_new_version(
         self,
@@ -122,11 +123,12 @@ class TestUpdate(unittest.TestCase):
     
     status, unused_ = update.update(self.settings)
     
+    load_result = self.settings['main/test_setting'].load()
+    
     self.assertEqual(status, update.CLEAR_SETTINGS)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
-    self.assertEqual(
-      self.settings['main/test_setting'].load()[0],
-      pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND)
+    self.assertEqual(load_result.status, pg.setting.Persistor.PARTIAL_SUCCESS)
+    self.assertTrue(bool(load_result.settings_not_loaded))
   
   def test_ask_to_clear_positive_response(
         self,
@@ -140,11 +142,13 @@ class TestUpdate(unittest.TestCase):
     self.settings['main'].save()
     
     status, unused_ = update.update(self.settings, 'ask_to_clear')
+    
+    load_result = self.settings['main/test_setting'].load()
+    
     self.assertEqual(status, update.CLEAR_SETTINGS)
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
-    self.assertEqual(
-      self.settings['main/test_setting'].load()[0],
-      pg.setting.Persistor.NOT_ALL_SETTINGS_FOUND)
+    self.assertEqual(load_result.status, pg.setting.Persistor.PARTIAL_SUCCESS)
+    self.assertTrue(bool(load_result.settings_not_loaded))
   
   def test_ask_to_clear_negative_response(
         self,
@@ -158,12 +162,12 @@ class TestUpdate(unittest.TestCase):
     self.settings['main'].save()
     
     status, unused_ = update.update(self.settings, 'ask_to_clear')
+    
+    load_result = self.settings['main/test_setting'].load()
+    
     self.assertEqual(status, update.ABORT)
-    self.assertEqual(
-      self.settings['main/plugin_version'].value, self.old_incompatible_version)
-    self.assertEqual(
-      self.settings['main/test_setting'].load()[0],
-      pg.setting.Persistor.SUCCESS)
+    self.assertEqual(self.settings['main/plugin_version'].value, self.old_incompatible_version)
+    self.assertEqual(load_result.status, pg.setting.Persistor.SUCCESS)
   
 
 class TestHandleUpdate(unittest.TestCase):

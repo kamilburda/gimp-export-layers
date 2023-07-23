@@ -271,7 +271,8 @@ class TestItem(unittest.TestCase):
   def test_repr(self):
     self.assertEqual(
       repr(self.item),
-      '<pygimplib.itemtree.Item "main-background.jpg {}" at {}>'.format(
+      '<{}.itemtree.Item "main-background.jpg {}" at {}>'.format(
+        pgutils.get_pygimplib_module_path(),
         type(self.item.raw),
         hex(id(self.item)).rstrip('L'),
       ),

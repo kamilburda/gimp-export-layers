@@ -9,8 +9,6 @@ These events include:
 
 * `'before-add-action'` - invoked when:
   * calling `add()` before adding an action,
-  * calling `setting.Group.load()` or `setting.Persistor.load()` before loading
-    an action (loading an action counts as adding),
   * calling `clear()` before resetting actions (due to initial actions
     being added back).
   
@@ -19,12 +17,18 @@ These events include:
 * `'after-add-action'` - invoked when:
   * calling `add()` after adding an action,
   * calling `setting.Group.load()` or `setting.Persistor.load()` after loading
-    an action (loading an action counts as adding),
+    an action (loading an action counts as adding).
   * calling `clear()` after resetting actions (due to initial actions
     being added back).
   
-  Arguments: created action, original action dictionary (same as in
-  `'before-add-action'`)
+  Arguments:
+  
+  * created action,
+  
+  * original action dictionary (same as in `'before-add-action'`). When this
+    event is triggered in `setting.Group.load()` or `setting.Persistor.load()`,
+    this argument is `None` as there is no way to obtain the original
+    dictionary.
 
 * `'before-reorder-action'` - invoked when calling `reorder()` before
   reordering an action.
@@ -74,10 +78,11 @@ DEFAULT_CONSTRAINTS_GROUP = 'default_constraints'
 _DEFAULT_ACTION_TYPE = 'procedure'
 _REQUIRED_ACTION_FIELDS = ['name']
 
+_ACTIONS_AND_INITIAL_ACTION_DICTS = {}
+
 
 def create(name, initial_actions=None):
-  """
-  Create a `setting.Group` instance containing actions.
+  """Creates a `setting.Group` instance containing actions.
   
   Parameters:
   * `name` - name of the `setting.Group` instance.
@@ -86,20 +91,8 @@ def create(name, initial_actions=None):
     this function to the initial actions. By default, no initial actions
     are added.
   
-  The resulting `setting.Group` instance contains the following subgroups:
-  * `'added'` - Contains actions added via `add()` or created in this
-    function via `initial_actions` dictionary.
-  * `'_added_data'` - Actions stored as dictionaries, used when loading or
-    saving actions persistently. As indicated by the leading underscore, this
-    subgroup is only for internal use and should not be modified outside
-    `actions`.
-  * `'_added_data_values'` - Values of actions stored as dictionaries, used
-    when loading or saving actions persistently. As indicated by the leading
-    underscore, this subgroup is only for internal use and should not be
-    modified outside `actions`.
-  
-  Each created action in the returned group is a nested `setting.Group`. Each
-  action contains the following settings or subgroups:
+  Each created action in the returned group is a `setting.Group` instance. Each
+  action contains the following settings or child groups:
   * `'function'` - Name of the function to call. If `'origin'` is `'builtin'`,
     then the function is an empty string and the function must be replaced
     during processing with a function object. This allows the function to be
@@ -173,80 +166,119 @@ def create(name, initial_actions=None):
       'setting_sources': None,
     })
   
-  added_actions = pg.setting.Group(
-    name='added',
-    setting_attributes={
-      'pdb_type': None,
-      'setting_sources': None,
-    })
+  _ACTIONS_AND_INITIAL_ACTION_DICTS[actions] = initial_actions
   
-  actions.add([
-    added_actions,
-    {
-      'type': 'list',
-      'name': '_added_data',
-      'default_value': _get_initial_added_data(initial_actions),
-      'setting_sources': ['session', 'persistent'],
-      'gui_type': None,
-    },
-    {
-      'type': 'dict',
-      'name': '_added_data_values',
-      'default_value': {},
-      'setting_sources': ['session', 'persistent'],
-      'gui_type': None,
-    },
-  ])
+  _create_initial_actions(actions, initial_actions)
   
-  _create_actions_from_added_data(actions)
-  
-  actions.connect_event(
-    'after-clear-actions',
-    _create_actions_from_added_data)
-  
-  actions['_added_data'].connect_event(
-    'before-load',
-    _clear_actions_before_load_without_adding_initial_actions,
-    actions)
-  
-  actions['_added_data'].connect_event(
-    'after-load',
-    lambda added_data_setting: (
-      _create_actions_from_added_data(added_data_setting.parent)))
-  
-  actions['_added_data_values'].connect_event(
-    'before-save',
-    _get_values_from_actions,
-    actions['added'])
-  
-  actions['_added_data_values'].connect_event(
-    'after-load',
-    _set_values_for_actions,
-    actions['added'])
+  actions.connect_event('before-load', lambda group: clear(group, add_initial_actions=False))
+  actions.connect_event('after-load', _set_up_action_after_loading)
   
   return actions
 
 
-def _get_initial_added_data(initial_actions):
-  if not initial_actions:
-    return []
+def _create_initial_actions(actions, initial_actions):
+  if initial_actions is not None:
+    for action_dict in initial_actions:
+      add(actions, action_dict)
+
+
+def _set_up_action_after_loading(actions):
+  for action in actions:
+    _set_up_action_post_creation(action)
+    actions.invoke_event('after-add-action', action, None)
+
+
+def add(actions, action_dict_or_function):
+  """
+  Add an action to the `actions` setting group.
+  
+  `action_dict_or_function` can be one of the following:
+  * a dictionary - see `create()` for required and accepted fields.
+  * a PDB procedure.
+  
+  Objects of other types passed to `action_dict_or_function` raise
+  `TypeError`.
+  
+  The same action can be added multiple times. Each action will be
+  assigned a unique name and display name (e.g. `'rename'` and `'Rename'`
+  for the first action, `'rename_2'` and `'Rename (2)'` for the second
+  action, and so on).
+  """
+  if isinstance(action_dict_or_function, dict):
+    action_dict = dict(action_dict_or_function)
   else:
-    return [dict(action_dict) for action_dict in initial_actions]
+    if pg.pdbutils.is_pdb_procedure(action_dict_or_function):
+      action_dict = get_action_dict_for_pdb_procedure(action_dict_or_function)
+    else:
+      raise TypeError(
+        '"{}" is not a valid object - pass a dict or a PDB procedure'.format(
+          action_dict_or_function))
+  
+  _check_required_fields(action_dict)
+  
+  orig_action_dict = dict(action_dict)
+  
+  actions.invoke_event('before-add-action', action_dict)
+  
+  _uniquify_name_and_display_name(actions, action_dict)
+  
+  action = _create_action_by_type(**action_dict)
+  
+  actions.add([action])
+  
+  actions.invoke_event('after-add-action', action, orig_action_dict)
+  
+  return action
 
 
-def _clear_actions_before_load_without_adding_initial_actions(
-      added_data_setting, actions_group):
-  _clear(actions_group)
+def _check_required_fields(action_kwargs):
+  for required_field in _REQUIRED_ACTION_FIELDS:
+    if required_field not in action_kwargs:
+      raise ValueError('missing required field: "{}"'.format(required_field))
 
 
-def _create_actions_from_added_data(actions):
-  for action_dict in actions['_added_data'].value:
-    actions.invoke_event('before-add-action', action_dict)
-    
-    action = _create_action_by_type(**dict(action_dict))
-    actions['added'].add([action])
-    
-    actions.invoke_event('after-add-action', action, action_dict)
+def _uniquify_name_and_display_name(actions, action_dict):
+  action_dict['orig_name'] = action_dict['name']
+  action_dict['name'] = _uniquify_action_name(actions, action_dict['name'])
+  action_dict['display_name'] = _uniquify_action_display_name(actions, action_dict['display_name'])
+
+
+def _uniquify_action_name(actions, name):
+  """
+  Return `name` modified to not match the name of any existing action in
+  `actions`.
+  """
+  
+  def _generate_unique_action_name():
+    i = 2
+    while True:
+      yield '_{}'.format(i)
+      i += 1
+  
+  return (
+    pg.path.uniquify_string(
+      name,
+      [action.name for action in walk(actions)],
+      generator=_generate_unique_action_name()))
+
+
+def _uniquify_action_display_name(actions, display_name):
+  """
+  Return `display_name` modified to not match the display name of any existing
+  action in `actions`.
+  """
+  
+  def _generate_unique_display_name():
+    i = 2
+    while True:
+      yield ' ({})'.format(i)
+      i += 1
+  
+  return (
+    pg.path.uniquify_string(
+      display_name,
+      [action['display_name'].value for action in walk(actions)],
+      generator=_generate_unique_display_name()))
 
 
 def _create_action_by_type(**kwargs):
@@ -257,24 +289,7 @@ def _create_action_by_type(**kwargs):
       'invalid type "{}"; valid values: {}'.format(
         type_, list(_ACTION_TYPES_AND_FUNCTIONS)))
   
-  for required_field in _REQUIRED_ACTION_FIELDS:
-    if required_field not in kwargs:
-      raise ValueError('missing required field: "{}"'.format(required_field))
-  
   return _ACTION_TYPES_AND_FUNCTIONS[type_](**kwargs)
-
-
-def _get_values_from_actions(added_data_values_setting, added_actions_group):
-  added_data_values_setting.reset()
-  
-  for setting in added_actions_group.walk():
-    added_data_values_setting.value[setting.get_path(added_actions_group)] = setting.value
-
-
-def _set_values_for_actions(added_data_values_setting, added_actions_group):
-  for setting in added_actions_group.walk():
-    if setting.get_path(added_actions_group) in added_data_values_setting.value:
-      setting.set_value(added_data_values_setting.value[setting.get_path(added_actions_group)])
 
 
 def _create_action(
@@ -291,12 +306,6 @@ def _create_action(
       enabled_for_previews=True,
       display_options_on_create=False,
       orig_name=None):
-  
-  def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
-    setting_display_name.set_gui(
-      gui_type='check_button_label',
-      gui_element=setting_enabled.gui.element)
-  
   action = pg.setting.Group(
     name,
     tags=tags,
@@ -324,7 +333,7 @@ def _create_action(
       'gui_type': None,
     },
     {
-      'type': 'enumerated',
+      'type': 'options',
       'name': 'origin',
       'default_value': origin,
       'items': [
@@ -388,14 +397,7 @@ def _create_action(
     },
   ])
   
-  action['enabled'].connect_event(
-    'after-set-gui',
-    _set_display_name_for_enabled_gui,
-    action['display_name'])
-  
-  if action['origin'].is_item('gimp_pdb'):
-    _connect_events_to_sync_array_and_array_length_arguments(action)
-    _hide_gui_for_run_mode_and_array_length_arguments(action)
+  _set_up_action_post_creation(action)
   
   return action
 
@@ -454,6 +456,23 @@ def _create_constraint(
   return constraint
 
 
+def _set_up_action_post_creation(action):
+  action['enabled'].connect_event(
+    'after-set-gui',
+    _set_display_name_for_enabled_gui,
+    action['display_name'])
+  
+  if action['origin'].is_item('gimp_pdb'):
+    _connect_events_to_sync_array_and_array_length_arguments(action)
+    _hide_gui_for_run_mode_and_array_length_arguments(action)
+
+
+def _set_display_name_for_enabled_gui(setting_enabled, setting_display_name):
+  setting_display_name.set_gui(
+    gui_type='check_button_label',
+    gui_element=setting_enabled.gui.element)
+
+
 def _connect_events_to_sync_array_and_array_length_arguments(action):
   
   def _increment_array_length(
@@ -491,54 +510,6 @@ def _get_array_length_and_array_settings(action):
     previous_setting = setting
   
   return array_length_and_array_settings
-
-
-_ACTION_TYPES_AND_FUNCTIONS = {
-  'procedure': _create_procedure,
-  'constraint': _create_constraint
-}
-
-
-def add(actions, action_dict_or_function):
-  """
-  Add an action to the `actions` setting group.
-  
-  `action_dict_or_function` can be one of the following:
-  * a dictionary - see `create()` for required and accepted fields.
-  * a PDB procedure.
-  
-  Objects of other types passed to `action_dict_or_function` raise
-  `TypeError`.
-  
-  The same action can be added multiple times. Each action will be
-  assigned a unique name and display name (e.g. `'rename'` and `'Rename'`
-  for the first action, `'rename_2'` and `'Rename (2)'` for the second
-  action, and so on).
-  """
-  if isinstance(action_dict_or_function, dict):
-    action_dict = dict(action_dict_or_function)
-  else:
-    if pg.pdbutils.is_pdb_procedure(action_dict_or_function):
-      action_dict = get_action_dict_for_pdb_procedure(action_dict_or_function)
-    else:
-      raise TypeError(
-        '"{}" is not a valid object - pass a dict or a PDB procedure'.format(
-          action_dict_or_function))
-  
-  orig_action_dict = dict(action_dict)
-  
-  actions.invoke_event('before-add-action', action_dict)
-  
-  _uniquify_name_and_display_name(actions, action_dict)
-  
-  action = _create_action_by_type(**action_dict)
-  
-  actions['added'].add([action])
-  actions['_added_data'].value.append(action_dict)
-  
-  actions.invoke_event('after-add-action', action, orig_action_dict)
-  
-  return action
 
 
 def get_action_dict_for_pdb_procedure(pdb_procedure):
@@ -608,50 +579,6 @@ def get_action_dict_for_pdb_procedure(pdb_procedure):
   return action_dict
 
 
-def _uniquify_name_and_display_name(actions, action_dict):
-  action_dict['orig_name'] = action_dict['name']
-  action_dict['name'] = _uniquify_action_name(actions, action_dict['name'])
-  action_dict['display_name'] = _uniquify_action_display_name(actions, action_dict['display_name'])
-
-
-def _uniquify_action_name(actions, name):
-  """
-  Return `name` modified to not match the name of any existing action in
-  `actions`.
-  """
-  
-  def _generate_unique_action_name():
-    i = 2
-    while True:
-      yield '_{}'.format(i)
-      i += 1
-  
-  return (
-    pg.path.uniquify_string(
-      name,
-      [action.name for action in walk(actions)],
-      generator=_generate_unique_action_name()))
-
-
-def _uniquify_action_display_name(actions, display_name):
-  """
-  Return `display_name` modified to not match the display name of any existing
-  action in `actions`.
-  """
-  
-  def _generate_unique_display_name():
-    i = 2
-    while True:
-      yield ' ({})'.format(i)
-      i += 1
-  
-  return (
-    pg.path.uniquify_string(
-      display_name,
-      [action['display_name'].value for action in walk(actions)],
-      generator=_generate_unique_display_name()))
-
-
 def reorder(actions, action_name, new_position):
   """
   Modify the position of the added action given by its name to the new
@@ -669,19 +596,13 @@ def reorder(actions, action_name, new_position):
     raise ValueError('action "{}" not found in actions named "{}"'.format(
       action_name, actions.name))
   
-  action = actions['added'][action_name]
+  action = actions[action_name]
   
   actions.invoke_event('before-reorder-action', action, current_position)
   
-  action_dict = actions['_added_data'].value.pop(current_position)
+  actions.reorder(action_name, new_position)
   
-  if new_position < 0:
-    new_position = max(len(actions['_added_data'].value) + new_position + 1, 0)
-  
-  actions['_added_data'].value.insert(new_position, action_dict)
-  
-  actions.invoke_event(
-    'after-reorder-action', action, current_position, new_position)
+  actions.invoke_event('after-reorder-action', action, current_position, new_position)
 
 
 def remove(actions, action_name):
@@ -691,18 +612,15 @@ def remove(actions, action_name):
   Raises:
   * `ValueError` - `action_name` not found in `actions`.
   """
-  action_index = get_index(actions, action_name)
-  
-  if action_index is None:
+  if action_name not in actions:
     raise ValueError('action "{}" not found in actions named "{}"'.format(
       action_name, actions.name))
   
-  action = actions['added'][action_name]
+  action = actions[action_name]
   
   actions.invoke_event('before-remove-action', action)
   
-  actions['added'].remove([action_name])
-  del actions['_added_data'].value[action_index]
+  actions.remove([action_name])
   
   actions.invoke_event('after-remove-action', action_name)
 
@@ -713,8 +631,8 @@ def get_index(actions, action_name):
   If there is no such action, return `None`.
   """
   return next(
-    (index for index, dict_ in enumerate(actions['_added_data'].value)
-     if dict_['name'] == action_name),
+    (index for index, action in enumerate(actions)
+     if action.name == action_name),
     None)
 
 
@@ -726,18 +644,13 @@ def clear(actions, add_initial_actions=True):
   """
   actions.invoke_event('before-clear-actions')
   
-  _clear(actions, add_initial_actions)
+  actions.remove([action.name for action in actions])
+  
+  if add_initial_actions:
+    if actions in _ACTIONS_AND_INITIAL_ACTION_DICTS:
+      _create_initial_actions(actions, _ACTIONS_AND_INITIAL_ACTION_DICTS[actions])
   
   actions.invoke_event('after-clear-actions')
-
-
-def _clear(actions, add_initial_actions=True):
-  actions['added'].remove([action.name for action in walk(actions)])
-  if add_initial_actions:
-    actions['_added_data'].reset()
-  else:
-    actions['_added_data'].set_value({})
-  actions['_added_data_values'].reset()
 
 
 def walk(actions, action_type=None, setting_name=None):
@@ -762,28 +675,27 @@ def walk(actions, action_type=None, setting_name=None):
   if action_type is not None and action_type not in action_types:
     raise ValueError('invalid action type "{}"'.format(action_type))
   
-  def has_matching_type(setting):
+  def has_matching_type(action):
     if action_type is None:
-      return any(type_ in setting.tags for type_ in action_types)
+      return any(type_ in action.tags for type_ in action_types)
     else:
-      return action_type in setting.tags
+      return action_type in action.tags
   
-  listed_actions = {
-    setting.name: setting
-    for setting in actions['added'].walk(
-      include_setting_func=has_matching_type,
-      include_groups=True,
-      include_if_parent_skipped=True)}
-  
-  for action_dict in actions['_added_data'].value:
-    if action_dict['name'] in listed_actions:
-      action = listed_actions[action_dict['name']]
-      
-      if setting_name is None:
-        yield action
-      else:
-        if setting_name in action:
-          yield action[setting_name]
+  for action in actions:
+    if not has_matching_type(action):
+      continue
+    
+    if setting_name is None:
+      yield action
+    else:
+      if setting_name in action:
+        yield action[setting_name]
+
+
+_ACTION_TYPES_AND_FUNCTIONS = {
+  'procedure': _create_procedure,
+  'constraint': _create_constraint,
+}
 
 
 class UnsupportedPdbProcedureError(Exception):

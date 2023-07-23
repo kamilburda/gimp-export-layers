@@ -5,13 +5,9 @@ from future.builtins import *
 
 import unittest
 
-import mock
 import parameterized
 
-from ... import utils as pgutils
-
 from ...setting import group as group_
-from ...setting import persistor as persistor_
 from ...setting import presenter as presenter_
 from ...setting import settings as settings_
 
@@ -123,12 +119,10 @@ class TestGroupAddFromDict(unittest.TestCase):
       {
        'type': 'boolean',
        'name': 'flatten',
-       'default_value': False,
       },
       {
        'type': 'boolean',
        'name': 'use_layer_size',
-       'default_value': False,
       }
     ])
     
@@ -138,15 +132,10 @@ class TestGroupAddFromDict(unittest.TestCase):
   def test_add_with_group_level_attributes_overridden_by_setting_attributes(self):
     settings = group_.Group(name='main', setting_attributes={'pdb_type': None})
     settings.add([
-      {
-       'type': 'boolean',
-       'name': 'flatten',
-       'default_value': False,
-      },
+      {'type': 'boolean', 'name': 'flatten'},
       {
        'type': 'boolean',
        'name': 'use_layer_size',
-       'default_value': False,
        'pdb_type': settings_.SettingPdbTypes.int16
       }
     ])
@@ -158,24 +147,12 @@ class TestGroupAddFromDict(unittest.TestCase):
   def test_add_with_group_level_attributes_overridden_by_child_group_attributes(self):
     additional_settings = group_.Group(
       name='additional', setting_attributes={'pdb_type': settings_.SettingPdbTypes.int16})
-    
-    additional_settings.add([
-      {
-       'type': 'boolean',
-       'name': 'use_layer_size',
-       'default_value': False
-      }
-    ])
+    additional_settings.add([{'type': 'boolean', 'name': 'use_layer_size'}])
     
     settings = group_.Group(
       name='main', setting_attributes={'pdb_type': None, 'display_name': 'Setting name'})
-    
     settings.add([
-      {
-       'type': 'boolean',
-       'name': 'flatten',
-       'default_value': False,
-      },
+      {'type': 'boolean', 'name': 'flatten'},
       additional_settings
     ])
     
@@ -184,6 +161,42 @@ class TestGroupAddFromDict(unittest.TestCase):
       settings['additional/use_layer_size'].pdb_type, settings_.SettingPdbTypes.int16)
     self.assertEqual(settings['flatten'].display_name, 'Setting name')
     self.assertEqual(settings['additional/use_layer_size'].display_name, 'Use layer size')
+  
+  def test_add_with_top_group_attributes_applied_recursively(self):
+    settings = group_.Group(
+      name='main', setting_attributes={'pdb_type': settings_.SettingPdbTypes.int16})
+    
+    additional_settings = group_.Group(name='additional')
+    
+    settings.add([
+      {'type': 'boolean', 'name': 'flatten'},
+      additional_settings
+    ])
+    
+    additional_settings.add([{'type': 'boolean', 'name': 'use_layer_size'}])
+    
+    self.assertEqual(settings['flatten'].pdb_type, settings_.SettingPdbTypes.int16)
+    self.assertEqual(
+      settings['additional/use_layer_size'].pdb_type, settings_.SettingPdbTypes.int16)
+  
+  def test_add_with_top_group_attributes_not_applied_recursively_if_disabled(self):
+    settings = group_.Group(
+      name='main',
+      setting_attributes={'pdb_type': settings_.SettingPdbTypes.int16},
+      recurse_setting_attributes=False)
+    
+    additional_settings = group_.Group(name='additional')
+    
+    settings.add([
+      {'type': 'boolean', 'name': 'flatten'},
+      additional_settings,
+    ])
+    
+    additional_settings.add([{'type': 'boolean', 'name': 'use_layer_size'}])
+    
+    self.assertEqual(settings['flatten'].pdb_type, settings_.SettingPdbTypes.int16)
+    self.assertEqual(
+      settings['additional/use_layer_size'].pdb_type, settings_.SettingPdbTypes.int32)
 
 
 class TestGroupCreateGroupsFromDict(unittest.TestCase):
@@ -370,6 +383,56 @@ class TestGroup(unittest.TestCase):
         'nonexistent_setting': 'jpg',
       })
   
+  @parameterized.parameterized.expand([
+    ('positive_index',
+     'file_extension',
+     2,
+     ['flatten', 'overwrite_mode', 'file_extension']),
+    
+    ('positive_index_beyond_group_length',
+     'file_extension',
+     4,
+     ['flatten', 'overwrite_mode', 'file_extension']),
+    
+    ('same_index',
+     'file_extension',
+     0,
+     ['file_extension', 'flatten', 'overwrite_mode']),
+    
+    ('negative_index',
+     'file_extension',
+     -2,
+     ['flatten', 'file_extension', 'overwrite_mode']),
+  ])
+  def test_reorder(self, test_case_name_suffix, setting_name, new_position, expected_names):
+    self.settings.reorder(setting_name, new_position)
+    
+    expected_list = [self.settings[name] for name in expected_names]
+    
+    self.assertListEqual(list(self.settings), expected_list)
+  
+  def test_reorder_multiple_times(self):
+    self.settings.reorder('file_extension', 2)
+    self.settings.reorder('file_extension', 1)
+    
+    expected_list = [
+      self.settings[name] for name in ['flatten', 'file_extension', 'overwrite_mode']]
+    
+    self.assertListEqual(list(self.settings), expected_list)
+  
+  def test_reorder_does_not_affect_order_outside_current_group(self):
+    settings = stubs_group.create_test_settings_hierarchical()
+    
+    settings['main'].add([{'name': 'enabled', 'type': 'boolean'}])
+    
+    settings['advanced'].reorder('flatten', 1)
+    
+    self.assertListEqual(
+      list(settings.walk(include_groups=True)),
+      [settings[path] for path in [
+        'main', 'main/file_extension', 'main/enabled',
+        'advanced', 'advanced/overwrite_mode', 'advanced/flatten']])
+  
   def test_remove_settings(self):
     self.settings.remove(['file_extension', 'flatten'])
     self.assertNotIn('file_extension', self.settings)
@@ -429,6 +492,15 @@ class TestGroup(unittest.TestCase):
     self.assertNotEqual(
       self.settings['special/first_plugin_run'].value,
       self.settings['special/first_plugin_run'].default_value)
+  
+  def test_to_dict(self):
+    group = group_.Group('main', tags=['ignore_load'], setting_attributes={'gui_type': None})
+    
+    group.add([self.first_plugin_run_setting_dict])
+    
+    self.assertDictEqual(
+      group.to_dict(),
+      {'name': 'main', 'tags': ['ignore_load'], 'setting_attributes': {'gui_type': None}})
 
 
 class TestGroupHierarchical(unittest.TestCase):
@@ -622,147 +694,7 @@ class TestGroupHierarchical(unittest.TestCase):
     return walked_settings, walk_callbacks
 
 
-@mock.patch(
-  pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.save',
-  return_value=(persistor_.Persistor.SUCCESS, ''))
-@mock.patch(
-  pgutils.get_pygimplib_module_path() + '.setting.persistor.Persistor.load',
-  return_value=(persistor_.Persistor.SUCCESS, ''))
-class TestGroupLoadSave(unittest.TestCase):
-  
-  def setUp(self):
-    self.settings = stubs_group.create_test_settings_load_save()
-  
-  def test_load_save_setting_sources_not_in_group_and_in_settings(
-        self, mock_load, mock_save):
-    settings = stubs_group.create_test_settings()
-    
-    settings.load()
-    self.assertEqual(mock_load.call_count, 1)
-    self.assertEqual([settings['flatten']], mock_load.call_args[0][0])
-    
-    settings.save()
-    self.assertEqual(mock_save.call_count, 1)
-    self.assertEqual([settings['flatten']], mock_save.call_args[0][0])
-  
-  @parameterized.parameterized.expand([
-    ('default_sources',
-     None,
-     3,
-     [['main/file_extension'],
-      ['advanced/flatten'],
-      ['advanced/use_layer_size']],
-     [('session', 'persistent'),
-      ('persistent', 'session'),
-      ('session',)]),
-    
-    ('session_source_only',
-     ['session'],
-     1,
-     [['main/file_extension', 'advanced/flatten', 'advanced/use_layer_size']],
-     [('session',)]),
-    
-    ('persistent_source_only',
-     ['persistent'],
-     1,
-     [['main/file_extension', 'advanced/flatten']],
-     [('persistent',)]),
-  ])
-  def test_load_save_setting_sources_in_group_and_in_settings(
-        self,
-        mock_load,
-        mock_save,
-        test_case_name_suffix,
-        setting_sources,
-        load_save_call_count,
-        setting_names_in_calls,
-        expected_setting_sources_in_calls):
-    self._test_load_save(
-      test_case_name_suffix,
-      setting_sources,
-      load_save_call_count,
-      setting_names_in_calls,
-      expected_setting_sources_in_calls,
-      'load',
-      mock_load)
-    
-    self._test_load_save(
-      test_case_name_suffix,
-      setting_sources,
-      load_save_call_count,
-      setting_names_in_calls,
-      expected_setting_sources_in_calls,
-      'save',
-      mock_save)
-  
-  def test_load_save_return_statuses(self, mock_load, mock_save):
-    load_save_calls_return_values = [
-      (persistor_.Persistor.SUCCESS, ''),
-      (persistor_.Persistor.SUCCESS, ''),
-      (persistor_.Persistor.SUCCESS, '')]
-    
-    mock_load.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.load()
-    self.assertEqual(status, persistor_.Persistor.SUCCESS)
-    
-    mock_save.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.save()
-    self.assertEqual(status, persistor_.Persistor.SUCCESS)
-    
-    load_save_calls_return_values[1] = persistor_.Persistor.NOT_ALL_SETTINGS_FOUND, ''
-    mock_load.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.load()
-    self.assertEqual(status, persistor_.Persistor.NOT_ALL_SETTINGS_FOUND)
-    
-    load_save_calls_return_values[1] = persistor_.Persistor.NOT_ALL_SETTINGS_FOUND, ''
-    mock_save.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.save()
-    self.assertEqual(status, persistor_.Persistor.NOT_ALL_SETTINGS_FOUND)
-    
-    load_save_calls_return_values[2] = persistor_.Persistor.READ_FAIL, ''
-    mock_load.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.load()
-    self.assertEqual(status, persistor_.Persistor.READ_FAIL)
-    
-    load_save_calls_return_values[2] = persistor_.Persistor.WRITE_FAIL, ''
-    mock_save.side_effect = load_save_calls_return_values
-    status, unused_ = self.settings.save()
-    self.assertEqual(status, persistor_.Persistor.WRITE_FAIL)
-  
-  def _test_load_save(
-        self,
-        test_case_name_suffix,
-        setting_sources,
-        load_save_call_count,
-        setting_names_in_calls,
-        expected_setting_sources_in_calls,
-        load_save_func_name,
-        mock_object):
-    getattr(self.settings, load_save_func_name)(setting_sources)
-    
-    self.assertEqual(mock_object.call_count, load_save_call_count)
-    
-    for i, (setting_names_per_call, setting_sources_per_call) in (
-          enumerate(zip(setting_names_in_calls, expected_setting_sources_in_calls))):
-      self.assertEqual(
-        mock_object.call_args_list[i][0][0],
-        [self.settings[name] for name in setting_names_per_call])
-      self.assertEqual(
-        mock_object.call_args_list[i][0][1],
-        setting_sources_per_call)
-
-
 class TestGroupGui(unittest.TestCase):
-  
-  @classmethod
-  def setUpClass(self):
-    settings_.register_setting_type(stubs_setting.SettingWithGuiStub, 'stub_with_gui')
-    settings_.register_setting_gui_type(stubs_setting.PresenterStub, 'stub_presenter')
-  
-  @classmethod
-  def tearDownClass(cls):
-    settings_.unregister_setting_type('stub_with_gui')
-    settings_.unregister_setting_gui_type('stub_presenter')
   
   def setUp(self):
     self.settings = group_.Group('main')
@@ -784,13 +716,13 @@ class TestGroupGui(unittest.TestCase):
     
     self.assertIs(
       type(self.settings['file_extension'].gui),
-      stubs_setting.CheckButtonPresenterStub)
+      stubs_setting.CheckButtonStubPresenter)
     self.assertIs(
       type(self.settings['file_extension'].gui.element),
       stubs_setting.CheckButtonStub)
     self.assertIs(
       type(self.settings['flatten'].gui),
-      stubs_setting.CheckButtonPresenterStub)
+      stubs_setting.CheckButtonStubPresenter)
     self.assertIs(
       type(self.settings['flatten'].gui.element),
       stubs_setting.CheckButtonStub)
@@ -801,7 +733,7 @@ class TestGroupGui(unittest.TestCase):
     
     self.assertIs(
       type(self.settings['file_extension'].gui),
-      stubs_setting.CheckButtonPresenterStub)
+      stubs_setting.CheckButtonStubPresenter)
     self.assertIs(
       type(self.settings['flatten'].gui),
       presenter_.NullPresenter)
@@ -810,10 +742,10 @@ class TestGroupGui(unittest.TestCase):
     file_extension_widget = stubs_setting.GuiWidgetStub('png')
     
     self.settings.initialize_gui(custom_gui={
-      'file_extension': [stubs_setting.PresenterStub, file_extension_widget]})
+      'file_extension': [stubs_setting.StubPresenter, file_extension_widget]})
     
     self.assertIs(
-      type(self.settings['file_extension'].gui), stubs_setting.PresenterStub)
+      type(self.settings['file_extension'].gui), stubs_setting.StubPresenter)
     self.assertIs(
       type(self.settings['file_extension'].gui.element),
       stubs_setting.GuiWidgetStub)
@@ -822,7 +754,7 @@ class TestGroupGui(unittest.TestCase):
     self.assertEqual(file_extension_widget.value, 'bmp')
     self.assertIs(
       type(self.settings['flatten'].gui),
-      stubs_setting.CheckButtonPresenterStub)
+      stubs_setting.CheckButtonStubPresenter)
     self.assertIs(
       type(self.settings['flatten'].gui.element),
       stubs_setting.CheckButtonStub)
@@ -830,8 +762,8 @@ class TestGroupGui(unittest.TestCase):
   def test_apply_gui_values_to_settings(self):
     file_extension_widget = stubs_setting.GuiWidgetStub(None)
     flatten_widget = stubs_setting.GuiWidgetStub(None)
-    self.settings['file_extension'].set_gui(stubs_setting.PresenterStub, file_extension_widget)
-    self.settings['flatten'].set_gui(stubs_setting.PresenterStub, flatten_widget)
+    self.settings['file_extension'].set_gui(stubs_setting.StubPresenter, file_extension_widget)
+    self.settings['flatten'].set_gui(stubs_setting.StubPresenter, flatten_widget)
     
     file_extension_widget.set_value('gif')
     flatten_widget.set_value(True)
