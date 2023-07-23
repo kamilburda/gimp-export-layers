@@ -143,8 +143,8 @@ def _set_settings(func):
     except pg.setting.SettingValueError as e:
       self._display_inline_message(str(e), gtk.MESSAGE_ERROR, e.setting)
       return
-    
-    func(self, *args, **kwargs)
+    else:
+      func(self, *args, **kwargs)
   
   return func_wrapper
 
@@ -737,6 +737,12 @@ class ExportLayersDialog(object):
     else:
       return True
   
+  @_set_settings
+  def _save_settings_to_default_location(self):
+    save_successful = self._save_settings()
+    if save_successful:
+      self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
+  
   def _reset_settings(self):
     self._settings.reset()
   
@@ -941,15 +947,20 @@ class ExportLayersDialog(object):
     if gtk.gdk.keyval_name(event.keyval) == 'Escape':
       stopped = stop_batcher(self._batcher)
       return stopped
+    
+    # Ctrl + S is pressed
+    if ((event.state & gtk.accelerator_get_default_mod_mask()) == gtk.gdk.CONTROL_MASK
+        and gtk.gdk.keyval_name(gtk.gdk.keyval_to_lower(event.keyval)) == 's'):
+      self._save_settings_to_default_location()
+      return True
+    
+    return False
   
   def _on_button_settings_clicked(self, button):
     pg.gui.menu_popup_below_widget(self._menu_settings, button)
   
-  @_set_settings
   def _on_save_settings_activate(self, menu_item):
-    save_successful = self._save_settings()
-    if save_successful:
-      self._display_inline_message(_('Settings successfully saved.'), gtk.MESSAGE_INFO)
+    self._save_settings_to_default_location()
   
   def _on_import_settings_activate(self, menu_item):
     filepath, file_format, load_size_settings = self._get_setting_filepath(action='import')

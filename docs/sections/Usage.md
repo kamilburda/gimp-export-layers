@@ -49,6 +49,7 @@ After a successful export, your settings (output folder, file extension, dialog 
 If you close GIMP, the settings will be reset.
 
 To save settings permanently, press the `Settings` button and choose `Save Settings`.
+Alternatively, you can save settings by pressing Ctrl + S anywhere in the dialog.
 
 To reset settings to their default values, press the `Settings` button and choose `Reset Settings`.
 
