@@ -327,10 +327,16 @@ class ExportLayersDialog(object):
   
   def _init_actions(self):
     self._settings['main/procedures'].tags.discard('ignore_load')
-    self._settings['main/procedures'].load()
+    result = self._settings['main/procedures'].load()
+    
+    if self._settings['main/procedures'] in result.settings_not_loaded:
+      actions.clear(self._settings['main/procedures'], add_initial_actions=True)
     
     self._settings['main/constraints'].tags.discard('ignore_load')
-    self._settings['main/constraints'].load()
+    result = self._settings['main/constraints'].load()
+    
+    if self._settings['main/constraints'] in result.settings_not_loaded:
+      actions.clear(self._settings['main/constraints'], add_initial_actions=True)
   
   def _init_gui_elements(self):
     self._dialog = gimpui.Dialog(title=pg.config.PLUGIN_TITLE, role=pg.config.PLUGIN_NAME)
