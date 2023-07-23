@@ -83,13 +83,13 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   
   current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
   
-  previous_version, load_result, load_message = (
+  previous_version, load_status, load_message = (
     _get_version_from_sources_and_update_setting_format(settings, sources, current_version))
   
-  if load_result.status == pg.setting.Persistor.SUCCESS and previous_version == current_version:
+  if load_status == pg.setting.Persistor.SUCCESS and previous_version == current_version:
     return NO_ACTION, load_message
   
-  if (load_result.status == pg.setting.Persistor.SUCCESS
+  if (load_status == pg.setting.Persistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
     _save_plugin_version(settings, sources)
     
@@ -135,14 +135,22 @@ def _get_version_from_sources_and_update_setting_format(settings, sources, curre
   if previous_version is not None:
     _update_setting_format(settings, sources, current_version)
     
-    load_result = pg.setting.Persistor.SUCCESS
+    load_status = pg.setting.Persistor.SUCCESS
     load_message = ''
   else:
     load_result = settings['main/plugin_version'].load()
+    
+    if any(status == pg.setting.Persistor.SOURCE_NOT_FOUND
+           for status in load_result.statuses_per_source.values()):
+      # Missing sources in this case should be ignored.
+      load_status = pg.setting.Persistor.SUCCESS
+    else:
+      load_status = load_result.status
+    
     load_message = '\n'.join(load_result.messages_per_source.values())
     previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
   
-  return previous_version, load_result, load_message
+  return previous_version, load_status, load_message
 
 
 def _parse_version_using_old_format(sources, key):
