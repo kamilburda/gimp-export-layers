@@ -68,7 +68,7 @@ Basic settings
   * non-root directory
   * directory with denied write permission
 * File extension
-  * all valid file extension
+  * all valid file extensions
   * invalid file extension - empty, non-empty
   * first layer - display dialog (interactive run mode)
   * subsequent layers - use last values (except file formats not supporting non-interactive run mode)
