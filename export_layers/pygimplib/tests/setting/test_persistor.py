@@ -231,7 +231,14 @@ class TestPersistor(unittest.TestCase):
   
   def test_load_settings_source_not_found(self, mock_gimp_module, mock_gimp_shelf):
     result = persistor_.Persistor.load([self.settings], self.sources_for_persistor)
-    self.assertEqual(result.status, persistor_.Persistor.FAIL)
+    
+    self.assertEqual(result.status, persistor_.Persistor.PARTIAL_SUCCESS)
+    self.assertEqual(
+      result.statuses_per_source[self.sources_for_persistor['persistent']],
+      persistor_.Persistor.SOURCE_NOT_FOUND)
+    self.assertEqual(
+      result.statuses_per_source[self.sources_for_persistor['session']],
+      persistor_.Persistor.SOURCE_NOT_FOUND)
     self.assertTrue(bool(result.settings_not_loaded))
   
   def test_load_settings_not_found(self, mock_gimp_module, mock_gimp_shelf):

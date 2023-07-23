@@ -699,7 +699,8 @@ class ExportLayersDialog(object):
     for setting in size_settings_to_ignore_for_load:
       setting.tags.discard('ignore_load')
     
-    if pg.setting.Persistor.FAIL in load_result.statuses_per_source.values():
+    if any(status in load_result.statuses_per_source.values()
+           for status in [pg.setting.Persistor.SOURCE_NOT_FOUND, pg.setting.Persistor.FAIL]):
       messages_.display_import_export_settings_failure_message(
         _('Failed to import settings from file "{}"'.format(filepath)),
         details='\n\n'.join(

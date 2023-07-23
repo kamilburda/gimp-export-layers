@@ -26,7 +26,7 @@ class Persistor(object):
   reading/writing settings to a setting source failed.
   """
   
-  _STATUSES = SUCCESS, PARTIAL_SUCCESS, FAIL, NO_SETTINGS = (0, 1, 2, 3)
+  _STATUSES = SUCCESS, PARTIAL_SUCCESS, SOURCE_NOT_FOUND, FAIL, NO_SETTINGS = (0, 1, 2, 3, 4)
   
   _DEFAULT_SETTING_SOURCES = collections.OrderedDict()
   
@@ -155,6 +155,9 @@ class Persistor(object):
       for source in sources:
         try:
           source.read(settings_not_loaded)
+        except _sources_errors.SourceNotFoundError as e:
+          statuses_per_source[source] = cls.SOURCE_NOT_FOUND
+          messages_per_source[source] = str(e)
         except _sources_errors.SourceError as e:
           statuses_per_source[source] = cls.FAIL
           messages_per_source[source] = str(e)
@@ -371,6 +374,8 @@ Attributes:
     
     * Only some settings were successfully loaded.
     
+    * At least one source was not found when attempting to read from it.
+    
     * Reading from at least one source was successful and failed for at least
       one other source.
     
@@ -382,13 +387,12 @@ Attributes:
   
   * `FAIL` - This status is returned when at least one of the following occurs:
   
-    * all setting sources do not exist or reading from/writing to all sources
-      failed.
+    * Reading from/writing to all sources failed.
     
-    * the `setting_sources` parameter is `None` and the default sources returned
+    * The `setting_sources` parameter is `None` and the default sources returned
       by `Persistor.get_default_setting_sources()` is an empty dictionary.
     
-    * the `setting_sources` parameter is a list of keys (source names) and there
+    * The `setting_sources` parameter is a list of keys (source names) and there
       is at least one key not present in the default sources as returned by
       `Persistor.get_default_setting_sources()`.
   
@@ -403,7 +407,12 @@ Attributes:
 
 * `statuses_per_source` - `status` values for each setting source passed to
   `Persistor.load()` or `Persistor.save()`. It is a dictionary of
-  (setting source, status) pairs.
+  (setting source, status) pairs. Beside values in the `status` attribute, the
+  following values can also appear in `statuses_per_source`:
+  
+  * `SOURCE_NOT_FOUND` - The source was not found when attempting to load
+    settings, either because the corresponding file is missing or the source
+    name does not exist.
 
 * `messages_per_source` - Messages for each setting source passed to
   `Persistor.load()` or `Persistor.save()`. It is a dictionary of

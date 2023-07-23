@@ -105,7 +105,8 @@ class Source(future.utils.with_metaclass(abc.ABCMeta, object)):
     
     Raises:
     
-    * `SourceNotFoundError` - Could not find the source.
+    * `SourceNotFoundError` - Could not find the source having the `source_name`
+      attribute as its name.
     
     * `SourceInvalidFormatError` - Existing data in the source have an invalid
       format. This could happen if the source was edited manually.
