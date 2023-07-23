@@ -7,6 +7,7 @@ New features:
   * export images with additional custom procedures applied before the export,
   * export each top-level group as separate multi-layer images.
 * Added a new procedure named "Export" to allow multi-layer export as described above.
+* Settings (including procedures and constraints) can now be exported to and imported from a file. This allows swapping between different plug-in configurations and sharing them.
 * Procedures can now be applied to background or foreground layers instead of always the layer being exported. If a procedure provides a layer/drawable/item argument, you may now select "Background Layer" or "Foreground Layer" (beside "Current Layer").
 * Added "Merge background" and "Merge foreground" procedures to explicitly merge back- and foreground layers, respectively. These procedures are useful for batch editing if you wish to merge background and foreground layers into each layer rather than keeping them as separate layers.
 * Added the option to apply constraints to parent layer groups as well (when editing a constraint, check `More options` → `Also apply to parent folders`).
