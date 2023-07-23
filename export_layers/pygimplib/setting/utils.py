@@ -7,6 +7,7 @@ from future.builtins import *
 
 import collections
 import itertools
+import types
 
 __all__ = [
   'SETTING_PATH_SEPARATOR',
@@ -281,6 +282,9 @@ def check_setting_name(setting_name):
   A setting name must not contain `SETTING_PATH_SEPARATOR` or
   `SETTING_ATTRIBUTE_SEPARATOR`.
   """
+  if not isinstance(setting_name, types.StringTypes):
+    raise TypeError('setting name must be a string')
+  
   if (SETTING_PATH_SEPARATOR in setting_name
       or SETTING_ATTRIBUTE_SEPARATOR in setting_name):
     raise ValueError('setting name "{}" is not valid'.format(setting_name))

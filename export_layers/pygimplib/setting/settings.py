@@ -271,8 +271,8 @@ class Setting(
     utils_.SettingParentMixin.__init__(self)
     utils_.SettingEventsMixin.__init__(self)
     
+    utils_.check_setting_name(name)
     self._name = name
-    utils_.check_setting_name(self._name)
     
     self._default_value = self._resolve_default_value(default_value)
     

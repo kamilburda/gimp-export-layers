@@ -111,8 +111,8 @@ class Group(
     utils_.SettingParentMixin.__init__(self)
     utils_.SettingEventsMixin.__init__(self)
     
+    utils_.check_setting_name(name)
     self._name = name
-    utils_.check_setting_name(self._name)
     
     self._display_name = utils_.get_processed_display_name(
       display_name, self._name)
