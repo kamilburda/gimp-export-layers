@@ -65,6 +65,12 @@ To save settings permanently, press the `Settings` button and choose `Save Setti
 
 To reset settings to their default values, press the `Settings` button and choose `Reset Settings`.
 
+You may also save the settings to a custom file by choosing `Settings → Export Settings...`.
+This allows swapping between different plug-in configurations and sharing them.
+
+To load settings from a custom file, choose `Settings → Import Settings...` and select the file.
+When loading from a file, settings in the default locations are also overridden (so that the loaded settings persist across sessions).
+
 
 More Customization
 ------------------
