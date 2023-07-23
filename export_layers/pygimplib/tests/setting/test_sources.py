@@ -397,6 +397,17 @@ class TestSourceRead(unittest.TestCase):
         'gui_type': None,
       })
   
+  def test_read_setting_without_parent(self):
+    self.source.data = _test_data_for_read_write()
+    
+    self.source.data.append({'name': 'setting_without_parent', 'value': True, 'type': 'bool'})
+    
+    setting_without_parent = settings_.BoolSetting('setting_without_parent')
+    
+    self.source.read([self.settings, setting_without_parent])
+    
+    self.assertTrue(setting_without_parent.value)
+  
   def test_read_ignore_settings_with_ignore_load_tag(self):
     self.source.data = _test_data_for_read_write()
     
@@ -727,6 +738,17 @@ class TestSourceWrite(unittest.TestCase):
     self.settings['standalone_setting'].set_value('something_else')
     
     self.source.write([self.settings['standalone_setting']])
+    
+    self.assertListEqual(self.source.data, expected_data)
+  
+  def test_write_setting_without_parent(self):
+    expected_data = _test_data_for_read_write()
+    
+    expected_data.append({'name': 'setting_without_parent', 'value': False, 'type': 'bool'})
+    
+    setting_without_parent = settings_.BoolSetting('setting_without_parent')
+    
+    self.source.write([self.settings, setting_without_parent])
     
     self.assertListEqual(self.source.data, expected_data)
   
