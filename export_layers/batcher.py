@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import collections
+import functools
 import inspect
 import traceback
 
@@ -28,11 +29,45 @@ _BATCHER_ARG_POSITION_IN_CONSTRAINTS = 0
 _NAME_ONLY_ACTION_GROUP = 'name'
 
 
+def _set_attributes_on_init(func):
+  
+  @functools.wraps(func)
+  def func_wrapper(self, *args, **kwargs):
+    setattr(self, '_orig_{}'.format(func.__name__), func)
+    
+    argspec = inspect.getargspec(func)
+    
+    arg_names = argspec.args[:len(argspec.args) - len(argspec.defaults)]
+    try:
+      arg_names.remove('self')
+    except ValueError:
+      pass
+    
+    full_kwargs = {}
+    
+    for arg_name, arg_value in zip(arg_names, args):
+      full_kwargs[arg_name] = arg_value
+    
+    kwarg_names = argspec.args[len(argspec.args) - len(argspec.defaults):]
+    
+    for kwarg_name, kwarg_value in zip(kwarg_names, argspec.defaults):
+      full_kwargs[kwarg_name] = kwarg_value
+    
+    full_kwargs.update(kwargs)
+    
+    self._init_attributes(**full_kwargs)
+    
+    func(self, **full_kwargs)
+  
+  return func_wrapper
+
+
 class Batcher(object):
   """Class for batch-processing layers in the specified image with a sequence of
   actions (resize, rename, export, ...).
   """
   
+  @_set_attributes_on_init
   def __init__(
         self,
         initial_run_mode,
@@ -54,28 +89,6 @@ class Batcher(object):
         export_context_manager=None,
         export_context_manager_args=None,
         export_context_manager_kwargs=None):
-    self._init_attributes(
-      initial_run_mode=initial_run_mode,
-      input_image=input_image,
-      edit_mode=edit_mode,
-      procedures=procedures,
-      constraints=constraints,
-      output_directory=output_directory,
-      layer_filename_pattern=layer_filename_pattern,
-      file_extension=file_extension,
-      overwrite_mode=overwrite_mode,
-      overwrite_chooser=overwrite_chooser,
-      progress_updater=progress_updater,
-      item_tree=item_tree,
-      is_preview=is_preview,
-      process_contents=process_contents,
-      process_names=process_names,
-      process_export=process_export,
-      export_context_manager=export_context_manager,
-      export_context_manager_args=export_context_manager_args,
-      export_context_manager_kwargs=export_context_manager_kwargs,
-    )
-    
     self._current_item = None
     self._current_raw_item = None
     self._current_procedure = None
@@ -625,7 +638,7 @@ class Batcher(object):
     return func_args
   
   def _init_attributes(self, **kwargs):
-    init_argspec_names = set(inspect.getargspec(self.__init__).args)
+    init_argspec_names = set(inspect.getargspec(self._orig___init__).args)
     init_argspec_names.discard('self')
     
     for name, value in kwargs.items():
@@ -633,7 +646,7 @@ class Batcher(object):
         setattr(self, '_' + name, value)
       else:
         raise ValueError(
-          'invalid keyword argument "{}" encountered; must be one of {}'.format(
+          'invalid argument "{}" encountered; must be one of {}'.format(
             name, list(init_argspec_names)))
     
     if self._overwrite_chooser is None:
