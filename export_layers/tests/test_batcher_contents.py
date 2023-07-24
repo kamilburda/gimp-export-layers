@@ -164,7 +164,7 @@ class TestExportLayersCompareLayerContents(unittest.TestCase):
         actions.reorder(settings['main/procedures'], procedure_name, order)
     
     for procedure_name in procedure_names_to_remove:
-      if procedure_name in settings['main/procedures/added']:
+      if procedure_name in settings['main/procedures']:
         actions.remove(settings['main/procedures'], procedure_name)
     
     batcher = batcher_.Batcher(
