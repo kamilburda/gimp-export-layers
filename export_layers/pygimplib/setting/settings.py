@@ -1552,7 +1552,7 @@ class DrawableSetting(GimpItemSetting):
     self.error_messages['invalid_value'] = _('Invalid drawable.')
   
   def _validate(self, drawable):
-    if not pdb.gimp_item_is_drawable(drawable):
+    if drawable is None or not pdb.gimp_item_is_drawable(drawable):
       raise SettingValueError(
         utils_.value_to_str_prefix(drawable) + self.error_messages['invalid_value'])
 
@@ -1584,7 +1584,7 @@ class LayerSetting(GimpItemSetting):
     self.error_messages['invalid_value'] = _('Invalid layer.')
   
   def _validate(self, layer):
-    if not pdb.gimp_item_is_layer(layer):
+    if layer is None or not pdb.gimp_item_is_layer(layer):
       raise SettingValueError(
         utils_.value_to_str_prefix(layer) + self.error_messages['invalid_value'])
 
@@ -1616,7 +1616,7 @@ class ChannelSetting(GimpItemSetting):
     self.error_messages['invalid_value'] = _('Invalid channel.')
   
   def _validate(self, channel):
-    if not pdb.gimp_item_is_channel(channel):
+    if channel is None or not pdb.gimp_item_is_channel(channel):
       raise SettingValueError(
         utils_.value_to_str_prefix(channel) + self.error_messages['invalid_value'])
 
@@ -1675,7 +1675,7 @@ class VectorsSetting(GimpItemSetting):
     self.error_messages['invalid_value'] = _('Invalid vectors.')
   
   def _validate(self, vectors):
-    if not pdb.gimp_item_is_vectors(vectors):
+    if vectors is None or not pdb.gimp_item_is_vectors(vectors):
       raise SettingValueError(
         utils_.value_to_str_prefix(vectors) + self.error_messages['invalid_value'])
 
