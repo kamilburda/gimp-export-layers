@@ -23,9 +23,7 @@ from export_layers import export as export_
 from export_layers import placeholders
 
 
-_BATCHER_ARG_POSITION_IN_PROCEDURES = 0
-_BATCHER_ARG_POSITION_IN_CONSTRAINTS = 0
-
+_BATCHER_ARG_POSITION_IN_ACTIONS = 0
 _NAME_ONLY_ACTION_GROUP = 'name'
 
 
@@ -496,67 +494,133 @@ class Batcher(object):
     if tags is not None and not any(tag in action.tags for tag in tags):
       return
     
-    orig_function = function
-    function_args = tuple(arg_setting.value for arg_setting in action['arguments'])
-    function_kwargs = {}
-    
-    if action['origin'].is_item('gimp_pdb'):
-      if self._has_run_mode_param(function):
-        function_kwargs = {b'run_mode': function_args[0]}
-        function_args = function_args[1:]
-      
-      function = self._get_action_func_for_pdb_procedure(function)
-    
-    function = self._get_action_func_with_replaced_placeholders(function)
-    
-    function = self._handle_exceptions_from_action(function, action)
-    
-    if 'constraint' in action.tags:
-      function = self._set_apply_constraint_to_folders(function, action)
-      function = self._get_constraint_func(function, orig_function, action['orig_name'].value)
-    
-    function = self._apply_action_only_if_enabled(function, action)
-    
-    function = self._set_current_action(function, action)
+    processed_function = self._get_processed_function(action)
     
     if action_groups is None:
       action_groups = action['action_groups'].value
     
-    self._invoker.add(function, action_groups, function_args, function_kwargs)
+    invoker_args = list(action['arguments']) + [function]
+    
+    self._invoker.add(processed_function, action_groups, invoker_args)
+  
+  def _get_processed_function(self, action):
+    
+    def _function_wrapper(*action_args_and_function):
+      action_args, function = action_args_and_function[:-1], action_args_and_function[-1]
+      
+      orig_function = function
+      
+      function = self._handle_exceptions_from_action(function, action)
+      
+      if not self._is_enabled(action):
+        return False
+      
+      self._set_current_procedure_and_constraint(action)
+      
+      args, kwargs = self._get_action_args_and_kwargs(action, action_args, orig_function)
+      
+      if 'constraint' in action.tags:
+        function = self._set_apply_constraint_to_folders(function, action)
+        function = self._get_constraint_func(function, orig_function, action['orig_name'].value)
+      
+      return function(*tuple(args), **kwargs)
+    
+    return _function_wrapper
+  
+  def _is_enabled(self, action):
+    if self._is_preview:
+      if not(action['enabled'].value and action['enabled_for_previews'].value):
+        return False
+    else:
+      if not action['enabled'].value:
+        return False
+    
+    return True
+  
+  def _set_current_procedure_and_constraint(self, action):
+    if 'procedure' in action.tags:
+      self._current_procedure = action
+    
+    if 'constraint' in action.tags:
+      self._current_constraint = action
+  
+  def _get_action_args_and_kwargs(self, action, action_args, function):
+    args = self._get_replaced_args(action_args)
+    kwargs = {}
+    
+    if action['origin'].is_item('gimp_pdb'):
+      args.pop(_BATCHER_ARG_POSITION_IN_ACTIONS)
+      
+      if self._has_run_mode_param(function):
+        kwargs = {b'run_mode': args[0]}
+        args = args[1:]
+    
+    return args, kwargs
+  
+  def _get_replaced_args(self, action_arguments):
+    """Returns a list of action arguments, replacing any placeholder values with
+    real values."""
+    replaced_args = []
+    
+    for argument in action_arguments:
+      if isinstance(argument, placeholders.PlaceholderSetting):
+        replaced_args.append(placeholders.get_replaced_arg(argument.value, self))
+      elif isinstance(argument, pg.setting.Setting):
+        replaced_args.append(argument.value)
+      else:
+        # Other arguments inserted within `Batcher`
+        replaced_args.append(argument)
+    
+    return replaced_args
   
   def _has_run_mode_param(self, pdb_procedure):
     return pdb_procedure.params and pdb_procedure.params[0][1] == 'run-mode'
   
-  def _get_action_func_for_pdb_procedure(self, pdb_procedure):
-    def _pdb_procedure_as_action(batcher, *args, **kwargs):
-      return pdb_procedure(*args, **kwargs)
-    
-    return _pdb_procedure_as_action
-  
-  def _get_action_func_with_replaced_placeholders(self, function):
-    def _action(*args, **kwargs):
-      new_args, new_kwargs = placeholders.get_replaced_args_and_kwargs(args, kwargs, self)
-      return function(*new_args, **new_kwargs)
-    
-    return _action
-  
-  def _apply_action_only_if_enabled(self, function, action):
-    if self._is_preview:
-      def _apply_action_in_preview(*action_args, **action_kwargs):
-        if action['enabled'].value and action['enabled_for_previews'].value:
-          return function(*action_args, **action_kwargs)
-        else:
-          return False
+  def _set_apply_constraint_to_folders(self, function, action):
+    if action['also_apply_to_parent_folders'].value:
       
-      return _apply_action_in_preview
+      def _function_wrapper(*action_args, **action_kwargs):
+        item = action_args[0]
+        result = True
+        for item_or_parent in [item] + item.parents[::-1]:
+          result = result and function(item_or_parent, *action_args[1:], **action_kwargs)
+          if not result:
+            break
+        
+        return result
+      
+      return _function_wrapper
     else:
-      def _apply_action(*action_args, **action_kwargs):
-        if action['enabled'].value:
-          return function(*action_args, **action_kwargs)
-        else:
-          return False
+      return function
+  
+  def _get_constraint_func(self, func, orig_func=None, name=''):
+    
+    def _function_wrapper(*args, **kwargs):
+      func_args = self._get_args_for_constraint_func(
+        orig_func if orig_func is not None else func,
+        args)
       
-      return _apply_action
+      self._item_tree.filter.add(func, func_args, kwargs, name=name)
+    
+    return _function_wrapper
+  
+  def _get_args_for_constraint_func(self, func, args):
+    try:
+      batcher_arg_position = inspect.getargspec(func).args.index('batcher')
+    except ValueError:
+      batcher_arg_position = None
+    
+    if batcher_arg_position is not None:
+      func_args = args
+    else:
+      if len(args) > 1:
+        batcher_arg_position = _BATCHER_ARG_POSITION_IN_ACTIONS
+      else:
+        batcher_arg_position = 0
+      
+      func_args = args[:batcher_arg_position] + args[batcher_arg_position + 1:]
+    
+    return func_args
   
   def _handle_exceptions_from_action(self, function, action):
     def _handle_exceptions(*action_args, **action_kwargs):
@@ -579,63 +643,6 @@ class Batcher(object):
         raise exceptions.ActionError(str(e), action, self._current_item, trace)
     
     return _handle_exceptions
-  
-  def _set_current_action(self, function, action):
-    def _set_action(*action_args, **action_kwargs):
-      if action['enabled'].value:
-        if 'procedure' in action.tags:
-          self._current_procedure = action
-        
-        if 'constraint' in action.tags:
-          self._current_constraint = action
-      
-      return function(*action_args, **action_kwargs)
-    
-    return _set_action
-  
-  def _set_apply_constraint_to_folders(self, function, action):
-    if action['also_apply_to_parent_folders'].value:
-      def _apply_constraint_to_item_and_folders(*action_args, **action_kwargs):
-        item = action_args[0]
-        result = True
-        for item_or_parent in [item] + item.parents[::-1]:
-          result = result and function(item_or_parent, *action_args[1:], **action_kwargs)
-          if not result:
-            break
-        
-        return result
-      
-      return _apply_constraint_to_item_and_folders
-    else:
-      return function
-  
-  def _get_constraint_func(self, func, orig_func=None, name=''):
-    def _add_func(*args, **kwargs):
-      func_args = self._get_args_for_constraint_func(
-        orig_func if orig_func is not None else func,
-        args)
-      
-      self._item_tree.filter.add(func, func_args, kwargs, name=name)
-    
-    return _add_func
-  
-  def _get_args_for_constraint_func(self, func, args):
-    try:
-      batcher_arg_position = inspect.getargspec(func).args.index('batcher')
-    except ValueError:
-      batcher_arg_position = None
-    
-    if batcher_arg_position is not None:
-      func_args = args
-    else:
-      if len(args) > 1:
-        batcher_arg_position = _BATCHER_ARG_POSITION_IN_CONSTRAINTS
-      else:
-        batcher_arg_position = 0
-      
-      func_args = args[:batcher_arg_position] + args[batcher_arg_position + 1:]
-    
-    return func_args
   
   def _init_attributes(self, **kwargs):
     init_argspec_names = set(inspect.getargspec(self._orig___init__).args)
@@ -772,7 +779,7 @@ class Batcher(object):
     self._invoker.invoke(
       [actions.DEFAULT_CONSTRAINTS_GROUP],
       [self],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_CONSTRAINTS)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
   
   def _setup_contents(self):
     pdb.gimp_context_push()
@@ -795,7 +802,7 @@ class Batcher(object):
     self._invoker.invoke(
       ['cleanup_contents'],
       [self],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     if not self._edit_mode or self._is_preview:
       self._copy_non_modifying_parasites(self._current_image, self._input_image)
@@ -838,13 +845,13 @@ class Batcher(object):
     self._invoker.invoke(
       ['before_process_items'],
       [self],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     if self._process_contents:
       self._invoker.invoke(
         ['before_process_items_contents'],
         [self],
-        additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+        additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     for item in self._item_tree:
       if self._should_stop:
@@ -859,12 +866,12 @@ class Batcher(object):
       self._invoker.invoke(
         ['after_process_items_contents'],
         [self],
-        additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+        additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     self._invoker.invoke(
       ['after_process_items'],
       [self],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
   
   def _process_item(self, item):
     self._current_item = item
@@ -883,17 +890,17 @@ class Batcher(object):
     self._invoker.invoke(
       ['before_process_item'],
       [self, self._current_item, self._current_raw_item],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     self._invoker.invoke(
       [_NAME_ONLY_ACTION_GROUP],
       [self],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     self._invoker.invoke(
       ['after_process_item'],
       [self, self._current_item, self._current_raw_item],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
   
   def _process_item_with_actions(self, item, raw_item):
     if not self._edit_mode or self._is_preview:
@@ -917,29 +924,29 @@ class Batcher(object):
     self._invoker.invoke(
       ['before_process_item'],
       [self, self._current_item, self._current_raw_item],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     if self._process_contents:
       self._invoker.invoke(
         ['before_process_item_contents'],
         [self, self._current_item, self._current_raw_item],
-        additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+        additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     self._invoker.invoke(
       [actions.DEFAULT_PROCEDURES_GROUP],
       [self],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     if self._process_contents:
       self._invoker.invoke(
         ['after_process_item_contents'],
         [self, self._current_item, self._current_raw_item],
-        additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+        additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
     
     self._invoker.invoke(
       ['after_process_item'],
       [self, self._current_item, self._current_raw_item],
-      additional_args_position=_BATCHER_ARG_POSITION_IN_PROCEDURES)
+      additional_args_position=_BATCHER_ARG_POSITION_IN_ACTIONS)
   
   def _refresh_current_image(self, raw_item):
     if not self._edit_mode and not self._keep_image_copy:

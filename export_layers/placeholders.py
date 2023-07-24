@@ -72,26 +72,10 @@ def get_replaced_arg(arg, batcher):
   """
   try:
     placeholder = _PLACEHOLDERS[arg]
-  except (KeyError, TypeError):
-    return arg
+  except KeyError:
+    raise ValueError('invalid placeholder value "{}"'.format(arg))
   else:
     return placeholder.replace_args(batcher)
-
-
-def get_replaced_args_and_kwargs(func_args, func_kwargs, batcher):
-  """Returns arguments and keyword arguments for a function whose placeholder
-  objects are replaced with real objects.
-  
-  Arguments after `func_kwargs` are required arguments for actions and are
-  used to determine the real object that replaces the placeholder.
-  """
-  new_func_args = tuple(get_replaced_arg(arg, batcher) for arg in func_args)
-  
-  new_func_kwargs = {
-    name: get_replaced_arg(value, batcher)
-    for name, value in func_kwargs.items()}
-  
-  return new_func_args, new_func_kwargs
 
 
 #===============================================================================
