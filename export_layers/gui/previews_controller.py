@@ -208,18 +208,25 @@ class PreviewsController(object):
   def _connect_update_rendering_of_image_preview(self):
     def _after_add_action(actions, action, orig_action_dict, builtin_actions):
       if action['orig_name'].value not in builtin_actions:
-        self._custom_actions[action.name] = action
+        self._custom_actions[action.get_path()] = action
         
         _update_rendering_of_image_preview(action['enabled'])
         action['enabled'].connect_event('value-changed', _update_rendering_of_image_preview)
     
     def _before_remove_action(actions, action):
-      if action.name in self._custom_actions:
-        del self._custom_actions[action.name]
+      if action.get_path() in self._custom_actions:
+        del self._custom_actions[action.get_path()]
+      
+      if not self._custom_actions:
+        self._image_preview.prepare_image_for_rendering()
     
     def _before_clear_actions(actions):
-      self._custom_actions = {}
-      self._image_preview.prepare_image_for_rendering()
+      for action in actions:
+        if action.get_path() in self._custom_actions:
+          del self._custom_actions[action.get_path()]
+      
+      if not self._custom_actions:
+        self._image_preview.prepare_image_for_rendering()
     
     def _update_rendering_of_image_preview(action_enabled):
       if not any(action['enabled'].value for action in self._custom_actions.values()):
