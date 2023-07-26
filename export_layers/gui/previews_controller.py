@@ -216,9 +216,6 @@ class PreviewsController(object):
     def _before_remove_action(actions, action):
       if action.get_path() in self._custom_actions:
         del self._custom_actions[action.get_path()]
-      
-      if not self._custom_actions:
-        self._image_preview.prepare_image_for_rendering()
     
     def _before_clear_actions(actions):
       for action in actions:
