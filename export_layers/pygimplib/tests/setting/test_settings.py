@@ -947,8 +947,8 @@ class TestGimpItemSetting(unittest.TestCase):
           pgutils.get_pygimplib_module_path()
           + '.tests.stubs_gimp.ItemStub.from_id') as from_id_function:
       from_id_function.return_value = self.layer
-    
-      self.setting.set_value(['Layer', 2])
+      
+      self.setting.set_value(2)
     
     self.assertEqual(self.setting.value, self.layer)
   
@@ -958,7 +958,7 @@ class TestGimpItemSetting(unittest.TestCase):
           + '.tests.stubs_gimp.ItemStub.from_id') as from_id_function:
       from_id_function.return_value = None
     
-      self.setting.set_value(['Layer', 2])
+      self.setting.set_value(2)
     
     self.assertEqual(self.setting.value, None)
   
@@ -1023,9 +1023,9 @@ class TestGimpItemSetting(unittest.TestCase):
       self.setting.to_dict(source_type='session'),
       {
         'name': 'item',
-        'value': ['LayerStub', 2],
+        'value': 2,
         'type': 'stub_item',
-        'default_value': ['LayerStub', 2],
+        'default_value': 2,
       })
 
 

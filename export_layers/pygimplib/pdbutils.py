@@ -83,8 +83,12 @@ def create_image_from_metadata(image_to_copy_metadata_from):
 
 
 def find_images_by_filepath(image_filepath):
-  """Returns a list of currently opened images in GIMP as `gimp.Image` instances
-  with the `filename` attribute matching the given file path.
+  """Returns a list of currently opened images in GIMP matching the given file
+  path.
+  
+  Images are returned as `gimp.Image` instances.
+  
+  Matching is performed via the `gimp.Image.filename` attribute.
   """
   return [
     image for image in gimp.image_list()
@@ -92,13 +96,145 @@ def find_images_by_filepath(image_filepath):
   ]
 
 
-def find_image_by_id(image_id):
-  """Returns a currently opened image in GIMP as a `gimp.Image` instance whose
-  `id` attribute matches the given image ID.
+def find_image_by_filepath(image_filepath, index=0):
+  """Returns the currently opened image in GIMP matching the given file path.
   
-  If there is no match, `None` is returned.
+  If no match is found, `None` is returned.
+  
+  The image is returned as `gimp.Image` instance.
+  
+  Matching is performed via the `gimp.Image.filename` attribute.
+  
+  For multiple matches, the first matching image is returned by default. There
+  may be multiple opened images from the same file path, but there is no way to
+  tell which image is the one the user desires to work with. To adjust which
+  image to return, pass a custom `index` value indicating the position to
+  return. If the index is out of bounds, the highest possible index is returned
+  given a positive value and the lowest possible index given a negative value.
+  """
+  images = find_images_by_filepath(image_filepath)
+  if images:
+    if index > 0:
+      index = min(index, len(images) - 1)
+    elif index < 0:
+      index = max(index, -len(images))
+    
+    image = images[index]
+  else:
+    image = None
+  
+  return image
+
+
+def find_image_by_id(image_id):
+  """Returns a currently opened image in GIMP matching the given ID.
+  
+  If no match is found, `None` is returned.
+  
+  The image is returned as `gimp.Image` instance.
+  
+  Matching is performed via the `gimp.Image.ID` attribute.
   """
   return next((image for image in gimp.image_list() if image.ID == image_id), None)
+
+
+def get_item_from_image_and_item_path(image, item_type_name, item_path):
+  """Returns a `gimp.Item` given the image, item type name and item path.
+  
+  The item type name is the name of the item's class, e.g. `'Layer'` or
+  `'Channel'`.
+  
+  The item path consists of the item name and all of its parent layer groups,
+  separated by '/'. For example, if the item name is 'Left' its parent groups
+  are 'Hands' (immediate parent) and 'Body (parent of 'Hands'), then the item
+  path is 'Body/Hands/Left'.
+  """
+  item_path_components = item_path.split(pgutils.GIMP_ITEM_PATH_SEPARATOR)
+  
+  if len(item_path_components) < 1:
+    return None
+  
+  matching_image_child = _find_item_by_name_in_children(
+    item_path_components[0], _get_children_from_image(image, item_type_name))
+  if matching_image_child is None:
+    return None
+  
+  if len(item_path_components) == 1:
+    return matching_image_child
+  
+  parent = matching_image_child
+  matching_item = None
+  for parent_or_item_name in item_path_components[1:]:
+    matching_item = _find_item_by_name_in_children(parent_or_item_name, parent.children)
+    
+    if matching_item is None:
+      return None
+    
+    parent = matching_item
+  
+  return matching_item
+
+
+def _find_item_by_name_in_children(item_name, children):
+  for child in children:
+    if child.name == item_name:
+      return child
+  
+  return None
+
+
+def _get_children_from_image(image, item_type_name):
+  item_type = getattr(gimp, item_type_name)
+  
+  if item_type in (gimp.Layer, gimp.GroupLayer):
+    return image.layers
+  elif item_type == gimp.Channel:
+    return image.channels
+  elif item_type == gimp.Vectors:
+    return image.vectors
+  else:
+    raise TypeError(
+      ('invalid item type "{}"'
+       '; must be Layer, GroupLayer, Channel or Vectors').format(item_type_name))
+
+
+def get_item_as_path(item, include_image=True):
+  """Returns item as a list of [item type name, item path] or [image file path,
+  item type name, item path].
+  
+  Item type name and item path are described in
+  `get_item_from_image_and_item_path()`.
+  """
+  if item is None:
+    return None
+  
+  item_as_path = []
+  
+  if include_image:
+    if item.image is not None and item.image.filename is not None:
+      item_as_path.append(item.image.filename)
+    else:
+      return None
+  
+  item_type_name = pgutils.safe_decode(item.__class__.__name__, 'utf-8')
+  
+  parents = _get_item_parents(item)
+  item_path = pgutils.GIMP_ITEM_PATH_SEPARATOR.join(
+    pgutils.safe_decode_gimp(parent_or_item.name) for parent_or_item in parents + [item])
+  
+  item_as_path.extend([item_type_name, item_path])
+  
+  return item_as_path
+
+
+def _get_item_parents(item):
+  parents = []
+  current_parent = item.parent
+  while current_parent is not None:
+    parents.insert(0, current_parent)
+    current_parent = current_parent.parent
+  
+  return parents
 
 
 def remove_all_layers(image):

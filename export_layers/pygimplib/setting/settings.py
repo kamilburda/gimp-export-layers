@@ -1335,14 +1335,7 @@ class ImageSetting(Setting):
     if isinstance(raw_value, int):
       value = pgpdbutils.find_image_by_id(raw_value)
     elif isinstance(raw_value, types.StringTypes):
-      images = pgpdbutils.find_images_by_filepath(raw_value)
-      if images:
-        # Take the first image matching the file path. There may be multiple
-        # opened images from the same file path, but there is no way to tell which
-        # image is the one the user desires to work with.
-        value = images[0]
-      else:
-        value = None
+      value = pgpdbutils.find_image_by_filepath(raw_value)
     
     return value
   
@@ -1389,14 +1382,14 @@ class GimpItemSetting(Setting):
     value = raw_value
     
     if isinstance(raw_value, list):
-      if len(raw_value) == 2:
-        value = self._get_item_from_item_type_and_id(*raw_value)
-      elif len(raw_value) == 3:
+      if len(raw_value) == 3:
         value = self._get_item_from_image_and_item_path(*raw_value)
       else:
         raise ValueError(
           ('lists as values for GIMP item settings must contain'
-           ' exactly 2 or 3 elements (has {})').format(len(raw_value)))
+           ' exactly 3 elements (has {})').format(len(raw_value)))
+    elif isinstance(raw_value, int):
+      value = gimp.Item.from_id(raw_value)
     
     return value
   
@@ -1404,97 +1397,21 @@ class GimpItemSetting(Setting):
     if source_type == 'session':
       return self._get_item_as_id(value)
     else:
-      return self._get_item_as_path(value)
-  
-  def _get_item_from_item_type_and_id(self, item_type_name, item_id):
-    return getattr(gimp, item_type_name).from_id(item_id)
+      return pgpdbutils.get_item_as_path(value)
   
   def _get_item_from_image_and_item_path(self, image_filepath, item_type_name, item_path):
-    images = pgpdbutils.find_images_by_filepath(image_filepath)
-    if images:
-      # Take the first image matching the file path. There may be multiple
-      # opened images from the same file path, but there is no way to tell which
-      # image is the one the user desires to work with.
-      image = images[0]
-    else:
+    image = pgpdbutils.find_image_by_filepath(image_filepath)
+    
+    if image is None:
       return None
     
-    item_path_components = item_path.split(pgutils.GIMP_ITEM_PATH_SEPARATOR)
-    
-    if len(item_path_components) < 1:
-      return None
-    
-    matching_image_child = self._find_item_by_name_in_children(
-      item_path_components[0], self._get_children_from_image(image, item_type_name))
-    if matching_image_child is None:
-      return None
-    
-    if len(item_path_components) == 1:
-      return matching_image_child
-    
-    parent = matching_image_child
-    matching_item = None
-    for parent_or_item_name in item_path_components[1:]:
-      matching_item = self._find_item_by_name_in_children(parent_or_item_name, parent.children)
-      
-      if matching_item is None:
-        return None
-      
-      parent = matching_item
-    
-    return matching_item
-  
-  def _find_item_by_name_in_children(self, item_name, children):
-    for child in children:
-      if child.name == item_name:
-        return child
-    
-    return None
-  
-  def _get_children_from_image(self, image, item_type_name):
-    item_type = getattr(gimp, item_type_name)
-    
-    if item_type in (gimp.Layer, gimp.GroupLayer):
-      return image.layers
-    elif item_type == gimp.Channel:
-      return image.channels
-    elif item_type == gimp.Vectors:
-      return image.vectors
-    else:
-      raise TypeError(
-        ('invalid item type "{}";'
-         ' must be Layer, GroupLayer, Channel or Vectors').format(item_type_name))
+    return pgpdbutils.get_item_from_image_and_item_path(image, item_type_name, item_path)
   
   def _get_item_as_id(self, item):
     if item is not None:
-      return [pgutils.safe_decode(item.__class__.__name__, 'utf-8'), item.ID]
+      return item.ID
     else:
       return None
-  
-  def _get_item_as_path(self, item):
-    if item is None:
-      return None
-    
-    if item.image is not None and item.image.filename is not None:
-      parents = self._get_item_parents(item)
-      
-      item_path = pgutils.GIMP_ITEM_PATH_SEPARATOR.join(
-        pgutils.safe_decode_gimp(parent_or_item.name) for parent_or_item in parents + [item])
-      
-      item_type_name = pgutils.safe_decode(item.__class__.__name__, 'utf-8')
-      
-      return [item.image.filename, item_type_name, item_path]
-    else:
-      return None
-  
-  def _get_item_parents(self, item):
-    parents = []
-    current_parent = item.parent
-    while current_parent is not None:
-      parents.insert(0, current_parent)
-      current_parent = current_parent.parent
-    
-    return parents
 
 
 class ItemSetting(GimpItemSetting):
