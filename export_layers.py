@@ -96,7 +96,9 @@ def plug_in_export_layers_repeat(run_mode, image):
   blurb=_('Run "{}" with the specified configuration file').format(pg.config.PLUGIN_TITLE),
   description=_(
     'The configuration file can be obtained by exporting settings'
-    " in the plug-in's interactive dialog."),
+    " in the plug-in's interactive dialog."
+    ' This procedure will fail if the specified configuration file does not exist'
+    ' or is not valid.'),
   author=pg.config.AUTHOR_NAME,
   copyright_notice=pg.config.AUTHOR_NAME,
   date=pg.config.COPYRIGHT_YEARS,
