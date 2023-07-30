@@ -7,7 +7,7 @@ import os
 import sys
 import traceback
 
-PYGIMPLIB_DIRPATH = os.path.dirname(inspect.getfile(inspect.currentframe()))
+PYGIMPLIB_DIRPATH = os.path.realpath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
 try:
   import gimp
@@ -151,26 +151,39 @@ def _init_config():
   if config is not None:
     return
   
-  def _get_domain_name():
-    if config.PLUGIN_NAME == config._DEFAULT_PLUGIN_NAME:
+  def _get_domain_name(root_plugin_dirpath):
+    if root_plugin_dirpath is None:
       return 'gimp20-python'
     else:
       return 'gimp-plugin-' + config.PLUGIN_NAME.replace('_', '-')
   
   config = _Config()
   
-  config._DEFAULT_PLUGIN_NAME = 'gimp_plugin'
+  config.PYGIMPLIB_DIRPATH = PYGIMPLIB_DIRPATH
+  
+  root_plugin_dirpath = _get_root_plugin_dirpath()
+  
+  if root_plugin_dirpath is not None:
+    config._DEFAULT_PLUGIN_NAME = os.path.basename(root_plugin_dirpath)
+    config.PLUGIN_DIRPATH = root_plugin_dirpath
+    config.PLUGINS_DIRPATH = os.path.dirname(root_plugin_dirpath)
+    config.DEFAULT_LOGS_DIRPATH = lambda: config.PLUGIN_DIRPATH
+  else:
+    # Fallback in case root_plugin_dirpath is None for some reason
+    config._DEFAULT_PLUGIN_NAME = 'gimp_plugin'
+    config.PLUGIN_DIRPATH = os.path.dirname(PYGIMPLIB_DIRPATH)
+    config.PLUGINS_DIRPATH = os.path.dirname(config.PLUGIN_DIRPATH)
+    config.DEFAULT_LOGS_DIRPATH = os.path.dirname(PYGIMPLIB_DIRPATH)
+  
   config.PLUGIN_NAME = config._DEFAULT_PLUGIN_NAME
   config.PLUGIN_TITLE = lambda: config.PLUGIN_NAME
   config.PLUGIN_VERSION = '1.0'
   
   config.LOCALE_DIRPATH = (
     lambda: os.path.join(config.PLUGINS_DIRPATH, config.PLUGIN_NAME, 'locale'))
-  config.DOMAIN_NAME = _get_domain_name
+  config.DOMAIN_NAME = lambda: _get_domain_name(root_plugin_dirpath)
   
   config.BUG_REPORT_URL_LIST = []
-  
-  config.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(PYGIMPLIB_DIRPATH))
   
   if _gimp_dependent_modules_imported:
     config.LOG_MODE = 'exceptions'
@@ -184,9 +197,16 @@ def _init_config():
   _init_config_builtin_delayed(config)
 
 
-def _init_config_builtin(config):
-  config.DEFAULT_LOGS_DIRPATH = os.path.dirname(PYGIMPLIB_DIRPATH)
+def _get_root_plugin_dirpath():
+  frame_stack = inspect.stack()
   
+  if frame_stack:
+    return os.path.dirname(frame_stack[-1][1])
+  else:
+    return None
+
+
+def _init_config_builtin(config):
   config.PLUGINS_LOG_DIRPATHS = []
   config.PLUGINS_LOG_DIRPATHS.append(config.DEFAULT_LOGS_DIRPATH)
   
@@ -386,12 +406,6 @@ if _gimp_dependent_modules_imported:
       _install_procedure(procedure, **kwargs)
   
   def _run(procedure_name, procedure_params):
-    global config
-    
-    if config.PLUGIN_NAME == config._DEFAULT_PLUGIN_NAME:
-      config.PLUGIN_NAME = procedure_name
-      _init_config_builtin_delayed(config)
-    
     procedure = _add_gui_excepthook(
       _procedures_names[procedure_name], procedure_params[0])
     
