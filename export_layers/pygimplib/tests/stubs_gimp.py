@@ -129,16 +129,21 @@ class ImageStub(ParasiteFunctionsStubMixin):
   
   _image_id_counter = itertools.count(start=1)
   
-  def __init__(self, name=None):
+  def __init__(self, name=None, ID=None, filename=None):
     super().__init__()
     
-    self.ID = self._image_id_counter.next()
+    self.name = pgutils.safe_encode_gimp(name)
+    
+    if ID is None:
+      self.ID = self._image_id_counter.next()
+    else:
+      self.ID = ID
+    
     self.width = 0
     self.height = 0
     self.image_type = None
     self.layers = []
-    self.name = pgutils.safe_encode_gimp(name)
-    self.filename = b''
+    self.filename = pgutils.safe_encode_gimp(filename)
     self.uri = b''
     self.valid = True
 
@@ -147,17 +152,22 @@ class ItemStub(ParasiteFunctionsStubMixin):
   
   _item_id_counter = itertools.count(start=1)
   
-  def __init__(self, name=None, visible=True, parent=None):
+  def __init__(self, name=None, ID=None, visible=True, image=None, parent=None):
     super().__init__()
     
-    self.ID = self._item_id_counter.next()
+    self.name = pgutils.safe_encode_gimp(name)
+    
+    if ID is None:
+      self.ID = self._item_id_counter.next()
+    else:
+      self.ID = ID
+    
     self.width = 0
     self.height = 0
     self.valid = True
     self.visible = visible
     self.offsets = (0, 0)
-    self.name = pgutils.safe_encode_gimp(name)
-    self.image = None
+    self.image = image
     self.children = []
     self.parent = parent
   

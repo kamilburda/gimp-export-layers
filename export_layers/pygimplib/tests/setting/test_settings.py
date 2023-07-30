@@ -764,7 +764,7 @@ class TestImageSetting(unittest.TestCase):
     
     with mock.patch(
           pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
-      temp_mock_gimp_module.image_list.return_value = [self.image]
+      temp_mock_gimp_module._id2image.return_value = self.image
       
       self.setting.set_value(2)
     
@@ -775,7 +775,7 @@ class TestImageSetting(unittest.TestCase):
     
     with mock.patch(
           pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
-      temp_mock_gimp_module.image_list.return_value = [self.image]
+      temp_mock_gimp_module._id2image.return_value = None
       
       with self.assertRaises(settings_.SettingValueError):
         self.setting.set_value(3)

@@ -135,14 +135,17 @@ def find_image_by_id(image_id):
   
   Matching is performed via the `gimp.Image.ID` attribute.
   """
-  return next((image for image in gimp.image_list() if image.ID == image_id), None)
+  if hasattr(gimp, '_id2image'):
+    return gimp._id2image(image_id)
+  else:
+    return next((image for image in gimp.image_list() if image.ID == image_id), None)
 
 
-def get_item_from_image_and_item_path(image, item_type_name, item_path):
-  """Returns a `gimp.Item` given the image, item type name and item path.
+def get_item_from_image_and_item_path(image, item_class_name, item_path):
+  """Returns a `gimp.Item` given the image, item class name and item path.
   
-  The item type name is the name of the item's class, e.g. `'Layer'` or
-  `'Channel'`.
+  The item class name corresponds to one of the GIMP item classes, e.g.
+  `'Layer'` or `'Channel'`.
   
   The item path consists of the item name and all of its parent layer groups,
   separated by '/'. For example, if the item name is 'Left' its parent groups
@@ -155,7 +158,7 @@ def get_item_from_image_and_item_path(image, item_type_name, item_path):
     return None
   
   matching_image_child = _find_item_by_name_in_children(
-    item_path_components[0], _get_children_from_image(image, item_type_name))
+    item_path_components[0], _get_children_from_image(image, item_class_name))
   if matching_image_child is None:
     return None
   
@@ -183,8 +186,8 @@ def _find_item_by_name_in_children(item_name, children):
   return None
 
 
-def _get_children_from_image(image, item_type_name):
-  item_type = getattr(gimp, item_type_name)
+def _get_children_from_image(image, item_class_name):
+  item_type = getattr(gimp, item_class_name)
   
   if item_type in (gimp.Layer, gimp.GroupLayer):
     return image.layers
@@ -195,14 +198,14 @@ def _get_children_from_image(image, item_type_name):
   else:
     raise TypeError(
       ('invalid item type "{}"'
-       '; must be Layer, GroupLayer, Channel or Vectors').format(item_type_name))
+       '; must be Layer, GroupLayer, Channel or Vectors').format(item_class_name))
 
 
 def get_item_as_path(item, include_image=True):
-  """Returns item as a list of [item type name, item path] or [image file path,
-  item type name, item path].
+  """Returns item as a list of [item class name, item path] or [image file path,
+  item class name, item path].
   
-  Item type name and item path are described in
+  Item class name and item path are described in
   `get_item_from_image_and_item_path()`.
   """
   if item is None:
@@ -216,13 +219,13 @@ def get_item_as_path(item, include_image=True):
     else:
       return None
   
-  item_type_name = pgutils.safe_decode(item.__class__.__name__, 'utf-8')
+  item_class_name = pgutils.safe_decode(item.__class__.__name__, 'utf-8')
   
   parents = _get_item_parents(item)
   item_path = pgutils.GIMP_ITEM_PATH_SEPARATOR.join(
     pgutils.safe_decode_gimp(parent_or_item.name) for parent_or_item in parents + [item])
   
-  item_as_path.extend([item_type_name, item_path])
+  item_as_path.extend([item_class_name, item_path])
   
   return item_as_path
 
