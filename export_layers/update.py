@@ -244,16 +244,8 @@ def _rename_settings_with_specific_settings(sources):
        'gui/size/paned_between_previews_position'),
       ('gui/settings_vpane_position',
        'gui/size/settings_vpane_position'),
-      ('gui_session/image_ids_and_directories',
-       'gui/image_ids_and_directories'),
       ('gui_session/current_directory',
        'gui/current_directory'),
-      (['gui_persistent/export_name_preview_layers_collapsed_state',
-        'gui_session/export_name_preview_layers_collapsed_state'],
-       'gui/name_preview_layers_collapsed_state'),
-      (['gui_persistent/export_image_preview_displayed_layers',
-        'gui_session/export_image_preview_displayed_layers'],
-       'gui/image_preview_displayed_layers'),
     ],
     sources)
 
@@ -263,16 +255,10 @@ def _rename_settings(settings_to_rename, sources):
     data = source.read_data_from_source()
     
     if data:
-      for orig_setting_names, new_setting_name in settings_to_rename:
-        if not isinstance(orig_setting_names, list):
-          orig_setting_names = [orig_setting_names]
-        
-        # If there are multiple original settings, merge them into one, using
-        # the value from the last setting in the list.
-        for orig_setting_name in orig_setting_names:
-          if orig_setting_name in data:
-            data[new_setting_name] = data[orig_setting_name]
-            del data[orig_setting_name]
+      for orig_setting_name, new_setting_name in settings_to_rename:
+        if orig_setting_name in data:
+          data[new_setting_name] = data[orig_setting_name]
+          del data[orig_setting_name]
       
       source.write_data_to_source(data)
 
@@ -592,6 +578,15 @@ def _update_to_3_4(settings, sources):
   _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.pyc'))
   _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.py'))
   _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.pyc'))
+  
+  if 'gui_session' in settings:
+    settings.remove(['gui_session'])
+  
+  if 'gui_persistent' in settings:
+    settings.remove(['gui_persistent'])
+  
+  if 'selected_layers_persistent' in settings['main']:
+    settings['main'].remove(['selected_layers_persistent'])
   
   settings['main/procedures'].load(sources)
   
