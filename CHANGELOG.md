@@ -12,6 +12,7 @@ New features:
 * Added "Merge background" and "Merge foreground" procedures to explicitly merge back- and foreground layers, respectively. These procedures are useful for batch editing if you wish to merge background and foreground layers into each layer rather than keeping them as separate layers.
 * Added the option to apply constraints to parent layer groups as well (when editing a constraint, check `More options` → `Also apply to parent folders`).
 * The "Rename" procedure can now optionally rename only folders (previously allowed only layers or both layers and folders, but not folders alone).
+* Added another PDB procedure, `plug-in-export-layers-with-config`, which runs Export Layers non-interactively with the specified settings file (obtained by exporting settings in the plug-in dialog).
 
 Changes to procedures:
 * Removed the "Use file extension in layer name" procedure. The same functionality is now available in the "Export" procedure.

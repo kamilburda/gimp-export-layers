@@ -92,6 +92,46 @@ def plug_in_export_layers_repeat(run_mode, image):
     _run_with_last_vals(layer_tree)
 
 
+@pg.procedure(
+  blurb=_('Run "{}" with the specified configuration file').format(pg.config.PLUGIN_TITLE),
+  description=_(
+    'The configuration file can be obtained by exporting settings'
+    " in the plug-in's interactive dialog."
+    ' If the configuration file is not specified or valid, "{}" will be run'
+    ' with the default values.').format(pg.config.PLUGIN_TITLE),
+  author=pg.config.AUTHOR_NAME,
+  copyright_notice=pg.config.AUTHOR_NAME,
+  date=pg.config.COPYRIGHT_YEARS,
+  parameters=[
+    SETTINGS['special/run_mode'],
+    SETTINGS['special/image'],
+    pg.setting.StringSetting(name='config_filepath', display_name=_('Path to configuration file'))]
+)
+def plug_in_export_layers_with_config(run_mode, image, config_filepath):
+  layer_tree = pg.itemtree.LayerTree(image, name=pg.config.SOURCE_NAME)
+  
+  if config_filepath and os.path.isfile(config_filepath):
+    if config_filepath.endswith('.pkl'):
+      setting_source_class = pg.setting.PickleFileSource
+    else:
+      setting_source_class = pg.setting.JsonFileSource
+    
+    setting_source = setting_source_class(
+      pg.config.SOURCE_NAME, config_filepath, source_type='persistent')
+    
+    status, unused_ = update.update(
+      SETTINGS, handle_invalid='abort', sources={'persistent': setting_source})
+    if status == update.ABORT:
+      return 1
+    
+    load_result = SETTINGS.load({'persistent': setting_source})
+    if load_result.status not in [
+         pg.setting.Persistor.SUCCESS, pg.setting.Persistor.PARTIAL_SUCCESS]:
+      return 1
+  
+  return _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_tree)
+
+
 def _run_noninteractive(layer_tree, args):
   main_settings = [
     setting for setting in SETTINGS['main'].walk()
@@ -124,7 +164,9 @@ def _run_plugin_noninteractive(run_mode, layer_tree):
   try:
     batcher.run(item_tree=layer_tree, **utils_.get_settings_for_batcher(SETTINGS['main']))
   except exceptions.BatcherCancelError:
-    pass
+    return 1
+  
+  return 0
 
 
 if __name__ == '__main__':
