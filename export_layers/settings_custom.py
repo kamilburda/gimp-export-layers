@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import collections
+import os
 import types
 
 import gimp
@@ -171,3 +172,66 @@ class ImagesAndGimpItemsSetting(pg.setting.Setting):
     if not isinstance(value, dict):
       raise pg.setting.SettingValueError(
         pg.setting.value_to_str_prefix(value) + self.error_messages['value_must_be_dict'])
+
+
+class ImageIdsAndDirectoriesSetting(pg.setting.Setting):
+  """Class for settings the list of currently opened images and their import
+  directory paths.
+  
+  The setting value is a dictionary of (image ID, import directory path) pairs.
+  The import directory path is `None` if the image does not have any.
+  
+  This setting cannot be registered to the PDB as no corresponding PDB type
+  exists.
+  
+  Default value: `{}`
+  """
+  
+  _DEFAULT_DEFAULT_VALUE = {}
+  
+  @property
+  def value(self):
+    # Return a copy to prevent modifying the dictionary indirectly by assigning
+    # to individual items (`setting.value[image.ID] = dirpath`).
+    return dict(self._value)
+  
+  def update_image_ids_and_dirpaths(self):
+    """Removes all (image ID, import directory path) pairs for images no longer
+    opened in GIMP. Adds (image ID, import directory path) pairs for new images
+    opened in GIMP.
+    """
+    current_images, current_image_ids = self._get_currently_opened_images()
+    self._filter_images_no_longer_opened(current_image_ids)
+    self._add_new_opened_images(current_images)
+  
+  def update_dirpath(self, image_id, dirpath):
+    """Assigns a new directory path to the specified image ID.
+    
+    If the image ID does not exist in the setting, `KeyError` is raised.
+    """
+    if image_id not in self._value:
+      raise KeyError(image_id)
+    
+    self._value[image_id] = dirpath
+  
+  def _get_currently_opened_images(self):
+    current_images = gimp.image_list()
+    current_image_ids = set([image.ID for image in current_images])
+    
+    return current_images, current_image_ids
+  
+  def _filter_images_no_longer_opened(self, current_image_ids):
+    self._value = {
+      image_id: self._value[image_id] for image_id in self._value
+      if image_id in current_image_ids}
+  
+  def _add_new_opened_images(self, current_images):
+    for image in current_images:
+      if image.ID not in self._value:
+        self._value[image.ID] = self._get_image_import_dirpath(image)
+  
+  def _get_image_import_dirpath(self, image):
+    if image.filename is not None:
+      return os.path.dirname(pg.utils.safe_decode_gimp(image.filename))
+    else:
+      return None

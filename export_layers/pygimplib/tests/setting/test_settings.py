@@ -5,7 +5,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future.builtins import *
 
-import os
 import unittest
 
 import gimpcolor
@@ -1212,86 +1211,6 @@ class TestBrushSetting(unittest.TestCase):
         'type': 'brush',
         'default_value': ['', -1, -1, -1],
       })
-
-
-class TestImageIdsAndDirectoriesSetting(unittest.TestCase):
-  
-  def setUp(self):
-    self.setting = settings_.ImageIdsAndDirectoriesSetting(
-      'image_ids_and_directories', default_value={})
-    
-    self.image_ids_and_filepaths = [
-      (0, None), (1, 'C:\\image.png'), (2, '/test/test.jpg'),
-      (4, '/test/another_test.gif')]
-    self.image_list = self._create_image_list(self.image_ids_and_filepaths)
-    self.image_ids_and_directories = (
-      self._create_image_ids_and_directories(self.image_list))
-    
-    self.setting.set_value(self.image_ids_and_directories)
-  
-  def get_image_list(self):
-    # `self.image_list` is wrapped into a method so that `mock.patch.object` can
-    # be called on it.
-    return self.image_list
-  
-  def _create_image_list(self, image_ids_and_filepaths):
-    return [
-      self._create_image(image_id, filepath)
-      for image_id, filepath in image_ids_and_filepaths]
-  
-  @staticmethod
-  def _create_image(image_id, filepath):
-    image = stubs_gimp.ImageStub()
-    image.ID = image_id
-    image.filename = filepath
-    return image
-  
-  @staticmethod
-  def _create_image_ids_and_directories(image_list):
-    image_ids_and_directories = {}
-    for image in image_list:
-      image_ids_and_directories[image.ID] = (
-        os.path.dirname(image.filename) if image.filename is not None else None)
-    return image_ids_and_directories
-  
-  def test_update_image_ids_and_dirpaths_add_new_images(self):
-    self.image_list.extend(
-      self._create_image_list([(5, '/test/new_image.png'), (6, None)]))
-    
-    with mock.patch(
-           pgutils.get_pygimplib_module_path() + '.setting.settings.gimp.image_list',
-           new=self.get_image_list):
-      self.setting.update_image_ids_and_dirpaths()
-    
-    self.assertEqual(
-      self.setting.value, self._create_image_ids_and_directories(self.image_list))
-  
-  def test_update_image_ids_and_dirpaths_remove_closed_images(self):
-    self.image_list.pop(1)
-    
-    with mock.patch(
-           pgutils.get_pygimplib_module_path() + '.setting.settings.gimp.image_list',
-           new=self.get_image_list):
-      self.setting.update_image_ids_and_dirpaths()
-    
-    self.assertEqual(
-      self.setting.value, self._create_image_ids_and_directories(self.image_list))
-  
-  def test_update_directory(self):
-    self.setting.update_dirpath(1, 'test_directory')
-    self.assertEqual(self.setting.value[1], 'test_directory')
-  
-  def test_update_directory_invalid_image_id(self):
-    with self.assertRaises(KeyError):
-      self.setting.update_dirpath(-1, 'test_directory')
-  
-  def test_value_setitem_does_not_change_setting_value(self):
-    image_id_to_test = 1
-    self.setting.value[image_id_to_test] = 'test_directory'
-    self.assertNotEqual(self.setting.value[image_id_to_test], 'test_directory')
-    self.assertEqual(
-      self.setting.value[image_id_to_test],
-      self.image_ids_and_directories[image_id_to_test])
 
 
 #===============================================================================

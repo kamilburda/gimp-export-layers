@@ -815,6 +815,8 @@ def _fix_pickle_paths_3_4(sources, key):
        b'export_layers.pygimplib.utils\nempty_func'),
       (b'builtin_procedures\nuse_file_extension_in_item_name',
        b'export_layers.pygimplib.utils\nempty_func'),
+      (b'export_layers.pygimplib.setting.settings\nImageIdsAndDirectoriesSetting',
+       b'export_layers.settings_custom\nImageIdsAndDirectoriesSetting'),
     ],
     sources, key)
 
