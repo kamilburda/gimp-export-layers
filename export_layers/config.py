@@ -11,14 +11,15 @@ import os
 
 
 c.PLUGIN_NAME = 'export_layers'
+c.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(c.PYGIMPLIB_DIRPATH))
 c.PLUGIN_SUBDIRPATH = os.path.join(c.PLUGINS_DIRPATH, c.PLUGIN_NAME)
-c.LOCALE_DIRPATH = os.path.join(c.PLUGINS_DIRPATH, c.PLUGIN_NAME, 'locale')
+c.LOCALE_DIRPATH = os.path.join(c.PLUGIN_SUBDIRPATH, 'locale')
 
 c.LOG_MODE = 'exceptions'
 
 c.PLUGIN_TITLE = lambda: _('Export Layers')
-c.PLUGIN_VERSION = '3.3.6'
-c.PLUGIN_VERSION_RELEASE_DATE = 'June 06, 2023'
+c.PLUGIN_VERSION = '3.3.7'
+c.PLUGIN_VERSION_RELEASE_DATE = 'July 03, 2023'
 c.AUTHOR_NAME = 'Kamil Burda'
 c.COPYRIGHT_YEARS = '2013-2023'
 c.PAGE_URL = 'https://kamilburda.github.io/gimp-export-layers'
