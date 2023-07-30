@@ -96,9 +96,7 @@ def plug_in_export_layers_repeat(run_mode, image):
   blurb=_('Run "{}" with the specified configuration file').format(pg.config.PLUGIN_TITLE),
   description=_(
     'The configuration file can be obtained by exporting settings'
-    " in the plug-in's interactive dialog."
-    ' If the configuration file is not specified or valid, "{}" will be run'
-    ' with the default values.').format(pg.config.PLUGIN_TITLE),
+    " in the plug-in's interactive dialog."),
   author=pg.config.AUTHOR_NAME,
   copyright_notice=pg.config.AUTHOR_NAME,
   date=pg.config.COPYRIGHT_YEARS,
@@ -108,26 +106,28 @@ def plug_in_export_layers_repeat(run_mode, image):
     pg.setting.StringSetting(name='config_filepath', display_name=_('Path to configuration file'))]
 )
 def plug_in_export_layers_with_config(run_mode, image, config_filepath):
+  if not config_filepath or not os.path.isfile(config_filepath):
+    sys.exit(1)
+  
   layer_tree = pg.itemtree.LayerTree(image, name=pg.config.SOURCE_NAME)
   
-  if config_filepath and os.path.isfile(config_filepath):
-    if config_filepath.endswith('.pkl'):
-      setting_source_class = pg.setting.PickleFileSource
-    else:
-      setting_source_class = pg.setting.JsonFileSource
-    
-    setting_source = setting_source_class(
-      pg.config.SOURCE_NAME, config_filepath, source_type='persistent')
-    
-    status, unused_ = update.update(
-      SETTINGS, handle_invalid='abort', sources={'persistent': setting_source})
-    if status == update.ABORT:
-      return 1
-    
-    load_result = SETTINGS.load({'persistent': setting_source})
-    if load_result.status not in [
-         pg.setting.Persistor.SUCCESS, pg.setting.Persistor.PARTIAL_SUCCESS]:
-      return 1
+  if config_filepath.endswith('.pkl'):
+    setting_source_class = pg.setting.PickleFileSource
+  else:
+    setting_source_class = pg.setting.JsonFileSource
+  
+  setting_source = setting_source_class(
+    pg.config.SOURCE_NAME, config_filepath, source_type='persistent')
+  
+  status, unused_ = update.update(
+    SETTINGS, handle_invalid='abort', sources={'persistent': setting_source})
+  if status == update.ABORT:
+    sys.exit(1)
+  
+  load_result = SETTINGS.load({'persistent': setting_source})
+  if load_result.status not in [
+       pg.setting.Persistor.SUCCESS, pg.setting.Persistor.PARTIAL_SUCCESS]:
+    sys.exit(1)
   
   return _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_tree)
 
