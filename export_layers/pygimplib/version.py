@@ -31,6 +31,12 @@ class Version(object):
     
     return version_str
   
+  def __repr__(self):
+    return '{}({}, {}, {}, {}, {})'.format(
+      self.__class__.__name__, self.major, self.minor, self.patch,
+      '"' + self.prerelease + '"' if self.prerelease is not None else self.prerelease,
+      self.prerelease_patch)
+  
   def __lt__(self, other_version):
     this_version_main_components = self._get_main_components_tuple(self)
     other_version_main_components = self._get_main_components_tuple(other_version)

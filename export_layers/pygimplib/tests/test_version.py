@@ -60,6 +60,13 @@ class TestVersion(unittest.TestCase):
     self.assertEqual(str(pgversion.Version(*version_values)), expected_str)
   
   @parameterized.parameterized.expand([
+    ['major_minor', (3, 3, None, None, None), 'Version(3, 3, None, None, None)'],
+    ['major_minor_patch_prerelease_patch', (3, 3, 1, 'alpha', 2), 'Version(3, 3, 1, "alpha", 2)'],
+  ])
+  def test_repr(self, test_case_name_suffix, version_values, expected_str):
+    self.assertEqual(repr(pgversion.Version(*version_values)), expected_str)
+  
+  @parameterized.parameterized.expand([
     ['major', (3, 3, None, None, None), 'major', '4.0'],
     ['major_with_patch', (3, 3, 1, None, None), 'major', '4.0'],
     ['minor', (3, 3, None, None, None), 'minor', '3.4'],
