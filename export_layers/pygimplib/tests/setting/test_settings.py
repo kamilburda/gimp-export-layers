@@ -755,8 +755,9 @@ class TestImageSetting(unittest.TestCase):
           pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
       temp_mock_gimp_module.image_list.return_value = []
       
-      with self.assertRaises(settings_.SettingValueError):
-        self.setting.set_value('file_path')
+      self.setting.set_value('file_path')
+      
+      self.assertEqual(self.setting.value, None)
   
   def test_set_value_with_id(self):
     self.image.ID = 2
@@ -776,8 +777,14 @@ class TestImageSetting(unittest.TestCase):
           pgutils.get_pygimplib_module_path() + '.pdbutils.gimp') as temp_mock_gimp_module:
       temp_mock_gimp_module._id2image.return_value = None
       
-      with self.assertRaises(settings_.SettingValueError):
-        self.setting.set_value(3)
+      self.setting.set_value(3)
+      
+      self.assertEqual(self.setting.value, None)
+  
+  def test_set_value_with_none(self):
+    self.setting.set_value(None)
+    
+    self.assertEqual(self.setting.value, None)
   
   def test_set_value_invalid_image_raises_error(self):
     self.pdb.gimp_image_delete(self.image)

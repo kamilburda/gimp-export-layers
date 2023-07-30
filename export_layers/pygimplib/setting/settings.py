@@ -178,10 +178,9 @@ class Setting(
   If a setting subclass supports "empty" values, such values will not be
   considered invalid when used as default values. However, empty values will be
   treated as invalid when assigning the setting one of such values after
-  instantiation. Examples of empty values include `None` for an image object, or
-  "Choose an item" for `EnumSetting` instances. Empty values are useful when
-  users must choose a different value, yet no valid value is a good candidate
-  for a default value.
+  instantiation. Examples of empty values include "Choose an item" for
+  `EnumSetting` instances. Empty values are useful when users must choose a
+  different value, yet no valid value is a good candidate for a default value.
   
   If you need to create a custom `Setting` subclass in your plug-in and your
   plug-in comprises more modules than the main file, you must ensure that the
@@ -1309,10 +1308,6 @@ class ImageSetting(Setting):
   
   * `SettingPdbTypes.image`
   
-  Empty values:
-  
-  * `None`
-  
   Error messages:
   
   * `'invalid_value'` - The image assigned is invalid.
@@ -1320,7 +1315,6 @@ class ImageSetting(Setting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.image]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.image_combo_box]
-  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1352,7 +1346,7 @@ class ImageSetting(Setting):
     return raw_value
   
   def _validate(self, image):
-    if not pdb.gimp_image_is_valid(image):
+    if image is not None and not pdb.gimp_image_is_valid(image):
       raise SettingValueError(
         utils_.value_to_str_prefix(image) + self.error_messages['invalid_value'])
 
@@ -1427,7 +1421,6 @@ class ItemSetting(GimpItemSetting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.item]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.item_combo_box]
-  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1436,7 +1429,7 @@ class ItemSetting(GimpItemSetting):
     self.error_messages['invalid_value'] = _('Invalid item.')
   
   def _validate(self, item):
-    if not isinstance(item, gimp.Item):
+    if item is not None and not isinstance(item, gimp.Item):
       raise SettingValueError(
         utils_.value_to_str_prefix(item) + self.error_messages['invalid_value'])
 
@@ -1448,10 +1441,6 @@ class DrawableSetting(GimpItemSetting):
   
   * `SettingPdbTypes.drawable`
   
-  Empty values:
-  
-  * `None`
-  
   Error messages:
   
   * `'invalid_value'` - The drawable assigned is invalid.
@@ -1459,7 +1448,6 @@ class DrawableSetting(GimpItemSetting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.drawable]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.drawable_combo_box]
-  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1468,7 +1456,7 @@ class DrawableSetting(GimpItemSetting):
     self.error_messages['invalid_value'] = _('Invalid drawable.')
   
   def _validate(self, drawable):
-    if drawable is None or not pdb.gimp_item_is_drawable(drawable):
+    if drawable is not None and not pdb.gimp_item_is_drawable(drawable):
       raise SettingValueError(
         utils_.value_to_str_prefix(drawable) + self.error_messages['invalid_value'])
 
@@ -1480,10 +1468,6 @@ class LayerSetting(GimpItemSetting):
   
   * `SettingPdbTypes.layer`
   
-  Empty values:
-  
-  * `None`
-  
   Error messages:
   
   * `'invalid_value'` - The layer assigned is invalid.
@@ -1491,7 +1475,6 @@ class LayerSetting(GimpItemSetting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.layer]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.layer_combo_box]
-  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1500,7 +1483,7 @@ class LayerSetting(GimpItemSetting):
     self.error_messages['invalid_value'] = _('Invalid layer.')
   
   def _validate(self, layer):
-    if layer is None or not pdb.gimp_item_is_layer(layer):
+    if layer is not None and not pdb.gimp_item_is_layer(layer):
       raise SettingValueError(
         utils_.value_to_str_prefix(layer) + self.error_messages['invalid_value'])
 
@@ -1512,10 +1495,6 @@ class ChannelSetting(GimpItemSetting):
   
   * `SettingPdbTypes.channel`
   
-  Empty values:
-  
-  * `None`
-  
   Error messages:
   
   * `'invalid_value'` - The channel assigned is invalid.
@@ -1523,7 +1502,6 @@ class ChannelSetting(GimpItemSetting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.channel]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.channel_combo_box]
-  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1532,7 +1510,7 @@ class ChannelSetting(GimpItemSetting):
     self.error_messages['invalid_value'] = _('Invalid channel.')
   
   def _validate(self, channel):
-    if channel is None or not pdb.gimp_item_is_channel(channel):
+    if channel is not None and not pdb.gimp_item_is_channel(channel):
       raise SettingValueError(
         utils_.value_to_str_prefix(channel) + self.error_messages['invalid_value'])
 
@@ -1547,10 +1525,6 @@ class SelectionSetting(ChannelSetting):
   Allowed GIMP PDB types:
   
   * `SettingPdbTypes.selection`
-  
-  Empty values:
-  
-  * `None`
   
   Error messages:
   
@@ -1569,10 +1543,6 @@ class VectorsSetting(GimpItemSetting):
   * `SettingPdbTypes.vectors` (default)
   * `SettingPdbTypes.path` (alias to `SettingPdbTypes.vectors`)
   
-  Empty values:
-  
-  * `None`
-  
   Error messages:
   
   * `'invalid_value'` - The vectors instance assigned is invalid.
@@ -1582,7 +1552,6 @@ class VectorsSetting(GimpItemSetting):
   
   _ALLOWED_PDB_TYPES = [SettingPdbTypes.vectors, SettingPdbTypes.path]
   _ALLOWED_GUI_TYPES = [SettingGuiTypes.vectors_combo_box]
-  _EMPTY_VALUES = [None]
   
   def _copy_value(self, value):
     return value
@@ -1591,7 +1560,7 @@ class VectorsSetting(GimpItemSetting):
     self.error_messages['invalid_value'] = _('Invalid vectors.')
   
   def _validate(self, vectors):
-    if vectors is None or not pdb.gimp_item_is_vectors(vectors):
+    if vectors is not None and not pdb.gimp_item_is_vectors(vectors):
       raise SettingValueError(
         utils_.value_to_str_prefix(vectors) + self.error_messages['invalid_value'])
 
