@@ -980,7 +980,7 @@ class ExportLayersDialog(object):
       self._save_settings()
       
       if clear_actions:
-        update.clear_setting_sources(self._settings)
+        utils_.clear_setting_sources(self._settings)
       else:
         self._settings['main/procedures'].tags.remove('ignore_reset')
         self._settings['main/constraints'].tags.remove('ignore_reset')

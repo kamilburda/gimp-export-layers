@@ -28,6 +28,7 @@ from export_layers import pygimplib as pg
 from export_layers import actions as actions_
 from export_layers import builtin_constraints
 from export_layers import builtin_procedures
+from export_layers import utils as utils_
 from export_layers.gui import messages
 
 
@@ -78,7 +79,7 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   persistent_sources = _get_persistent_sources(sources)
   
   if _is_fresh_start(persistent_sources):
-    _save_plugin_version(settings, sources)
+    utils_.save_plugin_version(settings, sources)
     return FRESH_START, ''
   
   current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
@@ -91,7 +92,7 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   
   if (load_status == pg.setting.Persistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
-    _save_plugin_version(settings, sources)
+    utils_.save_plugin_version(settings, sources)
     
     handle_update(settings, sources, _UPDATE_HANDLERS, previous_version, current_version)
     
@@ -105,12 +106,12 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
       button_response_id_to_focus=gtk.RESPONSE_NO)
     
     if response == gtk.RESPONSE_YES:
-      clear_setting_sources(settings, sources)
+      utils_.clear_setting_sources(settings, sources)
       return CLEAR_SETTINGS, load_message
     else:
       return ABORT, load_message
   elif handle_invalid == 'clear':
-    clear_setting_sources(settings, sources)
+    utils_.clear_setting_sources(settings, sources)
     return CLEAR_SETTINGS, load_message
   else:
     return ABORT, load_message
@@ -392,15 +393,6 @@ def _update_format_of_actions(actions):
       actions[path].set_value(value)
 
 
-def clear_setting_sources(settings, sources=None):
-  if sources is None:
-    sources = pg.setting.Persistor.get_default_setting_sources()
-  
-  pg.setting.Persistor.clear(sources)
-  
-  _save_plugin_version(settings, sources)
-
-
 def handle_update(settings, sources, update_handlers, previous_version, current_version):
   for version_str, update_handler in update_handlers.items():
     if previous_version < pg.version.Version.parse(version_str) <= current_version:
@@ -499,11 +491,6 @@ def _get_actions(settings):
 
 def _is_fresh_start(persistent_sources):
   return all(not source.has_data() for source in persistent_sources)
-
-
-def _save_plugin_version(settings, sources):
-  settings['main/plugin_version'].reset()
-  pg.setting.Persistor.save([settings['main/plugin_version']], sources)
 
 
 def _try_remove_file(filepath):
