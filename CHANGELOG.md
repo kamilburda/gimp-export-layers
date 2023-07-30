@@ -39,6 +39,7 @@ Other changes:
 * Updated documentation with examples on how to customize the export.
 * When resetting settings and `Show More Settings` is checked, the option to reset procedures and constraints is now checked by default.
 * Settings can now be saved to the default location by pressing Ctrl + S anywhere in the dialog.
+* Reworked internal representation of settings. This does not impact any existing features, except that some settings will be reset, specifically layers selected and collapsed in the preview. Sorry for the inconvenience!
 
 Bug fixes:
 * Fixed a crash and inconsistencies in the preview if both "Ignore folder structure" and "Selected in preview" are enabled. This also adversely causes the preview to be slower upon selecting items when "Selected in preview" is enabled. The drop in performance is only noticeable for hundreds of layers in an image.
