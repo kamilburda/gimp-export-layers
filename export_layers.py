@@ -48,7 +48,6 @@ def plug_in_export_layers(run_mode, image, *args):
   SETTINGS['special/image'].set_value(image)
   
   layer_tree = pg.itemtree.LayerTree(image, name=pg.config.SOURCE_NAME)
-  _setup_settings_additional(SETTINGS, layer_tree)
   
   status, unused_ = update.update(
     SETTINGS, 'ask_to_clear' if run_mode == gimpenums.RUN_INTERACTIVE else 'clear')
@@ -77,7 +76,6 @@ def plug_in_export_layers(run_mode, image, *args):
 )
 def plug_in_export_layers_repeat(run_mode, image):
   layer_tree = pg.itemtree.LayerTree(image, name=pg.config.SOURCE_NAME)
-  _setup_settings_additional(SETTINGS, layer_tree)
   
   status, unused_ = update.update(
     SETTINGS, 'ask_to_clear' if run_mode == gimpenums.RUN_INTERACTIVE else 'clear')
@@ -92,14 +90,6 @@ def plug_in_export_layers_repeat(run_mode, image):
       _run_export_layers_repeat_interactive(layer_tree)
   else:
     _run_with_last_vals(layer_tree)
-
-
-def _setup_settings_additional(settings, layer_tree):
-  settings_main.setup_image_ids_and_filepaths_settings(
-    settings['main/selected_layers'],
-    settings['main/selected_layers_persistent'],
-    settings_main.item_ids_to_names, [layer_tree],
-    settings_main.item_names_to_ids, [layer_tree])
 
 
 def _run_noninteractive(layer_tree, args):

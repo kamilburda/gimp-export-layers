@@ -79,37 +79,22 @@ def create_gui_settings():
       'default_value': True,
       'gui_type': None,
     },
-    size_gui_settings,
-  ])
-  
-  session_only_gui_settings = pg.setting.Group(
-    name='gui_session',
-    setting_attributes={'setting_sources': ['session']})
-  
-  session_only_gui_settings.add([
+    {
+      'type': 'images_and_gimp_items',
+      'name': 'name_preview_layers_collapsed_state',
+      'default_value': collections.defaultdict(set),
+    },
+    {
+      'type': 'images_and_gimp_items',
+      'name': 'image_preview_displayed_layers',
+      'default_value': collections.defaultdict(set),
+    },
     {
       'type': 'image_ids_and_directories',
       'name': 'image_ids_and_directories',
       'default_value': {},
       'tags': ['ignore_reset'],
-    },
-    {
-      'type': 'generic',
-      'name': 'name_preview_layers_collapsed_state',
-      # key: image ID
-      # value: set of layer IDs collapsed in the name preview
-      'default_value': collections.defaultdict(set),
-      'value_set': lambda value: collections.defaultdict(
-        set, {key: set(val) for key, val in value.items()}),
-      'value_save': lambda value: {key: list(val) for key, val in value.items()},
-    },
-    {
-      'type': 'generic',
-      'name': 'image_preview_displayed_layers',
-      # key: image ID; value: ID of the layer displayed in the preview
-      'default_value': collections.defaultdict(pg.utils.return_none_func),
-      'value_set': lambda value: collections.defaultdict(pg.utils.return_none_func, value),
-      'value_save': lambda value: dict(value),
+      'setting_sources': ['session'],
     },
     {
       # Needs to be string type to avoid strict directory validation.
@@ -118,33 +103,9 @@ def create_gui_settings():
       'default_value': gimp.user_directory(1),  # `Documents` directory
       'gui_type': None,
       'tags': ['ignore_load'],
+      'setting_sources': ['session'],
     },
+    size_gui_settings,
   ])
   
-  persistent_only_gui_settings = pg.setting.Group(
-    name='gui_persistent',
-    setting_attributes={'setting_sources': ['persistent']})
-  
-  persistent_only_gui_settings.add([
-    {
-      'type': 'generic',
-      'name': 'name_preview_layers_collapsed_state',
-      # key: image file path
-      # value: set of layer names collapsed in the name preview
-      'default_value': collections.defaultdict(set),
-      'value_set': lambda value: collections.defaultdict(
-        set, {key: set(val) for key, val in value.items()}),
-      'value_save': lambda value: {key: list(val) for key, val in value.items()},
-    },
-    {
-      'type': 'generic',
-      'name': 'image_preview_displayed_layers',
-      # key: image file path
-      # value: name of the layer displayed in the preview
-      'default_value': collections.defaultdict(pg.utils.return_none_func),
-      'value_set': lambda value: collections.defaultdict(pg.utils.return_none_func, value),
-      'value_save': lambda value: dict(value),
-    },
-  ])
-  
-  return gui_settings, session_only_gui_settings, persistent_only_gui_settings
+  return gui_settings

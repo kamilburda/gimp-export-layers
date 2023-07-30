@@ -6,7 +6,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import collections
-import os
 
 import gimp
 import gimpenums
@@ -93,28 +92,11 @@ def create_settings():
       'gui_type': None,
     },
     {
-      'type': 'generic',
+      'type': 'images_and_gimp_items',
       'name': 'selected_layers',
-      # key: image ID; value: set of selected layer IDs
       'default_value': collections.defaultdict(set),
       'display_name': _('Selected layers'),
       'pdb_type': None,
-      'setting_sources': ['session'],
-      'value_set': lambda value: collections.defaultdict(
-        set, {key: set(val) for key, val in value.items()}),
-      'value_save': lambda value: {key: list(val) for key, val in value.items()},
-    },
-    {
-      'type': 'generic',
-      'name': 'selected_layers_persistent',
-      # key: image file path; value: set of selected layer names
-      'default_value': collections.defaultdict(set),
-      'display_name': _('Selected layers'),
-      'pdb_type': None,
-      'setting_sources': ['persistent'],
-      'value_set': lambda value: collections.defaultdict(
-        set, {key: set(val) for key, val in value.items()}),
-      'value_save': lambda value: {key: list(val) for key, val in value.items()},
     },
     {
       'type': 'options',
@@ -151,7 +133,7 @@ def create_settings():
     },
   ])
   
-  settings.add(settings_gui.create_gui_settings())
+  settings.add([settings_gui.create_gui_settings()])
   
   settings['main'].add([actions.create(
     name='procedures',
@@ -238,138 +220,3 @@ def _sync_selected_items_and_only_selected_items_constraint(
   
   selected_items_setting.connect_event(
     'value-changed', _on_selected_items_changed, constraint, image_setting)
-
-
-#===============================================================================
-
-
-def setup_image_ids_and_filepaths_settings(
-      image_ids_dict_setting,
-      image_filepaths_dict_setting,
-      assign_image_id_to_filepath_func=None,
-      assign_image_id_to_filepath_func_args=None,
-      assign_filepath_to_image_id_func=None,
-      assign_filepath_to_image_id_func_args=None):
-  """
-  Set up a connection between a setting with a dict of (image ID, value) pairs
-  and a setting with a dict of (image file path, value) pairs. This function
-  makes the two settings act like one - the former stored in a session-wide
-  setting source, and the latter in a persistent setting source.
-  
-  The rationale behind using two settings is that the IDs of images do not
-  change during a GIMP session while the their file paths can.
-  
-  Optionally, instead of direct assignment of values between the settings, you
-  may pass callbacks that convert values (separate callbacks for first setting
-  value to second and vice versa) along with optional arguments. The callbacks
-  must accept at least four arguments - current image ID, current image file
-  path, the first setting and the second setting.
-  """
-  if assign_image_id_to_filepath_func is None:
-    assign_image_id_to_filepath_func = _default_assign_image_id_to_filepath
-  
-  if assign_image_id_to_filepath_func_args is None:
-    assign_image_id_to_filepath_func_args = []
-  
-  if assign_filepath_to_image_id_func is None:
-    assign_filepath_to_image_id_func = _default_assign_image_filepath_to_id
-  
-  if assign_filepath_to_image_id_func_args is None:
-    assign_filepath_to_image_id_func_args = []
-  
-  image_filepaths_dict_setting.connect_event(
-    'after-load', _remove_invalid_image_filepaths)
-  
-  image_filepaths_dict_setting.connect_event(
-    'before-save',
-    _update_image_filepaths,
-    image_ids_dict_setting,
-    assign_image_id_to_filepath_func,
-    assign_image_id_to_filepath_func_args)
-  
-  image_ids_dict_setting.connect_event(
-    'after-load',
-    _update_image_ids,
-    image_filepaths_dict_setting,
-    assign_filepath_to_image_id_func,
-    assign_filepath_to_image_id_func_args)
-
-
-def _default_assign_image_id_to_filepath(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting):
-  image_filepaths_setting.value[image_filepath] = image_ids_setting.value[image_id]
-
-
-def _default_assign_image_filepath_to_id(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting):
-  image_ids_setting.value[image_id] = image_filepaths_setting.value[image_filepath]
-
-
-def _remove_invalid_image_filepaths(image_filepaths_dict_setting):
-  for image_filepath, values in list(image_filepaths_dict_setting.value.items()):
-    if not(os.path.isfile(image_filepath) and values):
-      del image_filepaths_dict_setting.value[image_filepath]
-
-
-def _update_image_filepaths(
-      image_filepaths_dict_setting,
-      image_ids_dict_setting,
-      assign_image_id_to_filepath_func,
-      assign_image_id_to_filepath_func_args):
-  current_images = gimp.image_list()
-  
-  for image in current_images:
-    if image.ID in image_ids_dict_setting.value and image.filename:
-      assign_image_id_to_filepath_func(
-        image.ID,
-        os.path.abspath(image.filename),
-        image_ids_dict_setting,
-        image_filepaths_dict_setting,
-        *assign_image_id_to_filepath_func_args)
-
-
-def _update_image_ids(
-      image_ids_dict_setting,
-      image_filepaths_dict_setting,
-      assign_filepath_to_image_id_func,
-      assign_filepath_to_image_id_func_args):
-  current_images = gimp.image_list()
-  
-  for image in current_images:
-    if (image.ID not in image_ids_dict_setting.value
-        and image.filename in image_filepaths_dict_setting.value):
-      assign_filepath_to_image_id_func(
-        image.ID,
-        os.path.abspath(image.filename),
-        image_ids_dict_setting,
-        image_filepaths_dict_setting,
-        *assign_filepath_to_image_id_func_args)
-
-
-def item_ids_to_names(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting, item_tree):
-  image_filepaths_setting.value[image_filepath] = set(
-    [item_tree[item_id].orig_name for item_id in image_ids_setting.value[image_id]
-     if item_id in item_tree])
-
-
-def item_names_to_ids(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting, item_tree):
-  image_ids_setting.value[image_id] = set(
-    [item_tree[item_orig_name].raw.ID
-     for item_orig_name in image_filepaths_setting.value[image_filepath]
-     if item_orig_name in item_tree])
-
-
-def item_id_to_name(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting, item_tree):
-  item_id = image_ids_setting.value[image_id]
-  image_filepaths_setting.value[image_filepath] = (
-    item_tree[item_id].orig_name if item_id in item_tree else None)
-
-
-def item_name_to_id(
-      image_id, image_filepath, image_ids_setting, image_filepaths_setting, item_tree):
-  item_orig_name = image_filepaths_setting.value[image_filepath]
-  image_ids_setting.value[image_id] = (
-    item_tree[item_orig_name].raw.ID if item_orig_name in item_tree else None)

@@ -156,23 +156,20 @@ class PreviewsController(object):
       self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._image_preview.update)
   
   def _connect_setting_after_reset_collapsed_items_in_name_preview(self):
-    self._settings[
-      'gui_session/name_preview_layers_collapsed_state'].connect_event(
-        'after-reset',
-        lambda setting: self._name_preview.set_collapsed_items(
-          setting.value[self._image.ID]))
+    self._settings['gui/name_preview_layers_collapsed_state'].connect_event(
+      'after-reset',
+      lambda setting: self._name_preview.set_collapsed_items(setting.value[self._image.ID]))
   
   def _connect_setting_after_reset_selected_items_in_name_preview(self):
     self._settings['main/selected_layers'].connect_event(
       'after-reset',
-      lambda setting: self._name_preview.set_selected_items(
-        setting.value[self._image.ID]))
+      lambda setting: self._name_preview.set_selected_items(setting.value[self._image.ID]))
   
   def _connect_setting_after_reset_displayed_items_in_image_preview(self):
     def _clear_image_preview(setting):
       self._image_preview.clear()
     
-    self._settings['gui_session/image_preview_displayed_layers'].connect_event(
+    self._settings['gui/image_preview_displayed_layers'].connect_event(
       'after-reset', _clear_image_preview)
   
   def _connect_toggle_name_preview_filtering(self):
@@ -306,8 +303,12 @@ class PreviewsController(object):
     preview_sensitive_setting.set_value(False)
   
   def _set_initial_selection_and_update_image_preview(self):
-    raw_item_id_to_display = self._settings[
-      'gui_session/image_preview_displayed_layers'].value[self._image.ID]
+    setting_value = self._settings['gui/image_preview_displayed_layers'].value[self._image.ID]
+    
+    if not setting_value:
+      raw_item_id_to_display = None
+    else:
+      raw_item_id_to_display = list(setting_value)[0]
     
     if (raw_item_id_to_display is None
         and not self._settings['main/selected_layers'].value[self._image.ID]

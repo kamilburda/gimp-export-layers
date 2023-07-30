@@ -36,7 +36,6 @@ from export_layers import builtin_constraints
 from export_layers import builtin_procedures
 from export_layers import exceptions
 from export_layers import renamer as renamer_
-from export_layers import settings_main
 from export_layers import update
 from export_layers import utils as utils_
 
@@ -127,19 +126,17 @@ def _set_settings(func):
       self._settings['main'].apply_gui_values_to_settings()
       self._settings['gui'].apply_gui_values_to_settings()
       
-      self._settings['gui_session/current_directory'].gui.update_setting_value()
+      self._settings['gui/current_directory'].gui.update_setting_value()
       
       self._settings['main/output_directory'].set_value(
-        self._settings['gui_session/current_directory'].value)
+        self._settings['gui/current_directory'].value)
       
-      self._settings['gui_session/name_preview_layers_collapsed_state'].value[
-        self._image.ID] = self._name_preview.collapsed_items
-      self._settings['main/selected_layers'].value[
-        self._image.ID] = self._name_preview.selected_items
-      self._settings['gui_session/image_preview_displayed_layers'].value[
-        self._image.ID] = (
-          self._image_preview.item.raw.ID
-          if self._image_preview.item is not None else None)
+      self._settings['main/selected_layers'].value[self._image.ID] = (
+        self._name_preview.selected_items)
+      self._settings['gui/name_preview_layers_collapsed_state'].value[self._image.ID] = (
+        self._name_preview.collapsed_items)
+      self._settings['gui/image_preview_displayed_layers'].value[self._image.ID] = (
+        [self._image_preview.item.raw.ID] if self._image_preview.item is not None else [])
     except pg.setting.SettingValueError as e:
       self._display_inline_message(str(e), gtk.MESSAGE_ERROR, e.setting)
       return
@@ -190,12 +187,12 @@ def _setup_image_ids_and_directories_and_initial_directory(
     source.
     Directory 4. is set upon the instantiation of `'main/output_directory'`.
   """
-  settings['gui_session/image_ids_and_directories'].update_image_ids_and_dirpaths()
+  settings['gui/image_ids_and_directories'].update_image_ids_and_dirpaths()
   
   update_performed = _update_directory(
     current_directory_setting,
     current_image,
-    settings['gui_session/image_ids_and_directories'].value[current_image.ID])
+    settings['gui/image_ids_and_directories'].value[current_image.ID])
   
   if not update_performed:
     current_directory_setting.set_value(settings['main/output_directory'].value)
@@ -209,7 +206,7 @@ def _setup_output_directory_changed(settings, current_image):
   settings['main/output_directory'].connect_event(
     'value-changed',
     on_output_directory_changed,
-    settings['gui_session/image_ids_and_directories'],
+    settings['gui/image_ids_and_directories'],
     current_image.ID)
 
 
@@ -296,22 +293,6 @@ class ExportLayersDialog(object):
     return self._folder_chooser
   
   def _init_settings(self):
-    settings_main.setup_image_ids_and_filepaths_settings(
-      self._settings['gui_session/name_preview_layers_collapsed_state'],
-      self._settings['gui_persistent/name_preview_layers_collapsed_state'],
-      settings_main.item_ids_to_names,
-      [self._batcher_for_previews.item_tree],
-      settings_main.item_names_to_ids,
-      [self._batcher_for_previews.item_tree])
-    
-    settings_main.setup_image_ids_and_filepaths_settings(
-      self._settings['gui_session/image_preview_displayed_layers'],
-      self._settings['gui_persistent/image_preview_displayed_layers'],
-      settings_main.item_id_to_name,
-      [self._batcher_for_previews.item_tree],
-      settings_main.item_name_to_id,
-      [self._batcher_for_previews.item_tree])
-    
     self._settings['main/procedures'].tags.add('ignore_load')
     self._settings['main/constraints'].tags.add('ignore_load')
     
@@ -322,7 +303,7 @@ class ExportLayersDialog(object):
       messages_.display_message(load_messages, gtk.MESSAGE_WARNING)
     
     _setup_image_ids_and_directories_and_initial_directory(
-      self._settings, self._settings['gui_session/current_directory'], self._image)
+      self._settings, self._settings['gui/current_directory'], self._image)
     _setup_output_directory_changed(self._settings, self._image)
   
   def _init_actions(self):
@@ -638,7 +619,7 @@ class ExportLayersDialog(object):
         pg.setting.SettingGuiTypes.paned_position, self._vpaned_previews],
       'gui/size/settings_vpane_position': [
         pg.setting.SettingGuiTypes.paned_position, self._vpaned_chooser_and_actions],
-      'gui_session/current_directory': [
+      'gui/current_directory': [
         pg.setting.SettingGuiTypes.folder_chooser_widget, self._folder_chooser],
     })
   
@@ -647,7 +628,7 @@ class ExportLayersDialog(object):
       self._batcher_for_previews,
       self._settings,
       self._initial_layer_tree,
-      self._settings['gui_session/name_preview_layers_collapsed_state'].value[self._image.ID],
+      self._settings['gui/name_preview_layers_collapsed_state'].value[self._image.ID],
       self._settings['main/selected_layers'].value[self._image.ID],
       'selected_in_preview',
       self._settings['main/available_tags'])
@@ -1067,7 +1048,6 @@ class ExportLayersDialog(object):
     
     self._settings['main'].save(['session'])
     self._settings['gui'].save(['session'])
-    self._settings['gui_session'].save(['session'])
     
     if should_quit:
       gtk.main_quit()
