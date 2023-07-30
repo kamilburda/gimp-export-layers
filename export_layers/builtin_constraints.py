@@ -28,8 +28,8 @@ def has_matching_default_file_extension(item, batcher):
   return pg.path.get_file_extension(item.name).lower() == batcher.file_extension.lower()
 
 
-def is_item_in_selected_items(item, selected_layers):
-  return item.raw.ID in selected_layers
+def is_item_in_selected_items(item, selected_items):
+  return item.raw.ID in selected_items
 
 
 def is_top_level(item):
