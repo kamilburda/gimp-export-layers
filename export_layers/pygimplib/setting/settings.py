@@ -13,7 +13,6 @@ import future.utils
 import collections
 import copy
 import inspect
-import os
 import sys
 import types
 
