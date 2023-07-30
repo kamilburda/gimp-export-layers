@@ -54,6 +54,8 @@ class ImagesAndGimpItemsSetting(pg.setting.Setting):
   paths and items are stored as (item class name, item path) or (item class
   name, item path, FOLDER_KEY) tuples. Item class name and item path are
   described in `pygimplib.pdbutils.get_item_from_image_and_item_path()`.
+  
+  Default value: `collections.defaultdict(set)`
   """
   
   _ALLOWED_PDB_TYPES = []
