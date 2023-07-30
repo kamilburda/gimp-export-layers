@@ -146,29 +146,6 @@ def _set_settings(func):
   return func_wrapper
 
 
-def _update_directory(setting, current_image, current_image_dirpath):
-  """
-  Set the directory path to the setting according to the priority list below:
-  
-  1. `current_image_dirpath` if not `None`
-  2. `current_image` - import path of the current image if not `None`
-  
-  If update was performed, return `True`, otherwise return `False`.
-  """
-  if current_image_dirpath is not None:
-    if isinstance(current_image_dirpath, bytes):
-      current_image_dirpath = pg.utils.safe_decode_gimp(current_image_dirpath)
-    
-    setting.set_value(current_image_dirpath)
-    return True
-  
-  if current_image.filename is not None:
-    setting.set_value(os.path.dirname(pg.utils.safe_decode_gimp(current_image.filename)))
-    return True
-  
-  return False
-
-
 def _setup_image_ids_and_directories_and_initial_directory(
       settings, current_directory_setting, current_image):
   """
@@ -196,6 +173,29 @@ def _setup_image_ids_and_directories_and_initial_directory(
   
   if not update_performed:
     current_directory_setting.set_value(settings['main/output_directory'].value)
+
+
+def _update_directory(setting, current_image, current_image_dirpath):
+  """
+  Set the directory path to the setting according to the priority list below:
+  
+  1. `current_image_dirpath` if not `None`
+  2. `current_image` - import path of the current image if not `None`
+  
+  If update was performed, return `True`, otherwise return `False`.
+  """
+  if current_image_dirpath is not None:
+    if isinstance(current_image_dirpath, bytes):
+      current_image_dirpath = pg.utils.safe_decode_gimp(current_image_dirpath)
+    
+    setting.set_value(current_image_dirpath)
+    return True
+  
+  if current_image.filename is not None:
+    setting.set_value(os.path.dirname(pg.utils.safe_decode_gimp(current_image.filename)))
+    return True
+  
+  return False
 
 
 def _setup_output_directory_changed(settings, current_image):
