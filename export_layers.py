@@ -131,7 +131,7 @@ def plug_in_export_layers_with_config(run_mode, image, config_filepath):
        pg.setting.Persistor.SUCCESS, pg.setting.Persistor.PARTIAL_SUCCESS]:
     sys.exit(1)
   
-  return _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_tree)
+  _run_plugin_noninteractive(gimpenums.RUN_NONINTERACTIVE, layer_tree)
 
 
 def _run_noninteractive(layer_tree, args):
@@ -166,9 +166,7 @@ def _run_plugin_noninteractive(run_mode, layer_tree):
   try:
     batcher.run(item_tree=layer_tree, **utils_.get_settings_for_batcher(SETTINGS['main']))
   except exceptions.BatcherCancelError:
-    return 1
-  
-  return 0
+    pass
 
 
 if __name__ == '__main__':
