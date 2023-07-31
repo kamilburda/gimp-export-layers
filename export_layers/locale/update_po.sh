@@ -9,11 +9,16 @@
 
 PROGNAME="$(basename "$0")"
 
-preserve_old_po=''
+preserve_old_po='1'
+remove_fuzzy='0'
 
-if [ "$1" != '-r' ]; then
-   preserve_old_po='1'
-else
+if [ "$1" == '-r' ]; then
+   preserve_old_po='0'
+   shift
+fi
+
+if [ "$1" == '-f' ]; then
+   remove_fuzzy='1'
    shift
 fi
 
@@ -32,9 +37,13 @@ pot_file="$1"
 shift
 
 
-if [ "$preserve_old_po" ]; then
+if [ "$preserve_old_po" == '1' ]; then
    mv -f "$po_file" "$po_file"'.old'
    msgmerge "$po_file"'.old' "$pot_file" --output-file="$po_file"
 else
    msgmerge "$po_file" "$pot_file" --output-file="$po_file"
+fi
+
+if [ "$remove_fuzzy" == '1' ]; then
+  msgattrib --clear-fuzzy --no-obsolete --empty -o "$po_file" "$po_file"
 fi

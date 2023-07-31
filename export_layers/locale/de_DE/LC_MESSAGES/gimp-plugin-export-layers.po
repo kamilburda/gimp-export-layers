@@ -2,13 +2,14 @@
 # German translation for 'export_layers'.
 # Copyright (C) 2019 Kamil Burda
 # This file is distributed under the same license as the 'export_layers' package.
-#
+# 
 # Automatically generated, 2019.
 # Vinzenz Vietzke <vinz@vinzv.de>, 2019.
 msgid ""
 msgstr ""
-"Project-Id-Version: 'export_layers' 3.3\n"
-"POT-Creation-Date: 2019-02-04 15:23+0100\n"
+"Project-Id-Version: 'export_layers' 3.4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-31 21:43+0200\n"
 "PO-Revision-Date: 2019-08-31 14:37+0200\n"
 "Last-Translator: Vinzenz Vietzke <vinz@vinzv.de>\n"
 "Language-Team: German <>\n"
@@ -19,111 +20,242 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 19.08.0\n"
 
-#: ../../export_layers/builtin_constraints.py:83
-msgid "Include layers"
-msgstr "Ebenen einschließen"
+#: ../../export_layers/actions.py:71
+msgid "Background"
+msgstr "Hintergrund"
 
-#: ../../export_layers/builtin_constraints.py:91
-msgid "Include layer groups"
-msgstr "Ebenengruppen einschließen"
+#: ../../export_layers/actions.py:72
+msgid "Foreground"
+msgstr "Vordergrund"
 
-#: ../../export_layers/builtin_constraints.py:99
-msgid "Include empty layer groups"
-msgstr "Leere Ebenengruppen einschließen"
+#: ../../export_layers/actions.py:340
+msgid "Built-in"
+msgstr ""
 
+#: ../../export_layers/actions.py:341
+msgid "GIMP PDB procedure"
+msgstr ""
+
+#: ../../export_layers/actions.py:374
+msgid "_More options"
+msgstr ""
+
+#: ../../export_layers/actions.py:381
+msgid "Enable for previews"
+msgstr ""
+
+#: ../../export_layers/actions.py:452
+msgid "Also apply to parent folders"
+msgstr ""
+
+#: ../../export_layers/background_foreground.py:158
+msgid "There are no background layers."
+msgstr ""
+
+#: ../../export_layers/background_foreground.py:167
+msgid "There are no foreground layers."
+msgstr ""
+
+#: ../../export_layers/batcher.py:861
+msgid "Processing \"{}\""
+msgstr ""
+
+#: ../../export_layers/builtin_constraints.py:59
+msgid "Layers"
+msgstr ""
+
+#: ../../export_layers/builtin_constraints.py:65
+msgid "Layer groups"
+msgstr ""
+
+#. FOR TRANSLATORS: Think of "Only layers matching file extension" when translating this
+#: ../../export_layers/builtin_constraints.py:72
+msgid "Matching file extension"
+msgstr ""
+
+#. FOR TRANSLATORS: Think of "Only layers selected in preview" when translating this
+#: ../../export_layers/builtin_constraints.py:79
+msgid "Selected in preview"
+msgstr ""
+
+#: ../../export_layers/builtin_constraints.py:84
+#: ../../export_layers/settings_main.py:98
+msgid "Selected layers"
+msgstr "Gewählte Ebenen"
+
+#. FOR TRANSLATORS: Think of "Only top-level layers" when translating this
+#: ../../export_layers/builtin_constraints.py:94
+msgid "Top-level"
+msgstr ""
+
+#. FOR TRANSLATORS: Think of "Only visible layers" when translating this
+#: ../../export_layers/builtin_constraints.py:101
+msgid "Visible"
+msgstr ""
+
+#. FOR TRANSLATORS: Think of "Only layers with tags" when translating this
 #: ../../export_layers/builtin_constraints.py:108
-msgid "Only visible layers"
-msgstr "Nur sichtbare Ebenen"
+msgid "With tags"
+msgstr ""
 
-#: ../../export_layers/builtin_constraints.py:114
-msgid "Only top-level layers"
-msgstr "Nur oberste Ebenen"
+#: ../../export_layers/builtin_constraints.py:113
+#: ../../export_layers/builtin_constraints.py:129
+#: ../../export_layers/renamer.py:465
+msgid "Tags"
+msgstr "Tags"
 
-#: ../../export_layers/builtin_constraints.py:128
-msgid "Only layers with tags"
-msgstr "Nur Ebenen mit Tags"
+#. FOR TRANSLATORS: Think of "Only layers without tags" when translating this
+#: ../../export_layers/builtin_constraints.py:124
+msgid "Without tags"
+msgstr ""
 
-#: ../../export_layers/builtin_constraints.py:142
-msgid "Only layers without tags"
-msgstr "Nur Ebenen ohne Tags"
+#: ../../export_layers/builtin_procedures.py:145
+#: ../../export_layers/gui/main.py:886
+msgid "Export"
+msgstr ""
 
-#: ../../export_layers/builtin_constraints.py:148
-msgid "Only layers matching file extension"
-msgstr "Nur Ebenen die der Dateierweiterung entsprechen"
+#: ../../export_layers/builtin_procedures.py:153
+msgid "Output folder"
+msgstr ""
 
-#: ../../export_layers/builtin_constraints.py:162
-msgid "Only layers selected in preview"
-msgstr "Nur gewählte Ebenen in der Vorschau"
+#: ../../export_layers/builtin_procedures.py:160
+#: ../../export_layers/settings_main.py:75
+msgid "File extension"
+msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:144
-msgid "Insert background layers"
-msgstr "Hintergrundebenen einfügen"
+#: ../../export_layers/builtin_procedures.py:169
+msgid "For each layer"
+msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:156
-msgid "Insert foreground layers"
-msgstr "Vordergrundebenen einfügen"
+#: ../../export_layers/builtin_procedures.py:171
+msgid "For each top-level layer or group"
+msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:161
-msgid "Inherit transparency from layer groups"
-msgstr "Transparenz von Ebenengruppen übernehmen"
+#: ../../export_layers/builtin_procedures.py:174
+msgid "For the entire image at once"
+msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:173
-msgid "Autocrop background"
-msgstr "Hintergrund automatisch zuschneiden"
+#: ../../export_layers/builtin_procedures.py:177
+msgid "Perform export:"
+msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:185
-msgid "Autocrop foreground"
-msgstr "Vordergrund automatisch zuschneiden"
+#: ../../export_layers/builtin_procedures.py:183
+msgid "Image filename pattern"
+msgstr ""
 
 #: ../../export_layers/builtin_procedures.py:190
+msgid "Use file extension in layer name"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:197
+msgid "Convert file extension to lowercase"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:204
+msgid "Preserve layer name after export"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:212
 msgid "Ignore folder structure"
 msgstr "Ordnerstruktur ignorieren"
 
-#: ../../export_layers/builtin_procedures.py:195
-msgid "Use file extensions in layer names"
-msgstr "Dateierweiterungen in Ebenennamen verwenden"
+#: ../../export_layers/builtin_procedures.py:218
+msgid "Inherit transparency from layer groups"
+msgstr "Transparenz von Ebenengruppen übernehmen"
 
-#: ../../export_layers/builtin_procedures.py:200
+#: ../../export_layers/builtin_procedures.py:223
+msgid "Insert background layers"
+msgstr "Hintergrundebenen einfügen"
+
+#: ../../export_layers/builtin_procedures.py:228
+#: ../../export_layers/builtin_procedures.py:241
+msgid "Tag"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:236
+msgid "Insert foreground layers"
+msgstr "Vordergrundebenen einfügen"
+
+#: ../../export_layers/builtin_procedures.py:249
+msgid "Merge background"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:256
+#: ../../export_layers/builtin_procedures.py:274
+msgid "Expand as necessary"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:257
+#: ../../export_layers/builtin_procedures.py:275
+msgid "Clip to image"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:258
+#: ../../export_layers/builtin_procedures.py:276
+msgid "Clip to bottom layer"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:260
+#: ../../export_layers/builtin_procedures.py:278
+msgid "Merge type"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:267
+msgid "Merge foreground"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:285
+msgid "Rename"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:293
+#: ../../export_layers/settings_main.py:90
+msgid "Layer filename pattern"
+msgstr "Dateinamensmuster für Ebenen"
+
+#: ../../export_layers/builtin_procedures.py:300
+msgid "Rename layers"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:307
+msgid "Rename folders"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:315
 msgid "Use layer size"
 msgstr "Ebenengröße verwenden"
 
-#: ../../export_layers/config.py:46
+#: ../../export_layers/config.py:20 ../../export_layers/config_dev.py:20
 msgid "Export Layers"
 msgstr "Ebenen exportieren"
 
-#: ../../export_layers/exportlayers.py:473
-msgid "Creating empty directory \"{}\""
-msgstr "Erstelle leeres Verzeichnis \"{}\""
-
-#: ../../export_layers/exportlayers.py:602
-msgid "Saving \"{}\""
-msgstr "Speichere \"{}\""
-
-#: ../../export_layers/exportlayers.py:873
+#: ../../export_layers/exceptions.py:51
 msgid "Layer:"
 msgstr "Ebene:"
 
-#: ../../export_layers/exportlayers.py:875
+#: ../../export_layers/exceptions.py:53
 msgid "File extension:"
 msgstr "Dateierweiterung:"
 
-#: ../../export_layers/gui/gui_message_label.py:134
-msgid "_More"
-msgstr "_Mehr"
+#: ../../export_layers/export.py:258
+msgid "Saving \"{}\""
+msgstr "Speichere \"{}\""
 
-#: ../../export_layers/gui/gui_operations.py:295
+#: ../../export_layers/gui/actions.py:267
 msgid "Procedure Browser"
 msgstr "Ablaufbrowser"
 
-#: ../../export_layers/gui/gui_operations.py:324
+#: ../../export_layers/gui/actions.py:291
+msgid "An error occurred while adding procedure \"{}\"."
+msgstr ""
+
+#: ../../export_layers/gui/actions.py:294
 msgid ""
-"Could not add procedure '{}' because the parameter type '{}' is not "
+"Could not add procedure \"{}\" because the parameter type \"{}\" is not "
 "supported."
 msgstr ""
-"Der Ablauf '{}' konnte nicht hinzugefügt werden, da der "
-"Parametertyp '{}' nicht unterstützt wird."
 
-#: ../../export_layers/gui/gui_operations.py:329
+#: ../../export_layers/gui/actions.py:298
 msgid ""
 "You can help fix this issue by sending a report with the text above to one "
 "of the sites below"
@@ -131,488 +263,549 @@ msgstr ""
 "Sie können helfen, dieses Problem zu beheben, indem Sie einen Bericht mit "
 "dem obigen Text an eine der folgenden Seiten schicken"
 
-#: ../../export_layers/gui/gui_operations.py:466
+#: ../../export_layers/gui/actions.py:479
 msgid "_Reset"
 msgstr "_Zurücksetzen"
 
-#: ../../export_layers/gui/gui_operations.py:562
+#: ../../export_layers/gui/actions.py:603
 msgid "Cannot modify this parameter"
 msgstr "Dieser Parameter kann nicht geändert werden"
 
-#: ../../export_layers/gui/gui_plugin.py:77
-msgid ""
-"Sorry, but the export was unsuccessful. You can try exporting again if you "
-"fix the issue described below."
-msgstr ""
-"Entschuldigung, aber der Export war erfolglos. Sie können den Export erneut "
-"versuchen, wenn Sie das unten beschriebene Problem beheben."
-
-#: ../../export_layers/gui/gui_plugin.py:95
-msgid ""
-"Sorry, but the export was unsuccessful. Do not close the image when "
-"exporting, keep it open until the export finishes successfully."
-msgstr ""
-"Entschuldigung, aber der Export war erfolglos. Schließen Sie das Bild beim "
-"Export nicht, sondern halten Sie es offen, bis der Export erfolgreich"
-" abgeschlossen ist."
-
-#: ../../export_layers/gui/gui_plugin.py:99
-msgid ""
-"If you believe this is a different error, you can help fix it by sending a "
-"report with the text in the details to one of the sites below."
-msgstr ""
-"Wenn Sie glauben, dass dies ein anderer Fehler ist, können Sie helfen "
-"ihn zu beheben, indem Sie einen Bericht mit dem Text in den Details an eine"
-" der folgenden Seiten schicken."
-
-#: ../../export_layers/gui/gui_plugin.py:119
+#: ../../export_layers/gui/main.py:66
 msgid "Are you sure you want to reset settings?"
 msgstr "Sind Sie sicher, dass Sie die Einstellungen zurücksetzen wollen?"
 
-#: ../../export_layers/gui/gui_plugin.py:123
+#: ../../export_layers/gui/main.py:70
 msgid "Remove procedures and constraints"
 msgstr "Abläufe und Einschränkungen entfernen"
 
-#: ../../export_layers/gui/gui_plugin.py:390
+#: ../../export_layers/gui/main.py:332
 msgid "Save in folder:"
 msgstr "Im Ordner speichern:"
 
-#: ../../export_layers/gui/gui_plugin.py:408
+#: ../../export_layers/gui/main.py:349
 msgid "Preview"
 msgstr "Vorschau"
 
-#: ../../export_layers/gui/gui_plugin.py:440
+#: ../../export_layers/gui/main.py:380
 msgid "Save as"
 msgstr "Speichern als"
 
-#: ../../export_layers/gui/gui_plugin.py:490
+#: ../../export_layers/gui/main.py:422
 msgid "Add P_rocedure..."
 msgstr "A_blauf hinzufügen..."
 
-#: ../../export_layers/gui/gui_plugin.py:491
+#: ../../export_layers/gui/main.py:423
 msgid "Edit Procedure"
 msgstr "Ablauf bearbeiten"
 
-#: ../../export_layers/gui/gui_plugin.py:492
+#: ../../export_layers/gui/main.py:424
 msgid "Add Custom Procedure..."
 msgstr "Individuellen Ablauf hinzufügen..."
 
-#: ../../export_layers/gui/gui_plugin.py:497
+#: ../../export_layers/gui/main.py:429
 msgid "Add C_onstraint..."
 msgstr "Ein_schränkung hinzufügen"
 
-#: ../../export_layers/gui/gui_plugin.py:498
+#: ../../export_layers/gui/main.py:430
 msgid "Edit Constraint"
 msgstr "Einschränkung bearbeiten"
 
-#: ../../export_layers/gui/gui_plugin.py:526
+#: ../../export_layers/gui/main.py:465
 msgid "_Export"
 msgstr "_Exportieren"
 
-#: ../../export_layers/gui/gui_plugin.py:530
+#: ../../export_layers/gui/main.py:469
 msgid "_Cancel"
 msgstr "_Abbrechen"
 
-#: ../../export_layers/gui/gui_plugin.py:536
-#: ../../export_layers/gui/gui_plugin.py:987
+#: ../../export_layers/gui/main.py:475 ../../export_layers/gui/main.py:1229
 msgid "_Stop"
 msgstr "_Stop"
 
-#: ../../export_layers/gui/gui_plugin.py:539
+#: ../../export_layers/gui/main.py:478
 msgid "_Settings"
 msgstr "_Einstellungen"
 
-#: ../../export_layers/gui/gui_plugin.py:551
+#: ../../export_layers/gui/main.py:489
 msgid "Show More Settings"
 msgstr "Mehr Einstellungen anzeigen"
 
-#: ../../export_layers/gui/gui_plugin.py:552
+#: ../../export_layers/gui/main.py:490
+msgid "Batch Editing"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:491
 msgid "Save Settings"
 msgstr "Einstellungen speichern"
 
-#: ../../export_layers/gui/gui_plugin.py:553
+#: ../../export_layers/gui/main.py:492
 msgid "Reset settings"
 msgstr "Einstellungen zurücksetzen"
 
-#: ../../export_layers/gui/gui_plugin.py:567
+#: ../../export_layers/gui/main.py:493
+msgid "Import Settings..."
+msgstr ""
+
+#: ../../export_layers/gui/main.py:494
+msgid "Export Settings..."
+msgstr ""
+
+#: ../../export_layers/gui/main.py:511
 msgid "_Help"
 msgstr "_Hilfe"
 
-#: ../../export_layers/gui/gui_plugin.py:758
+#: ../../export_layers/gui/main.py:692
+msgid "Failed to import settings from file \"{}\""
+msgstr ""
+
+#: ../../export_layers/gui/main.py:713
+msgid "Failed to export settings to file \"{}\""
+msgstr ""
+
+#: ../../export_layers/gui/main.py:725
+msgid "Settings successfully saved."
+msgstr "Einstellungen erfolgreich gespeichert."
+
+#: ../../export_layers/gui/main.py:734
+msgid "Import Settings"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:738
+msgid "Export Settings"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:756
+msgid "Import size-related settings"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:768
+msgid "JSON file ({})"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:779
+msgid "Pickle file ({})"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:784
+msgid "Any file"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:880
+msgid "Run"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:881
+msgid "Close"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:887
+msgid "Cancel"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:907
+msgid "This procedure is skipped. Reason: {}"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:912
+msgid "This constraint is skipped. Reason: {}"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:922
 msgid "Disabling automatic preview update."
 msgstr "Deaktiviere automatische Aktualisierung der Vorschau."
 
-#: ../../export_layers/gui/gui_plugin.py:759
+#: ../../export_layers/gui/main.py:923
 msgid ""
 "The preview takes too long to update. You may turn automatic updates back on "
 "from the menu above the previewed image."
 msgstr ""
-"Die Aktualisierung der Vorschau dauert zu lange. Sie können die automatischen "
-"Updates über das Menü oberhalb des Vorschaubildes wieder einschalten."
+"Die Aktualisierung der Vorschau dauert zu lange. Sie können die "
+"automatischen Updates über das Menü oberhalb des Vorschaubildes wieder "
+"einschalten."
 
-#: ../../export_layers/gui/gui_plugin.py:780
-msgid "Settings successfully saved."
-msgstr "Einstellungen erfolgreich gespeichert."
+#: ../../export_layers/gui/main.py:955
+msgid "Settings successfully imported."
+msgstr ""
 
-#: ../../export_layers/gui/gui_plugin.py:804
+#: ../../export_layers/gui/main.py:964
+msgid "Settings successfully exported."
+msgstr ""
+
+#: ../../export_layers/gui/main.py:988
 msgid "Settings reset."
 msgstr "Einstellungen zurückgesetzt."
 
-#: ../../export_layers/gui/gui_plugin.py:839
-#: ../../export_layers/gui/gui_plugin.py:1035
+#: ../../export_layers/gui/main.py:1032 ../../export_layers/gui/main.py:1279
 msgid "No layers were exported."
 msgstr "Keine Ebenen exportiert."
 
-#: ../../export_layers/gui/gui_preview_image.py:60
-msgid "There was a problem with updating the image preview."
-msgstr "Es gab ein Problem beim Aktualisieren der Bildvorschau."
-
-#: ../../export_layers/gui/gui_preview_image.py:62
+#: ../../export_layers/gui/messages.py:43
 msgid ""
 "If you believe this is an error in the plug-in, you can help fix it by "
-"sending a report with the text in the details to one of the sites below."
+"sending a report with the text in the details to one of the sites below"
 msgstr ""
-"Falls Sie glauben, dass es sich um einen Fehler im Plugin handelt, "
-"können Sie helfen diesen Fehler zu beheben, indem Sie einen Bericht mit dem"
-" Text in den Details oben an eine der folgenden Seiten schicken."
 
-#: ../../export_layers/gui/gui_preview_image.py:306
+#: ../../export_layers/gui/messages.py:62
+msgid "There was a problem during processing:"
+msgstr ""
+
+#: ../../export_layers/gui/messages.py:70
+msgid ""
+"There was a problem during processing. Do not close the image during "
+"processing, keep it open until the processing is finished successfully."
+msgstr ""
+
+#: ../../export_layers/gui/messages.py:85
+msgid ""
+"If you believe this is an error in the plug-in, you can help fix it by "
+"sending a report with the file and the text in the details to one of the "
+"sites below"
+msgstr ""
+
+#: ../../export_layers/gui/messages.py:100
+msgid "Failed to apply procedure \"{}\" on \"{}\" because:"
+msgstr ""
+
+#: ../../export_layers/gui/messages.py:102
+msgid "Failed to apply constraint \"{}\" on \"{}\" because:"
+msgstr ""
+
+#: ../../export_layers/gui/messages.py:107
+msgid "Failed to apply procedure \"{}\" because:"
+msgstr ""
+
+#: ../../export_layers/gui/messages.py:109
+msgid "Failed to apply constraint \"{}\" because:"
+msgstr ""
+
+#: ../../export_layers/gui/message_label.py:106
+msgid "_More"
+msgstr "_Mehr"
+
+#: ../../export_layers/gui/preview_image.py:257
 msgid "Update Preview Automatically"
 msgstr "Vorschau automatisch aktualisieren"
 
-#: ../../export_layers/gui/gui_preview_image.py:314
+#: ../../export_layers/gui/preview_image.py:265
 msgid "Update Preview"
 msgstr "Vorschau aktualisieren"
 
-#: ../../export_layers/gui/gui_preview_image.py:539
+#: ../../export_layers/gui/preview_image.py:384
+msgid "There was a problem with updating the image preview:"
+msgstr ""
+
+#: ../../export_layers/gui/preview_image.py:546
 msgid "No selection"
 msgstr "Keine Auswahl"
 
-#: ../../export_layers/gui/gui_preview_name.py:298
+#: ../../export_layers/gui/preview_name.py:281
 msgid "Add New Tag..."
 msgstr "Neuen Tag hinzufügen..."
 
-#: ../../export_layers/gui/gui_preview_name.py:302
+#: ../../export_layers/gui/preview_name.py:285
 msgid "Remove Tag"
 msgstr "Tag entfernen"
 
-#: ../../export_layers/gui/gui_preview_name.py:460
+#: ../../export_layers/gui/preview_name.py:438
 msgid "Tag Name:"
 msgstr "Tagname:"
 
-#: ../../export_layers/operations.py:91
-msgid "Background"
-msgstr "Hintergrund"
-
-#: ../../export_layers/operations.py:92
-msgid "Foreground"
-msgstr "Vordergrund"
-
-#: ../../export_layers/placeholders.py:68
+#: ../../export_layers/placeholders.py:57
 msgid "Current Image"
 msgstr "Aktuelles Bild"
 
-#: ../../export_layers/placeholders.py:69
+#: ../../export_layers/placeholders.py:58
 msgid "Current Layer"
 msgstr "Aktuelle Ebene"
 
-#: ../../export_layers/placeholders.py:130
+#: ../../export_layers/placeholders.py:60
+msgid "Background Layer"
+msgstr ""
+
+#: ../../export_layers/placeholders.py:62
+msgid "Foreground Layer"
+msgstr ""
+
+#: ../../export_layers/placeholders.py:104
 msgid "Invalid placeholder."
 msgstr "Ungültiger Platzhalter."
 
-#: ../../export_layers/pygimplib/pggui/gimp_item_combo_box.py:77
+#: ../../export_layers/pygimplib/gui/gimp_item_combo_box.py:60
 msgid "Layer"
 msgstr "Ebene"
 
-#: ../../export_layers/pygimplib/pggui/gimp_item_combo_box.py:83
+#: ../../export_layers/pygimplib/gui/gimp_item_combo_box.py:66
 msgid "Channel"
 msgstr "Kanal"
 
-#: ../../export_layers/pygimplib/pggui/gimp_item_combo_box.py:89
+#: ../../export_layers/pygimplib/gui/gimp_item_combo_box.py:72
 msgid "Vectors"
 msgstr "Vektoren"
 
-#: ../../export_layers/pygimplib/pggui/item_box.py:334
+#: ../../export_layers/pygimplib/gui/item_box.py:330
 msgid "Size"
 msgstr "Größe"
 
-#: ../../export_layers/pygimplib/pggui/item_box.py:546
+#: ../../export_layers/pygimplib/gui/item_box.py:542
 msgid "Element"
 msgstr "Element"
 
-#: ../../export_layers/pygimplib/pggui/overwrite_chooser.py:95
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:79
 msgid "_Apply action to all files"
 msgstr "_Aktion auf alle Dateien anwenden"
 
-#: ../../export_layers/pygimplib/pggui/overwrite_chooser.py:122
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:106
 msgid "A file named \"{}\" already exists in \"{}\". "
 msgstr "Eine Datei mit dem Namen \"{}\" existiert bereits in \"{}\"."
 
-#: ../../export_layers/pygimplib/pggui/overwrite_chooser.py:125
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:109
 msgid "A file named \"{}\" already exists.\n"
 msgstr "Eine Datei mit dem Namen \"{}\" existiert bereits.\n"
 
-#: ../../export_layers/pygimplib/pggui/overwrite_chooser.py:127
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:111
 msgid "A file with the same name already exists.\n"
 msgstr "Eine Datei mit dem gleichen Namen existiert bereits.\n"
 
-#: ../../export_layers/pygimplib/pggui/overwrite_chooser.py:129
+#: ../../export_layers/pygimplib/gui/overwrite_chooser.py:113
 msgid "What would you like to do?"
 msgstr "Was möchten Sie tun?"
 
-#: ../../export_layers/pygimplib/pggui/parasite_box.py:84
+#: ../../export_layers/pygimplib/gui/parasite_box.py:66
 msgid "Name"
 msgstr "Name"
 
-#: ../../export_layers/pygimplib/pggui/parasite_box.py:93
+#: ../../export_layers/pygimplib/gui/parasite_box.py:74
 msgid "Flags"
 msgstr "Markierungen"
 
-#: ../../export_layers/pygimplib/pggui/parasite_box.py:103
+#: ../../export_layers/pygimplib/gui/parasite_box.py:83
 msgid "Data"
 msgstr "Daten"
 
-#: ../../export_layers/pygimplib/pgpath.py:649
+#: ../../export_layers/pygimplib/path/validators.py:114
 msgid "Filename is not specified."
 msgstr "Kein Dateiname angegeben."
 
-#: ../../export_layers/pygimplib/pgpath.py:651
+#: ../../export_layers/pygimplib/path/validators.py:116
 msgid "Filename contains invalid characters."
 msgstr "Der Dateiname enthält ungültige Zeichen."
 
-#: ../../export_layers/pygimplib/pgpath.py:653
+#: ../../export_layers/pygimplib/path/validators.py:118
 msgid "Filename cannot end with spaces."
 msgstr "Der Dateiname darf nicht mit Leerzeichen enden."
 
-#: ../../export_layers/pygimplib/pgpath.py:655
+#: ../../export_layers/pygimplib/path/validators.py:120
 msgid "Filename cannot end with a period."
 msgstr "Der Dateiname darf nicht mit einem Punkt enden."
 
-#: ../../export_layers/pygimplib/pgpath.py:657
+#: ../../export_layers/pygimplib/path/validators.py:122
 msgid "\"{}\" is a reserved name that cannot be used in filenames.\n"
 msgstr ""
-"\"{}\" ist ein reservierter Name, der nicht in Dateinamen verwendet werden"
-" kann.\n"
+"\"{}\" ist ein reservierter Name, der nicht in Dateinamen verwendet werden "
+"kann.\n"
 
-#: ../../export_layers/pygimplib/pgpath.py:710
-#: ../../export_layers/renamer.py:275
+#: ../../export_layers/pygimplib/path/validators.py:175
+#: ../../export_layers/renamer.py:234
 msgid "Untitled"
 msgstr "Unbenannt"
 
-#: ../../export_layers/pygimplib/pgpath.py:737
+#: ../../export_layers/pygimplib/path/validators.py:202
 msgid "File path is not specified."
 msgstr "Kein Dateipfad angegeben."
 
-#: ../../export_layers/pygimplib/pgpath.py:739
-#: ../../export_layers/pygimplib/pgpath.py:839
+#: ../../export_layers/pygimplib/path/validators.py:204
+#: ../../export_layers/pygimplib/path/validators.py:304
 msgid "Drive letter contains invalid characters."
 msgstr "Der Laufwerksbuchstabe enthält ungültige Zeichen."
 
-#: ../../export_layers/pygimplib/pgpath.py:741
+#: ../../export_layers/pygimplib/path/validators.py:206
 msgid "File path contains invalid characters."
 msgstr "Der Dateipfad enthält ungültige Zeichen."
 
-#: ../../export_layers/pygimplib/pgpath.py:743
+#: ../../export_layers/pygimplib/path/validators.py:208
 msgid "Path components in the file path cannot end with spaces."
 msgstr "Pfadkomponenten im Dateipfad dürfen nicht mit Leerzeichen enden."
 
-#: ../../export_layers/pygimplib/pgpath.py:745
+#: ../../export_layers/pygimplib/path/validators.py:210
 msgid "Path components in the file path cannot end with a period."
 msgstr "Pfadkomponenten im Dateipfad dürfen nicht mit einem Punkt enden."
 
-#: ../../export_layers/pygimplib/pgpath.py:747
+#: ../../export_layers/pygimplib/path/validators.py:212
 msgid "\"{}\" is a reserved name that cannot be used in file paths.\n"
 msgstr ""
-"\"{}\" ist ein reservierter Name, der nicht in Dateipfaden verwendet werden"
-" kann.\n"
+"\"{}\" ist ein reservierter Name, der nicht in Dateipfaden verwendet werden "
+"kann.\n"
 
-#: ../../export_layers/pygimplib/pgpath.py:837
+#: ../../export_layers/pygimplib/path/validators.py:302
 msgid "Directory path is not specified."
 msgstr "Kein Verzeichnispfad angegeben."
 
-#: ../../export_layers/pygimplib/pgpath.py:841
+#: ../../export_layers/pygimplib/path/validators.py:306
 msgid "Directory path contains invalid characters."
 msgstr "Der Verzeichnispfad enthält ungültige Zeichen."
 
-#: ../../export_layers/pygimplib/pgpath.py:843
+#: ../../export_layers/pygimplib/path/validators.py:308
 msgid "Path components in the directory path cannot end with spaces."
 msgstr "Pfadkomponenten im Verzeichnispfad dürfen nicht mit Leerzeichen enden."
 
-#: ../../export_layers/pygimplib/pgpath.py:845
+#: ../../export_layers/pygimplib/path/validators.py:310
 msgid "Path components in the directory path cannot end with a period."
 msgstr "Pfadkomponenten im Verzeichnispfad dürfen nicht mit einem Punkt enden."
 
-#: ../../export_layers/pygimplib/pgpath.py:847
+#: ../../export_layers/pygimplib/path/validators.py:312
 msgid "\"{}\" is a reserved name that cannot be used in directory paths.\n"
 msgstr ""
-"\"{}\" ist ein reservierter Name, der nicht in Verzeichnispfaden verwendet"
-" werden kann.\n"
+"\"{}\" ist ein reservierter Name, der nicht in Verzeichnispfaden verwendet "
+"werden kann.\n"
 
-#: ../../export_layers/pygimplib/pgpath.py:849
+#: ../../export_layers/pygimplib/path/validators.py:314
 msgid "Specified path is not a directory path."
 msgstr "Der angegebene Pfad ist kein Verzeichnispfad."
 
-#: ../../export_layers/pygimplib/pgpath.py:882
+#: ../../export_layers/pygimplib/path/validators.py:347
 msgid "File extension is not specified."
 msgstr "Keine Dateierweiterung angegeben."
 
-#: ../../export_layers/pygimplib/pgpath.py:884
+#: ../../export_layers/pygimplib/path/validators.py:349
 msgid "File extension contains invalid characters."
 msgstr "Die Dateierweiterung enthält ungültige Zeichen."
 
-#: ../../export_layers/pygimplib/pgpath.py:886
+#: ../../export_layers/pygimplib/path/validators.py:351
 msgid "File extension cannot end with spaces."
 msgstr "Die Dateierweiterung darf nicht mit Leerzeichen enden."
 
-#: ../../export_layers/pygimplib/pgpath.py:888
+#: ../../export_layers/pygimplib/path/validators.py:353
 msgid "File extension cannot end with a period."
 msgstr "Die Dateierweiterung darf nicht mit einem Punkt enden."
 
-#: ../../export_layers/pygimplib/pgsetting.py:744
+#: ../../export_layers/pygimplib/setting/settings.py:939
 msgid "Value cannot be less than {}."
 msgstr "Der Wert darf nicht kleiner als {} sein."
 
-#: ../../export_layers/pygimplib/pgsetting.py:746
+#: ../../export_layers/pygimplib/setting/settings.py:941
 msgid "Value cannot be greater than {}."
 msgstr "Der Wert darf nicht größer als {} sein."
 
-#: ../../export_layers/pygimplib/pgsetting.py:923
+#: ../../export_layers/pygimplib/setting/settings.py:1117
 msgid "Invalid item value; valid values: {}"
 msgstr "Ungültiger Objektwert; gültige Werte: {}"
 
-#: ../../export_layers/pygimplib/pgsetting.py:1113
+#: ../../export_layers/pygimplib/setting/settings.py:1323
 msgid "Invalid image."
 msgstr "Ungültiges Bild."
 
-#: ../../export_layers/pygimplib/pgsetting.py:1146
+#: ../../export_layers/pygimplib/setting/settings.py:1429
 msgid "Invalid item."
 msgstr "Ungültiges Objekt."
 
-#: ../../export_layers/pygimplib/pgsetting.py:1180
+#: ../../export_layers/pygimplib/setting/settings.py:1456
 msgid "Invalid drawable."
 msgstr "Ungültige Zeichenfläche."
 
-#: ../../export_layers/pygimplib/pgsetting.py:1214
+#: ../../export_layers/pygimplib/setting/settings.py:1483
 msgid "Invalid layer."
 msgstr "Ungültige Ebene."
 
-#: ../../export_layers/pygimplib/pgsetting.py:1248
+#: ../../export_layers/pygimplib/setting/settings.py:1510
 msgid "Invalid channel."
 msgstr "Ungültiger Kanal."
 
-#: ../../export_layers/pygimplib/pgsetting.py:1307
+#: ../../export_layers/pygimplib/setting/settings.py:1560
 msgid "Invalid vectors."
 msgstr "Ungültige Vektoren."
 
-#: ../../export_layers/pygimplib/pgsetting.py:1337
+#: ../../export_layers/pygimplib/setting/settings.py:1588
 msgid "Invalid color."
 msgstr "Ungültige Farbe."
 
-#: ../../export_layers/pygimplib/pgsetting.py:1371
+#: ../../export_layers/pygimplib/setting/settings.py:1634
 msgid "Invalid display."
 msgstr "Ungültige Anzeige."
 
 # https://docs.gimp.org/2.10/de/glossary.html => Parasite
-#: ../../export_layers/pygimplib/pgsetting.py:1404
+#: ../../export_layers/pygimplib/setting/settings.py:1670
 msgid "Invalid parasite."
 msgstr "Ungültiger Parasit."
 
-#: ../../export_layers/pygimplib/pgsetting.py:1586
+#: ../../export_layers/pygimplib/setting/settings.py:1863
 msgid "Invalid number of tuple elements (must be at most {})."
 msgstr "Ungültige Anzahl von Tupelelementen (darf höchstens {} sein)."
 
-#: ../../export_layers/pygimplib/pgsetting.py:1984
-msgid "Number of elements in '{}'"
-msgstr "Anzahl der Elemente in '{}''"
+#: ../../export_layers/pygimplib/setting/settings.py:2204
+msgid "Number of elements in \"{}\""
+msgstr ""
 
-#: ../../export_layers/pygimplib/pgsetting.py:2000
+#: ../../export_layers/pygimplib/setting/settings.py:2219
 msgid "Not an array."
 msgstr "Kein Array."
 
-#: ../../export_layers/pygimplib/pgsetting.py:2002
-msgid "Minimum array size ({}) cannot be negative."
-msgstr "Die minimale Array-Größe ({}) darf nicht negativ sein."
-
-#: ../../export_layers/pygimplib/pgsetting.py:2004
-msgid "Minimum array size ({}) cannot be greater than maximum array size ({})."
+#: ../../export_layers/pygimplib/setting/settings.py:2221
+msgid "Minimum size ({}) cannot be negative."
 msgstr ""
-"Die minimale Array-Größe ({}) kann nicht größer als die maximale Array-Größe"
-" ({}) sein."
 
-#: ../../export_layers/pygimplib/pgsetting.py:2006
-msgid ""
-"Minimum array size ({}) cannot be greater than the length of the value ({})."
+#: ../../export_layers/pygimplib/setting/settings.py:2223
+msgid "Minimum size ({}) cannot be greater than maximum size ({})."
 msgstr ""
-"Die minimale Array-Größe ({}) darf nicht größer sein als die Länge des Wertes"
-" ({})."
 
-#: ../../export_layers/pygimplib/pgsetting.py:2008
-msgid ""
-"Maximum array size ({}) cannot be less than the length of the value ({})."
+#: ../../export_layers/pygimplib/setting/settings.py:2225
+msgid "Minimum size ({}) cannot be greater than the length of the value ({})."
 msgstr ""
-"Die maximale Array-Größe ({}) darf nicht kleiner als die Länge des Wertes"
-" ({}) sein."
 
-#: ../../export_layers/pygimplib/pgsetting.py:2010
-msgid "Cannot delete any more elements - array must have at least {} elements."
+#: ../../export_layers/pygimplib/setting/settings.py:2227
+msgid "Maximum size ({}) cannot be less than the length of the value ({})."
 msgstr ""
-"Es können keine weiteren Elemente gelöscht werden - das Array muss mindestens"
-" {} Elemente enthalten."
 
-#: ../../export_layers/pygimplib/pgsetting.py:2012
-msgid "Cannot add any more elements - array must have at most {} elements."
+#: ../../export_layers/pygimplib/setting/settings.py:2229
+msgid "Cannot delete any more elements - at least {} elements must be present."
 msgstr ""
-"Es können keine weiteren Elemente hinzugefügt werden - das Array darf"
-" höchstens {} Elemente enthalten."
 
-#: ../../export_layers/pygimplib/pgsettingsources.py:83
+#: ../../export_layers/pygimplib/setting/settings.py:2231
+msgid "Cannot add any more elements - at most {} elements are allowed."
+msgstr ""
+
+#: ../../export_layers/pygimplib/setting/settings.py:2372
+msgid "Cannot assign a null value (None) if the setting is not nullable."
+msgstr ""
+
+#: ../../export_layers/pygimplib/setting/sources.py:117
 msgid "Could not find setting source \"{}\"."
 msgstr "Die Quelle der Einstellung \"{}\" konnte nicht gefunden werden."
 
-#: ../../export_layers/pygimplib/pgsettingsources.py:100
+#: ../../export_layers/pygimplib/setting/sources.py:581
 msgid ""
-"The following settings could not be found:\n"
-"{}"
-msgstr ""
-"Die folgenden Einstellungen konnten nicht gefunden werden:\n"
-"{}"
-
-#: ../../export_layers/pygimplib/pgsettingsources.py:201
-msgid ""
-"Session-wide settings for this plug-in may be corrupt.\n"
+"Settings for this plug-in may be corrupt.\n"
 "To fix this, save the settings again or reset them."
 msgstr ""
-"Die sitzungsweiten Einstellungen für dieses Plugin sind möglicherweise"
-" fehlerhaft.\n"
-"Um dies zu beheben, speichern Sie die Einstellungen erneut oder setzen Sie sie zurück."
 
-#: ../../export_layers/pygimplib/pgsettingsources.py:243
+#: ../../export_layers/pygimplib/setting/sources.py:622
 msgid ""
 "Settings for this plug-in stored in \"{}\" may be corrupt. This could happen "
 "if the file was edited manually.\n"
 "To fix this, save the settings again or reset them."
 msgstr ""
-"Die unter \"{}\" gespeicherten Einstellungen für dieses Plugin sind"
-" möglicherweise "
-"fehlerhaft. Dies kann passieren wenn die Datei manuell bearbeitet wurde.\n"
-"Um dies zu beheben, speichern Sie die Einstellungen erneut oder setzen Sie sie zurück."
+"Die unter \"{}\" gespeicherten Einstellungen für dieses Plugin sind "
+"möglicherweise fehlerhaft. Dies kann passieren wenn die Datei manuell "
+"bearbeitet wurde.\n"
+"Um dies zu beheben, speichern Sie die Einstellungen erneut oder setzen Sie "
+"sie zurück."
 
-#: ../../export_layers/pygimplib/_pggui_messages.py:132
+#: ../../export_layers/pygimplib/_gui_messages.py:123
 msgid "Plug-in"
 msgstr "Plugin"
 
-#: ../../export_layers/pygimplib/_pggui_messages.py:137
+#: ../../export_layers/pygimplib/_gui_messages.py:128
 msgid "Oops. Something went wrong."
 msgstr "Hoppla. Etwas ist schief gelaufen."
 
-#: ../../export_layers/pygimplib/_pggui_messages.py:141
+#: ../../export_layers/pygimplib/_gui_messages.py:132
 #, python-brace-format
 msgid "{0} encountered an unexpected error and has to close. Sorry about that!"
 msgstr ""
 "{0} ist auf einen unerwarteten Fehler gestoßen und muss geschlossen werden. "
 "Bitte entschuldigen Sie!"
 
-#: ../../export_layers/pygimplib/_pggui_messages.py:146
+#: ../../export_layers/pygimplib/_gui_messages.py:137
 msgid ""
 "You can help fix this error by sending a report with the text in the details "
 "above to one of the following sites"
@@ -620,106 +813,68 @@ msgstr ""
 "Sie können helfen, diesen Fehler zu beheben, indem Sie einen Bericht mit dem "
 "Text in den Details oben an eine der folgenden Seiten schicken"
 
-#: ../../export_layers/pygimplib/_pggui_messages.py:158
+#: ../../export_layers/pygimplib/_gui_messages.py:153
 msgid "Details"
 msgstr "Details"
 
-#: ../../export_layers/pygimplib/_pggui_messages.py:166
+#: ../../export_layers/pygimplib/_gui_messages.py:163
 msgid "(right-click to copy link)"
 msgstr "(Rechtsklick zum Kopieren des Links)"
 
-#: ../../export_layers/renamer.py:147
-msgid "Usage:"
-msgstr "Verwendung:"
+#: ../../export_layers/pygimplib/_gui_messages.py:237
+msgid "Copy details to clipboard"
+msgstr ""
 
-#: ../../export_layers/renamer.py:152
-msgid "Details:"
-msgstr "Details:"
+#: ../../export_layers/renamer.py:84
+msgid "Examples"
+msgstr ""
 
-#: ../../export_layers/renamer.py:169
-msgid "Examples:"
-msgstr "Beispiele:"
-
-#: ../../export_layers/renamer.py:184
+#: ../../export_layers/renamer.py:386
 msgid "image001"
 msgstr "bild001"
 
-#: ../../export_layers/renamer.py:191
-msgid "%n - do not reset numbering across layer groups"
+#: ../../export_layers/renamer.py:392
+msgid "To continue numbering across layer groups, use %n."
 msgstr ""
-"%n - die Nummerierung über Ebenengruppen hinweg darf nicht zurückgesetzt"
-" werden."
+
+#: ../../export_layers/renamer.py:394
+#, python-format
+msgid "To use descending numbers, use %d."
+msgstr ""
+
+#: ../../export_layers/renamer.py:395
+msgid "Suppose that the number of layers is 5:"
+msgstr ""
 
 #: ../../export_layers/renamer.py:404
 msgid "Layer name"
 msgstr "Ebenenname"
 
-#: ../../export_layers/renamer.py:412
-#, python-format
-msgid "%e - keep file extension"
-msgstr "%e - Dateierweiterungen behalten."
-
-#: ../../export_layers/renamer.py:413
-#, python-format
-msgid "%i - keep file extension only if matching the specified file extension"
-msgstr ""
-"%i - Dateierweiterung nur beibehalten, wenn sie mit der angegebenen"
-" Dateierweiterung übereinstimmt"
-
-#: ../../export_layers/renamer.py:416
+#: ../../export_layers/renamer.py:407
 msgid ""
-"Suppose that a layer is named \"Frame.png\" and the file extension is \"png"
-"\"."
+"Suppose that a layer is named \"Frame.png\" and the file extension is "
+"\"png\"."
 msgstr ""
-"Es wird angenommen, dass eine Ebene \"Frame.png\" heißt und die"
-" Dateierweiterung \"png\" lautet"
-"."
+"Es wird angenommen, dass eine Ebene \"Frame.png\" heißt und die "
+"Dateierweiterung \"png\" lautet."
 
-#: ../../export_layers/renamer.py:420
+#: ../../export_layers/renamer.py:411
 msgid "Suppose that a layer is named \"Frame.jpg\"."
 msgstr "Es wird angenommen, dass eine Ebene den Namen \"Frame.jpg\" trägt."
 
-#: ../../export_layers/renamer.py:427
+#: ../../export_layers/renamer.py:421
 msgid "Image name"
 msgstr "Name des Bildes"
 
-#: ../../export_layers/renamer.py:434
-#, python-format
-msgid "%e - keep image file extension"
-msgstr "%e - behält die Erweiterung der Bilddatei bei"
-
-#: ../../export_layers/renamer.py:437
-msgid ""
-"Suppose that the image is named \"Image.png\" and the file extension is \"png"
-"\"."
+#: ../../export_layers/renamer.py:424
+msgid "Suppose that the image is named \"Image.xcf\"."
 msgstr ""
-"Es wird angenommen, dass das Bild \"Image.png\" heißt und die"
-" Dateierweiterung \"png\" lautet"
-"."
 
-#: ../../export_layers/renamer.py:445
+#: ../../export_layers/renamer.py:433
 msgid "Layer path"
 msgstr "Ebenenpfad"
 
-#: ../../export_layers/renamer.py:453
-msgid ""
-"<i>separator</i> - string separating the layer path components (parent "
-"groups and the layer)"
-msgstr ""
-"<i>separator</i> - Zeichenkette, die die Komponenten des Ebenenpfades "
-"trennt (übergeordnete Gruppen und der Ebene)."
-
-#: ../../export_layers/renamer.py:455
-#, python-format
-msgid ""
-"<i>wrapper</i> - string wrapping each path component; \"%c\" denotes the "
-"component itself"
-msgstr ""
-"<i>wrapper</i> - Zeichenkette, die jede Pfadkomponente umgibt; \"%c\""
-" bezeichnet "
-"die Komponente selbst."
-
-#: ../../export_layers/renamer.py:459
+#: ../../export_layers/renamer.py:436
 msgid ""
 "Suppose that a layer named \"Left\" has parent groups named \"Hands\" and "
 "\"Body\"."
@@ -727,174 +882,120 @@ msgstr ""
 "Es wird angenommen, dass eine Ebene mit dem Namen \"Links\" übergeordnete "
 "Gruppen mit den Namen \"Hände\" und \"Körper\" hat."
 
-#: ../../export_layers/renamer.py:469
-msgid "Tags"
-msgstr "Tags"
-
-#: ../../export_layers/renamer.py:477
+#: ../../export_layers/renamer.py:440
 msgid ""
-"Without arguments, all tags are included. Tags that do not exist are ignored."
+"Suppose that the layer is named \"Left.jpg\" and the file extension is "
+"\"png\"."
 msgstr ""
-"Ohne weitere Argumente werden alle Tags eingebunden. Tags, die nicht"
-" existieren, werden ignoriert."
 
-#: ../../export_layers/renamer.py:478
-msgid "<i>separator</i> - string separating the tags"
-msgstr "<i>separator</i> - Zeichenkette, die die Tags trennt"
+#: ../../export_layers/renamer.py:450
+msgid "Replace"
+msgstr ""
 
-#: ../../export_layers/renamer.py:479
+#: ../../export_layers/renamer.py:453
+msgid "Suppose that a layer is named \"Animal copy #1\"."
+msgstr ""
+
+#: ../../export_layers/renamer.py:455
 msgid ""
-"<i>wrapper</i> - string wrapping each tag; \"%t\" denotes the tag itself"
+"You can use the regular expression syntax as defined in the \"re\" module "
+"for Python."
 msgstr ""
-"<i>wrapper</i> - Zeichenkette, die jeden Tag umgibt; \"%t\" bezeichnet den"
-" Tag selbst"
 
-#: ../../export_layers/renamer.py:482
+#: ../../export_layers/renamer.py:457
+msgid ""
+"You can specify the number of replacements and flags as defined in the "
+"\"re\" module for Python."
+msgstr ""
+
+#: ../../export_layers/renamer.py:468
 msgid "Suppose that a layer has tags \"left\", \"middle\" and \"right\"."
 msgstr ""
-"Es wird angenommen, dass eine Ebene die Tags \"links\", \"mitte\" und"
-" \"rechts\" hat."
+"Es wird angenommen, dass eine Ebene die Tags \"links\", \"mitte\" und "
+"\"rechts\" hat."
 
-#: ../../export_layers/renamer.py:491
+#: ../../export_layers/renamer.py:479
 msgid "Current date"
 msgstr "Aktuelles Datum"
 
-#: ../../export_layers/renamer.py:498
-msgid "Specify <i>format</i> as per the Python \"strftime\" function."
-msgstr "Geben Sie <i>format</i> gemäß der Python-Funktion \"strftime\" an."
+#: ../../export_layers/renamer.py:483
+msgid ""
+"Custom date format uses formatting as per the \"strftime\" function in "
+"Python."
+msgstr ""
 
-#: ../../export_layers/renamer.py:508
+#: ../../export_layers/renamer.py:491
 msgid "Attributes"
 msgstr "Attribute"
 
-#: ../../export_layers/renamer.py:516
-msgid "<i>pattern</i> can contain the following fields:"
-msgstr "<i>Muster</i> kann die folgenden Felder enthalten:"
-
-#: ../../export_layers/renamer.py:517
-msgid "%w - the layer width"
-msgstr "%w - die Ebenenbreite"
-
-#: ../../export_layers/renamer.py:518
-msgid "%h - the layer height"
-msgstr "%h - die Ebenenhöhe"
-
-#: ../../export_layers/renamer.py:519
-#, python-format
-msgid "%x - the layer x-offset"
-msgstr "%x - x-Versatz der Ebene"
-
-#: ../../export_layers/renamer.py:520
-msgid "%y - the layer y-offset"
-msgstr "%y - y-Versatz der Ebene"
-
-#: ../../export_layers/renamer.py:521
-#, python-format
-msgid "%iw - the image width"
-msgstr "%iw - die Bildbreite"
-
-#: ../../export_layers/renamer.py:522
-#, python-format
-msgid "%ih - the image height"
-msgstr "%ih - die Bildhöhe"
-
-#: ../../export_layers/renamer.py:523
-msgid "For %w, %h, %x and %y, the following arguments apply:"
-msgstr "Für %w, %h, %x und %y gelten die folgenden Argumente:"
-
-#: ../../export_layers/renamer.py:524
-msgid "%px - specify layer coordinates/dimensions in pixels (default)"
-msgstr "%px - gibt Layerkoordinaten/Dimensionen in Pixel an (Standard)"
-
-#: ../../export_layers/renamer.py:525
+#: ../../export_layers/renamer.py:494
 msgid ""
-"%pc - specify layer coordinates/dimensions in percentages (relative to "
-"image);"
+"Suppose that a layer has width, height, <i>x</i>-offset and <i>y</i>-offset\n"
+"of 1000, 270, 0 and 40 pixels, respectively,\n"
+"and the image has width and height of 1000 and 500 pixels, respectively."
 msgstr ""
-"%pc - Geben Sie die Layerkoordinaten/Dimensionen in Prozent an (relativ zum "
-"Bild);"
 
-#: ../../export_layers/renamer.py:526
-msgid "a number after %pc denotes the number of decimal digits to display"
+#: ../../export_layers/settings_custom.py:169
+msgid "Value must be a dictionary."
 msgstr ""
-"eine Zahl nach %pc bezeichnet die Anzahl der Dezimalstellen, die angezeigt"
-" werden sollen"
 
-#: ../../export_layers/settings_main.py:74
+#: ../../export_layers/settings_main.py:53
 msgid "The run mode"
 msgstr "Der Betriebsmodus"
 
-#: ../../export_layers/settings_main.py:80
+#: ../../export_layers/settings_main.py:59
 msgid "Image"
 msgstr "Bild"
 
-#: ../../export_layers/settings_main.py:102
+#: ../../export_layers/settings_main.py:82
 msgid "Output directory"
 msgstr "Ausgabeverzeichnis"
 
-#: ../../export_layers/settings_main.py:110
-msgid "Layer filename pattern"
-msgstr "Dateinamensmuster für Ebenen"
-
-#: ../../export_layers/settings_main.py:111
+#: ../../export_layers/settings_main.py:91
 msgid "Layer filename pattern (empty string = layer name)"
 msgstr "Dateinamensmuster für Ebenen (leere Zeichenkette = Ebenenname)"
 
-#: ../../export_layers/settings_main.py:119
-#: ../../export_layers/settings_main.py:128
-msgid "Selected layers"
-msgstr "Gewählte Ebenen"
-
-#: ../../export_layers/settings_main.py:137
+#: ../../export_layers/settings_main.py:106
 msgid "_Replace"
 msgstr "_Ersetzen"
 
-#: ../../export_layers/settings_main.py:138
+#: ../../export_layers/settings_main.py:107
 msgid "_Skip"
 msgstr "_Überspringen"
 
-#: ../../export_layers/settings_main.py:139
+#: ../../export_layers/settings_main.py:108
 msgid "Rename _new file"
 msgstr "_Neue Datei umbenennen"
 
-#: ../../export_layers/settings_main.py:140
+#: ../../export_layers/settings_main.py:109
 msgid "Rename _existing file"
 msgstr "_Bestehende Datei umbenennen"
 
-#: ../../export_layers/settings_main.py:142
+#: ../../export_layers/settings_main.py:111
 msgid "Overwrite mode (non-interactive run mode only)"
 msgstr "Überschreibmodus (nur im nicht-interaktiven Ausführungsmodus)"
 
-#: ../../export_layers/settings_main.py:214
-msgid ""
-"You need to specify default file extension for layers with invalid or no "
-"extension."
-msgstr ""
-"Sie müssen die Standard-Dateierweiterung für Ebenen mit ungültiger oder keiner "
-"Erweiterung angeben."
-
-#: ../../export_layers/update.py:89
+#: ../../export_layers/update.py:103
 msgid ""
 "Due to significant changes in the plug-in, settings need to be reset. "
 "Proceed?"
 msgstr ""
-"Aufgrund von umfangreichen Änderungen im Plugin müssen die Einstellungen"
-" zurückgesetzt werden. "
-"Fortfahren?"
+"Aufgrund von umfangreichen Änderungen im Plugin müssen die Einstellungen "
+"zurückgesetzt werden. Fortfahren?"
 
-#: ../../export_layers.py:61
+#: ../../export_layers.py:38
 msgid "Export layers as separate images"
 msgstr "Ebenen als separate Bilder exportieren"
 
-#: ../../export_layers.py:66
+#: ../../export_layers.py:42
 msgid "E_xport Layers..."
 msgstr "Ebenen e_xportieren..."
 
-#: ../../export_layers.py:91
+#: ../../export_layers.py:66
 msgid "Run \"{}\" with the last values specified"
 msgstr "Ausführen von \"{}\" mit den zuletzt angegebenen Werten"
 
-#: ../../export_layers.py:94
+#: ../../export_layers.py:68
 msgid ""
 "If the plug-in is run for the first time (i.e. no last values exist), "
 "default values will be used."
@@ -902,6 +1003,21 @@ msgstr ""
 "Wenn das Plugin zum ersten Mal ausgeführt wird (d.h. es gibt keine letzten "
 "Werte), werden Standardwerte verwendet."
 
-#: ../../export_layers.py:100
+#: ../../export_layers.py:73
 msgid "E_xport Layers (repeat)"
 msgstr "Ebenen e_xportieren (wiederholen)"
+
+#: ../../export_layers.py:96
+msgid "Run \"{}\" with the specified configuration file"
+msgstr ""
+
+#: ../../export_layers.py:98
+msgid ""
+"The configuration file can be obtained by exporting settings in the plug-"
+"in's interactive dialog. This procedure will fail if the specified "
+"configuration file does not exist or is not valid."
+msgstr ""
+
+#: ../../export_layers.py:108
+msgid "Path to configuration file"
+msgstr ""
