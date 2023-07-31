@@ -79,6 +79,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
       {
         'type': 'set',
         'name': 'selected_layers',
+        'display_name': _('Selected layers'),
         'gui_type': None,
       },
     ],
@@ -104,6 +105,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
       {
         'type': 'array',
         'name': 'tags',
+        'display_name': _('Tags'),
         'element_type': 'string',
         'default_value': (),
       },
@@ -118,6 +120,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
       {
         'type': 'array',
         'name': 'tags',
+        'display_name': _('Tags'),
         'element_type': 'string',
         'default_value': (),
       },

@@ -225,6 +225,7 @@ _BUILTIN_PROCEDURES_LIST = [
       {
         'type': 'string',
         'name': 'tag',
+        'display_name': _('Tag'),
         'default_value': 'background',
       },
     ],
@@ -237,6 +238,7 @@ _BUILTIN_PROCEDURES_LIST = [
       {
         'type': 'string',
         'name': 'tag',
+        'display_name': _('Tag'),
         'default_value': 'foreground',
       },
     ],
