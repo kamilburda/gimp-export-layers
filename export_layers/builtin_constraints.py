@@ -68,12 +68,14 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'name': 'matching_file_extension',
     'type': 'constraint',
     'function': has_matching_default_file_extension,
+    # FOR TRANSLATORS: Think of "Only layers matching file extension" when translating this
     'display_name': _('Matching file extension'),
   },
   {
     'name': 'selected_in_preview',
     'type': 'constraint',
     'function': is_item_in_selected_items,
+    # FOR TRANSLATORS: Think of "Only layers selected in preview" when translating this
     'display_name': _('Selected in preview'),
     'arguments': [
       {
@@ -88,18 +90,21 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'name': 'top_level',
     'type': 'constraint',
     'function': is_top_level,
+    # FOR TRANSLATORS: Think of "Only top-level layers" when translating this
     'display_name': _('Top-level'),
   },
   {
     'name': 'visible',
     'type': 'constraint',
     'function': is_visible,
+    # FOR TRANSLATORS: Think of "Only visible layers" when translating this
     'display_name': _('Visible'),
   },
   {
     'name': 'with_tags',
     'type': 'constraint',
     'function': has_tags,
+    # FOR TRANSLATORS: Think of "Only layers with tags" when translating this
     'display_name': _('With tags'),
     'arguments': [
       {
@@ -115,6 +120,7 @@ _BUILTIN_CONSTRAINTS_LIST = [
     'name': 'without_tags',
     'type': 'constraint',
     'function': has_no_tags,
+    # FOR TRANSLATORS: Think of "Only layers without tags" when translating this
     'display_name': _('Without tags'),
     'arguments': [
       {

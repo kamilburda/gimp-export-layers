@@ -24,7 +24,7 @@ input_dirpath='../..'
 output_filepath='./'"$domain_name"'.pot'
 
 find "$input_dirpath" -type f -iname '*.py' -print0 | \
-xargs -0 xgettext --language=Python --keyword='_' --keyword='N_' --package-name="$package_name" --package-version="$plugin_version" --copyright-holder="$author_name" --output="$output_filepath" --from-code='UTF-8'
+xargs -0 xgettext --language=Python --keyword='_' --keyword='N_' --package-name="$package_name" --package-version="$plugin_version" --copyright-holder="$author_name" --output="$output_filepath" --from-code='UTF-8' --add-comments='FOR TRANSLATORS:'
 
 sed -i '
   s/^\("Content-Type: text\/plain; charset\)=CHARSET/\1=UTF-8/
