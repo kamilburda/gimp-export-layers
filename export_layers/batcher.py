@@ -495,6 +495,8 @@ class Batcher(object):
       return
     
     processed_function = self._get_processed_function(action)
+      
+    processed_function = self._handle_exceptions_from_action(processed_function, action)
     
     if action_groups is None:
       action_groups = action['action_groups'].value
@@ -509,8 +511,6 @@ class Batcher(object):
       action_args, function = action_args_and_function[:-1], action_args_and_function[-1]
       
       orig_function = function
-      
-      function = self._handle_exceptions_from_action(function, action)
       
       if not self._is_enabled(action):
         return False
@@ -623,9 +623,9 @@ class Batcher(object):
     return func_args
   
   def _handle_exceptions_from_action(self, function, action):
-    def _handle_exceptions(*action_args, **action_kwargs):
+    def _handle_exceptions(*args, **kwargs):
       try:
-        return function(*action_args, **action_kwargs)
+        return function(*args, **kwargs)
       except exceptions.SkipAction as e:
         # Log skipped actions and continue processing.
         if 'procedure' in action.tags:
