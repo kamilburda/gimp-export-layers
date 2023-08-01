@@ -510,12 +510,12 @@ class Batcher(object):
     def _function_wrapper(*action_args_and_function):
       action_args, function = action_args_and_function[:-1], action_args_and_function[-1]
       
-      orig_function = function
-      
       if not self._is_enabled(action):
         return False
       
       self._set_current_procedure_and_constraint(action)
+      
+      orig_function = function
       
       args, kwargs = self._get_action_args_and_kwargs(action, action_args, orig_function)
       
@@ -523,7 +523,7 @@ class Batcher(object):
         function = self._set_apply_constraint_to_folders(function, action)
         function = self._get_constraint_func(function, orig_function, action['orig_name'].value)
       
-      return function(*tuple(args), **kwargs)
+      return function(*args, **kwargs)
     
     return _function_wrapper
   
