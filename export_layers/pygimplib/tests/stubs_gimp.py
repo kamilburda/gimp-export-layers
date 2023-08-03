@@ -6,6 +6,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from future.builtins import *
 
 import itertools
+import pickle
+
+import gimp
 
 from .. import utils as pgutils
 
@@ -125,6 +128,21 @@ class ParasiteFunctionsStubMixin(object):
       del self._parasites[parasite_name]
 
 
+class ShelfFunctionsStubMixin(object):
+  
+  def __init__(self):
+    self._shelf_data = {}
+  
+  def get_data(self, name):
+    if name in self._shelf_data:
+      return self._shelf_data[name]
+    else:
+      raise gimp.error('no data for id')
+  
+  def set_data(self, name, data):
+    self._shelf_data[name] = data
+
+
 class ImageStub(ParasiteFunctionsStubMixin):
   
   _image_id_counter = itertools.count(start=1)
@@ -208,7 +226,7 @@ class DisplayStub(ParasiteFunctionsStubMixin):
     self.ID = id_
 
 
-class GimpModuleStub(ParasiteFunctionsStubMixin):
+class GimpModuleStub(ParasiteFunctionsStubMixin, ShelfFunctionsStubMixin):
   
   pdb = PdbStub
   Parasite = ParasiteStub
@@ -219,18 +237,26 @@ class GimpModuleStub(ParasiteFunctionsStubMixin):
   Channel = ChannelStub
   Vectors = VectorsStub
   Display = DisplayStub
+  
+  error = gimp.error
+  
+  def __init__(self):
+    ParasiteFunctionsStubMixin.__init__(self)
+    ShelfFunctionsStubMixin.__init__(self)
 
 
 class ShelfStub(object):
   
-  def __init__(self):
-    self._shelf = {}
+  def __init__(self, shelf=None):
+    # Passing explicit shelf data allows connecting this instance with the
+    # shelf data from `GimpModuleStub`.
+    self._shelf = shelf if shelf is not None else {}
   
   def __getitem__(self, key):
-    return self._shelf[key]
+    return pickle.loads(self._shelf[key])
   
   def __setitem__(self, key, value):
-    self._shelf[key] = value
+    self._shelf[key] = pickle.dumps(value)
   
   def __delitem__(self, key):
     self._shelf[key] = b''

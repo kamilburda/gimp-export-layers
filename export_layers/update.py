@@ -76,9 +76,7 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   if sources is None:
     sources = pg.setting.Persistor.get_default_setting_sources()
   
-  persistent_sources = _get_persistent_sources(sources)
-  
-  if _is_fresh_start(persistent_sources):
+  if _is_fresh_start(sources):
     utils_.save_plugin_version(settings, sources)
     return FRESH_START, ''
   
@@ -115,18 +113,6 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
     return CLEAR_SETTINGS, load_message
   else:
     return ABORT, load_message
-
-
-def _get_persistent_sources(sources):
-  try:
-    persistent_sources = sources['persistent']
-  except KeyError:
-    raise ValueError('at least one persistent source must be specified to run update()')
-  
-  if not isinstance(persistent_sources, collections.Iterable):
-    return [persistent_sources]
-  else:
-    return persistent_sources
 
 
 def _get_version_from_sources_and_update_setting_format(settings, sources, current_version):
@@ -205,6 +191,8 @@ def _update_setting_format(settings, sources, current_version):
   
   _rename_settings_with_specific_settings(sources)
   
+  _add_obsolete_settings(settings)
+  
   settings_not_loaded = list(settings.walk())
   
   for source in sources.values():
@@ -262,6 +250,30 @@ def _rename_settings(settings_to_rename, sources):
           del data[orig_setting_name]
       
       source.write_data_to_source(data)
+
+
+def _add_obsolete_settings(settings):
+  settings['main/procedures'].add([
+    {
+      'type': 'list',
+      'name': '_added_data',
+    },
+    {
+      'type': 'dict',
+      'name': '_added_data_values',
+    },
+  ])
+  
+  settings['main/constraints'].add([
+    {
+      'type': 'list',
+      'name': '_added_data',
+    },
+    {
+      'type': 'dict',
+      'name': '_added_data_values',
+    },
+  ])
 
 
 def _update_source_format(settings, source_class, source_type):
@@ -352,13 +364,23 @@ class OldGimpParasiteSource(OldSource):
 
 
 def _update_format_of_actions(actions):
-  action_dicts = actions['_added_data']
-  setting_values = actions['_added_data_values']
+  action_dicts = actions['_added_data'].value
+  setting_values = actions['_added_data_values'].value
   
-  actions.remove(['_added_data'])
-  actions.remove(['_added_data_values'])
+  actions_.clear(actions, add_initial_actions=False)
   
   for action_dict in action_dicts:
+    if 'type' in action_dict and action_dict['type'] == pg.setting.Setting:
+      action_dict['type'] = pg.setting.GenericSetting
+    
+    if 'orig_name' not in action_dict:
+      action_dict['orig_name'] = re.sub(r'_[0-9]+$', r'', action_dict['name'])
+    
+    if 'arguments' in action_dict:
+      for argument_dict in action_dict['arguments']:
+        if 'type' in argument_dict and argument_dict['type'] == pg.setting.Setting:
+          argument_dict['type'] = pg.setting.GenericSetting
+    
     if 'function' in action_dict and callable(action_dict['function']):
       # Built-in actions have their functions defined in the code.
       action_dict['function'] = ''
@@ -397,6 +419,8 @@ def handle_update(settings, sources, update_handlers, previous_version, current_
   for version_str, update_handler in update_handlers.items():
     if previous_version < pg.version.Version.parse(version_str) <= current_version:
       update_handler(settings, sources)
+  
+  settings.save(sources)
 
 
 def fix_element_paths_for_pickle(sources, fix_pickle_handlers, current_version, key):
@@ -489,8 +513,8 @@ def _get_actions(settings):
   ]
 
 
-def _is_fresh_start(persistent_sources):
-  return all(not source.has_data() for source in persistent_sources)
+def _is_fresh_start(sources):
+  return all(not source.has_data() for source in sources.values())
 
 
 def _try_remove_file(filepath):
@@ -501,7 +525,6 @@ def _try_remove_file(filepath):
 
 
 def _update_to_3_3_1(settings, sources):
-  settings['main/layer_filename_pattern'].load(sources)
   settings['main/layer_filename_pattern'].set_value(
     replace_field_arguments_in_pattern(
       settings['main/layer_filename_pattern'].value,
@@ -512,14 +535,12 @@ def _update_to_3_3_1(settings, sources):
         ['layer path', r'\$\$', '%c'],
         ['tags', r'\$\$', '%t'],
       ]))
-  settings['main/layer_filename_pattern'].save(sources)
 
 
 def _update_to_3_3_2(settings, sources):
   _remove_obsolete_pygimplib_files_3_3_2()
   _remove_obsolete_plugin_files_3_3_2()
   
-  settings['main/layer_filename_pattern'].load(sources)
   settings['main/layer_filename_pattern'].set_value(
     replace_field_arguments_in_pattern(
       settings['main/layer_filename_pattern'].value,
@@ -530,29 +551,16 @@ def _update_to_3_3_2(settings, sources):
       ],
       as_lists=True,
     ))
-  settings['main/layer_filename_pattern'].save(sources)
-  
-  settings['main/procedures'].load(sources)
   
   procedures = _get_actions(settings['main/procedures'])
   
   _refresh_actions(
     procedures,
     settings['main/procedures'],
-    'use_file_extensions_in_layer_names',
-    'use_file_extension_in_layer_name',
-    builtin_procedures.BUILTIN_PROCEDURES,
-  )
-  
-  _refresh_actions(
-    procedures,
-    settings['main/procedures'],
     'ignore_folder_structure',
     'ignore_folder_structure',
     builtin_procedures.BUILTIN_PROCEDURES,
   )
-  
-  settings['main/procedures'].save(sources)
 
 
 def _update_to_3_3_5(settings, sources):
@@ -575,8 +583,6 @@ def _update_to_3_4(settings, sources):
   if 'selected_layers_persistent' in settings['main']:
     settings['main'].remove(['selected_layers_persistent'])
   
-  settings['main/procedures'].load(sources)
-  
   procedures = _get_actions(settings['main/procedures'])
   
   _refresh_actions(
@@ -596,7 +602,8 @@ def _update_to_3_4(settings, sources):
     new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
     new_action['arguments/drawable'].set_value('background_layer')
     new_action['enabled'].set_value(old_action['enabled'].value)
-    actions_.reorder(settings['main/procedures'], new_action, old_action_index)
+    new_action['display_name'].set_value(old_action['display_name'].value)
+    actions_.reorder(settings['main/procedures'], new_action.name, old_action_index)
   
   removed_autocrop_foreground = _remove_actions(
     procedures, settings['main/procedures'], 'autocrop_foreground')
@@ -605,45 +612,49 @@ def _update_to_3_4(settings, sources):
     # single procedure will be added back.
     old_action, old_action_index = removed_autocrop_foreground[0]
     new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
-    actions_.reorder(settings['main/procedures'], new_action, old_action_index)
+    actions_.reorder(settings['main/procedures'], new_action.name, old_action_index)
     new_action['arguments/drawable'].set_value('foreground_layer')
     new_action['enabled'].set_value(old_action['enabled'].value)
+    new_action['display_name'].set_value(old_action['display_name'].value)
   
   removed_use_file_extension = _remove_actions(
-    procedures, settings['main/procedures'], 'use_file_extension_in_item_name')
+    procedures, settings['main/procedures'], 'use_file_extensions_in_layer_names')
   if removed_use_file_extension:
     # Use the last removed action as the previous actions had no effect.
     old_action, old_action_index = removed_use_file_extension[-1]
     new_action = actions_.add(
       settings['main/procedures'], builtin_procedures.BUILTIN_PROCEDURES['export'])
-    actions_.reorder(settings['main/procedures'], new_action, old_action_index)
+    actions_.reorder(settings['main/procedures'], new_action.name, old_action_index)
     new_action['arguments/output_directory'].set_value(settings['main/output_directory'].value)
     new_action['arguments/file_extension'].set_value(settings['main/file_extension'].value)
     new_action['arguments/use_file_extension_in_item_name'].set_value(old_action['enabled'].value)
   
-  settings['main/procedures'].save(sources)
-  
-  settings['main/constraints'].load(sources)
-  
   constraints = _get_actions(settings['main/constraints'])
+  
+  _remove_actions(constraints, settings['main/constraints'], 'include_empty_layer_groups')
   
   removed_include_layers = _remove_actions(
     constraints, settings['main/constraints'], 'include_layers')
-  removed_include_layer_groups = _remove_actions(
-    constraints, settings['main/constraints'], 'include_layer_groups')
-  _remove_actions(constraints, settings['main/constraints'], 'include_empty_layer_groups')
   
   if (not removed_include_layers
       or (removed_include_layers
           and not removed_include_layers[0][0]['enabled'].value)):
-    actions_.add(
+    new_action = actions_.add(
       settings['main/constraints'], builtin_constraints.BUILTIN_CONSTRAINTS['layer_groups'])
+    if removed_include_layers:
+      actions_.reorder(settings['main/constraints'], new_action.name, removed_include_layers[0][1])
+      
+  removed_include_layer_groups = _remove_actions(
+    constraints, settings['main/constraints'], 'include_layer_groups')
   
   if (not removed_include_layer_groups
       or (removed_include_layer_groups
           and not removed_include_layer_groups[0][0]['enabled'].value)):
-    actions_.add(
+    new_action = actions_.add(
       settings['main/constraints'], builtin_constraints.BUILTIN_CONSTRAINTS['layers'])
+    if removed_include_layer_groups:
+      actions_.reorder(
+        settings['main/constraints'], new_action.name, removed_include_layer_groups[0][1])
   
   _refresh_actions(
     constraints,
@@ -696,8 +707,6 @@ def _update_to_3_4(settings, sources):
     'selected_in_preview',
     builtin_constraints.BUILTIN_CONSTRAINTS,
   )
-  
-  settings['main/constraints'].save(sources)
 
 
 def _remove_obsolete_pygimplib_files_3_3_2():
@@ -773,12 +782,12 @@ def _fix_pickle_paths_3_3_2(sources, key):
 def _fix_pickle_paths_3_3_5(sources, key):
   _fix_pickle_paths(
     [
-      (b'builtin_procedures\nuse_file_extension_in_layer_name',
-       b'builtin_procedures\nuse_file_extension_in_item_name'),
-      (b'builtin_procedures\nremove_folder_hierarchy_from_layer',
-       b'builtin_procedures\nremove_folder_hierarchy_from_item'),
-      (b'builtin_constraints\nis_layer_in_selected_layers',
-       b'builtin_constraints\nis_item_in_selected_items'),
+      (b'export_layers.builtin_procedures\nuse_file_extension_in_layer_name',
+       b'export_layers.builtin_procedures\nuse_file_extension_in_item_name'),
+      (b'export_layers.builtin_procedures\nremove_folder_hierarchy_from_layer',
+       b'export_layers.builtin_procedures\nremove_folder_hierarchy_from_item'),
+      (b'export_layers.builtin_constraints\nis_layer_in_selected_layers',
+       b'export_layers.builtin_constraints\nis_item_in_selected_items'),
     ],
     sources, key)
 
@@ -788,19 +797,19 @@ def _fix_pickle_paths_3_4(sources, key):
     [
       (b'export_layers.pygimplib.setting.settings\nSetting',
        b'export_layers.pygimplib.setting.settings\nGenericSetting'),
-      (b'builtin_constraints\nis_empty_group',
+      (b'export_layers.builtin_constraints\nis_empty_group',
        b'export_layers.pygimplib.utils\nempty_func'),
-      (b'builtin_procedures\nuse_file_extension_in_item_name',
+      (b'export_layers.builtin_procedures\nuse_file_extension_in_item_name',
        b'export_layers.pygimplib.utils\nempty_func'),
-      (b'builtin_procedures\ninsert_background_layer',
-       b'background_foreground\ninsert_background_layer'),
-      (b'builtin_procedures\ninsert_foreground_layer',
-       b'background_foreground\ninsert_foreground_layer'),
-      (b'builtin_constraints\nis_path_visible',
-       b'builtin_constraints\nis_visible'),
-      (b'builtin_procedures\nautocrop_tagged_layer',
+      (b'export_layers.builtin_procedures\ninsert_background_layer',
+       b'export_layers.background_foreground\ninsert_background_layer'),
+      (b'export_layers.builtin_procedures\ninsert_foreground_layer',
+       b'export_layers.background_foreground\ninsert_foreground_layer'),
+      (b'export_layers.builtin_constraints\nis_path_visible',
+       b'export_layers.builtin_constraints\nis_visible'),
+      (b'export_layers.builtin_procedures\nautocrop_tagged_layer',
        b'export_layers.pygimplib.utils\nempty_func'),
-      (b'builtin_procedures\nuse_file_extension_in_item_name',
+      (b'export_layers.builtin_procedures\nuse_file_extension_in_item_name',
        b'export_layers.pygimplib.utils\nempty_func'),
       (b'export_layers.pygimplib.setting.settings\nImageIdsAndDirectoriesSetting',
        b'export_layers.settings_custom\nImageIdsAndDirectoriesSetting'),

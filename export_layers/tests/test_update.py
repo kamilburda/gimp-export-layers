@@ -27,6 +27,12 @@ from export_layers import update
 @mock.patch(
   pg.utils.get_pygimplib_module_path() + '.setting.sources.gimp',
   new_callable=stubs_gimp.GimpModuleStub)
+@mock.patch(
+  'export_layers.update.gimpshelf.shelf',
+  new_callable=stubs_gimp.ShelfStub)
+@mock.patch(
+  'export_layers.update.gimp',
+  new_callable=stubs_gimp.GimpModuleStub)
 @mock.patch('export_layers.update.handle_update')
 @mock.patch('export_layers.gui.messages.display_message')
 class TestUpdate(unittest.TestCase):
@@ -63,12 +69,7 @@ class TestUpdate(unittest.TestCase):
       },
     ])
   
-  def test_fresh_start_stores_new_version(
-        self,
-        mock_display_message,
-        mock_handle_update,
-        mock_persistent_source,
-        mock_session_source):
+  def test_fresh_start_stores_new_version(self, *mocks):
     self.assertFalse(pg.setting.Persistor.get_default_setting_sources()['persistent'].has_data())
     
     status, unused_ = update.update(self.settings)
@@ -81,12 +82,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
     self.assertEqual(load_result.status, pg.setting.Persistor.SUCCESS)
   
-  def test_minimum_version_or_later_is_overwritten_by_new_version(
-        self,
-        mock_display_message,
-        mock_handle_update,
-        mock_persistent_source,
-        mock_session_source):
+  def test_minimum_version_or_later_is_overwritten_by_new_version(self, *mocks):
     self.settings['main/plugin_version'].set_value(self.current_version)
     self.settings['main/plugin_version'].save()
     
@@ -96,11 +92,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
   
   def test_persistent_source_has_data_but_not_version_clears_setting_sources(
-        self,
-        mock_display_message,
-        mock_handle_update,
-        mock_persistent_source,
-        mock_session_source):
+        self, mock_display_message, *other_mocks):
     mock_display_message.return_value = gtk.RESPONSE_YES
     
     self.settings['main/test_setting'].save()
@@ -111,11 +103,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(self.settings['main/plugin_version'].value, self.new_version)
   
   def test_less_than_minimum_version_clears_setting_sources(
-        self,
-        mock_display_message,
-        mock_handle_update,
-        mock_persistent_source,
-        mock_session_source):
+        self, mock_display_message, *other_mocks):
     mock_display_message.return_value = gtk.RESPONSE_YES
     
     self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
@@ -130,12 +118,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(load_result.status, pg.setting.Persistor.PARTIAL_SUCCESS)
     self.assertTrue(bool(load_result.settings_not_loaded))
   
-  def test_ask_to_clear_positive_response(
-        self,
-        mock_display_message,
-        mock_handle_update,
-        mock_persistent_source,
-        mock_session_source):
+  def test_ask_to_clear_positive_response(self, mock_display_message, *other_mocks):
     mock_display_message.return_value = gtk.RESPONSE_YES
     
     self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
@@ -150,12 +133,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(load_result.status, pg.setting.Persistor.PARTIAL_SUCCESS)
     self.assertTrue(bool(load_result.settings_not_loaded))
   
-  def test_ask_to_clear_negative_response(
-        self,
-        mock_display_message,
-        mock_handle_update,
-        mock_persistent_source,
-        mock_session_source):
+  def test_ask_to_clear_negative_response(self, mock_display_message, *other_mocks):
     mock_display_message.return_value = gtk.RESPONSE_NO
     
     self.settings['main/plugin_version'].set_value(self.old_incompatible_version)
@@ -168,7 +146,7 @@ class TestUpdate(unittest.TestCase):
     self.assertEqual(status, update.ABORT)
     self.assertEqual(self.settings['main/plugin_version'].value, self.old_incompatible_version)
     self.assertEqual(load_result.status, pg.setting.Persistor.SUCCESS)
-  
+
 
 class TestHandleUpdate(unittest.TestCase):
   
