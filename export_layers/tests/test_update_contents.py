@@ -171,21 +171,6 @@ EXPECTED_CONSTRAINT_ATTRIBUTES = [
     'also_apply_to_parent_folders': False,
   },
   {
-    'name': 'without_tags',
-    'orig_name': 'without_tags',
-    'enabled': True,
-    'function': '',
-    'origin': 0,
-    'action_groups': [actions_.DEFAULT_CONSTRAINTS_GROUP],
-    'arguments': [
-      {
-        'name': 'tags',
-        'value': (),
-      }
-    ],
-    'also_apply_to_parent_folders': False,
-  },
-  {
     'name': 'selected_in_preview',
     'orig_name': 'selected_in_preview',
     'enabled': True,
@@ -196,6 +181,21 @@ EXPECTED_CONSTRAINT_ATTRIBUTES = [
       {
         'name': 'selected_layers',
         'value': set(),
+      }
+    ],
+    'also_apply_to_parent_folders': False,
+  },
+  {
+    'name': 'without_tags',
+    'orig_name': 'without_tags',
+    'enabled': True,
+    'function': '',
+    'origin': 0,
+    'action_groups': [actions_.DEFAULT_CONSTRAINTS_GROUP],
+    'arguments': [
+      {
+        'name': 'tags',
+        'value': (),
       }
     ],
     'also_apply_to_parent_folders': False,
@@ -291,6 +291,24 @@ class TestUpdateFrom331To34(unittest.TestCase):
     
     self._test_selected_and_collapsed_settings()
   
+  def test_data_in_persistent_source_only(self, *mocks):
+    update.gimp.parasite_attach(
+      update.gimp.Parasite(
+        pg.config.SOURCE_NAME, gimpenums.PARASITE_PERSISTENT, PERSISTENT_DATA_3_3_1))
+    
+    status, unused_ = update.update(self.settings)
+    
+    self.assertEqual(status, update.UPDATE)
+    
+    self._test_lengths_of_groups()
+    
+    self._test_contents_of_procedures()
+    self._test_contents_of_constraints()
+    
+    self._test_main_settings()
+    
+    self._test_selected_and_collapsed_settings()
+  
   def test_data_in_session_and_persistent_source(self, *mocks):
     update.gimp.set_data(pg.config.SOURCE_NAME, SESSION_DATA_3_3_1)
     update.gimp.parasite_attach(
@@ -369,3 +387,86 @@ class TestUpdateFrom331To34(unittest.TestCase):
     self.assertEqual(len(actual_settings), len(expected_settings))
     for actual_child, expected_child in zip(actual_settings, expected_settings):
       self.assertEqual(actual_child.name, expected_child.name)
+
+
+class TestUpdateConstraintsIn34(unittest.TestCase):
+  
+  def test_update_with_include_layers(self):
+    constraints = actions_.create('constraints')
+    
+    actions_.add(
+      constraints, {'name': 'include_layers', 'type': 'constraint', 'enabled': True})
+    
+    update._update_include_constraints(constraints)
+    
+    self.assertEqual(len(constraints), 1)
+    self.assertIn('layers', constraints)
+    self.assertTrue(constraints['layers/enabled'].value)
+  
+  def test_update_with_disabled_include_layers(self):
+    constraints = actions_.create('constraints')
+    
+    actions_.add(
+      constraints, {'name': 'include_layers', 'type': 'constraint', 'enabled': False})
+    
+    update._update_include_constraints(constraints)
+    
+    self.assertEqual(len(constraints), 2)
+    self.assertIn('layers', constraints)
+    self.assertTrue(constraints['layers/enabled'].value)
+    
+    self.assertIn('layer_groups', constraints)
+    self.assertTrue(constraints['layer_groups/enabled'].value)
+  
+  def test_update_with_include_layer_groups(self):
+    constraints = actions_.create('constraints')
+    
+    actions_.add(
+      constraints, {'name': 'include_layer_groups', 'type': 'constraint', 'enabled': True})
+    
+    update._update_include_constraints(constraints)
+    
+    self.assertEqual(len(constraints), 1)
+    self.assertIn('layer_groups', constraints)
+    self.assertTrue(constraints['layer_groups/enabled'].value)
+  
+  def test_update_with_disabled_include_layer_groups(self):
+    constraints = actions_.create('constraints')
+    
+    actions_.add(
+      constraints, {'name': 'include_layer_groups', 'type': 'constraint', 'enabled': False})
+    
+    update._update_include_constraints(constraints)
+    
+    self.assertEqual(len(constraints), 2)
+    self.assertIn('layers', constraints)
+    self.assertTrue(constraints['layers/enabled'].value)
+    
+    self.assertIn('layer_groups', constraints)
+    self.assertTrue(constraints['layer_groups/enabled'].value)
+  
+  def test_update_with_include_layers_and_disabled_layer_groups(self):
+    constraints = actions_.create('constraints')
+    
+    actions_.add(
+      constraints, {'name': 'include_layers', 'type': 'constraint', 'enabled': True})
+    actions_.add(
+      constraints, {'name': 'include_layer_groups', 'type': 'constraint', 'enabled': False})
+    
+    update._update_include_constraints(constraints)
+    
+    self.assertEqual(len(constraints), 1)
+    self.assertIn('layers', constraints)
+    self.assertTrue(constraints['layers/enabled'].value)
+  
+  def test_update_with_include_layers_and_enabled_layer_groups(self):
+    constraints = actions_.create('constraints')
+    
+    actions_.add(
+      constraints, {'name': 'include_layers', 'type': 'constraint', 'enabled': True})
+    actions_.add(
+      constraints, {'name': 'include_layer_groups', 'type': 'constraint', 'enabled': True})
+    
+    update._update_include_constraints(constraints)
+    
+    self.assertEqual(len(constraints), 0)

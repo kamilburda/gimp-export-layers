@@ -476,31 +476,34 @@ def replace_field_arguments_in_pattern(
   return pg.path.StringPattern.reconstruct_pattern(processed_pattern_parts)
 
 
-def _refresh_actions(
-      actions_list, actions_root, old_action_prefix, new_action_prefix, builtin_actions_dict):
+def _refresh_actions(actions, old_action_prefix, new_action_prefix, builtin_actions_dict):
   removed_actions = []
+  
+  actions_list = list(actions)
   
   for index, action in enumerate(actions_list):
     if action.name.startswith(old_action_prefix):
       removed_actions.append((index, action))
-      actions_.remove(actions_root, action.name)
+      actions_.remove(actions, action.name)
   
   for index, removed_action in removed_actions:
     if new_action_prefix in builtin_actions_dict:
       action_dict = builtin_actions_dict[new_action_prefix]
       action_dict['enabled'] = removed_action['enabled'].value
-      action = actions_.add(actions_root, action_dict)
-      actions_.reorder(actions_root, action.name, index)
+      action = actions_.add(actions, action_dict)
+      actions_.reorder(actions, action.name, index)
   
   return removed_actions
 
 
-def _remove_actions(actions_list, actions_root, action_prefix):
+def _remove_actions(actions, action_prefix):
   removed_actions_and_indexes = []
+  
+  actions_list = list(actions)
   
   for index, action in enumerate(actions_list):
     if action.name.startswith(action_prefix):
-      actions_.remove(actions_root, action.name)
+      actions_.remove(actions, action.name)
       removed_actions_and_indexes.append((action, index))
   
   return removed_actions_and_indexes
@@ -552,160 +555,11 @@ def _update_to_3_3_2(settings, sources):
       as_lists=True,
     ))
   
-  procedures = _get_actions(settings['main/procedures'])
-  
   _refresh_actions(
-    procedures,
     settings['main/procedures'],
     'ignore_folder_structure',
     'ignore_folder_structure',
     builtin_procedures.BUILTIN_PROCEDURES,
-  )
-
-
-def _update_to_3_3_5(settings, sources):
-  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'settings_plugin.py'))
-  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'settings_plugin.pyc'))
-
-
-def _update_to_3_4(settings, sources):
-  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.py'))
-  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.pyc'))
-  _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.py'))
-  _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.pyc'))
-  
-  if 'gui_session' in settings:
-    settings.remove(['gui_session'])
-  
-  if 'gui_persistent' in settings:
-    settings.remove(['gui_persistent'])
-  
-  if 'selected_layers_persistent' in settings['main']:
-    settings['main'].remove(['selected_layers_persistent'])
-  
-  procedures = _get_actions(settings['main/procedures'])
-  
-  _refresh_actions(
-    procedures,
-    settings['main/procedures'],
-    'rename_layer',
-    'rename',
-    builtin_procedures.BUILTIN_PROCEDURES,
-  )
-  
-  removed_autocrop_background = _remove_actions(
-    procedures, settings['main/procedures'], 'autocrop_background')
-  if removed_autocrop_background:
-    # While there may be multiple such procedures with different tags, only a
-    # single procedure will be added back.
-    old_action, old_action_index = removed_autocrop_background[0]
-    new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
-    new_action['arguments/drawable'].set_value('background_layer')
-    new_action['enabled'].set_value(old_action['enabled'].value)
-    new_action['display_name'].set_value(old_action['display_name'].value)
-    actions_.reorder(settings['main/procedures'], new_action.name, old_action_index)
-  
-  removed_autocrop_foreground = _remove_actions(
-    procedures, settings['main/procedures'], 'autocrop_foreground')
-  if removed_autocrop_foreground:
-    # While there may be multiple such procedures with different tags, only a
-    # single procedure will be added back.
-    old_action, old_action_index = removed_autocrop_foreground[0]
-    new_action = actions_.add(settings['main/procedures'], pdb.plug_in_autocrop_layer)
-    actions_.reorder(settings['main/procedures'], new_action.name, old_action_index)
-    new_action['arguments/drawable'].set_value('foreground_layer')
-    new_action['enabled'].set_value(old_action['enabled'].value)
-    new_action['display_name'].set_value(old_action['display_name'].value)
-  
-  removed_use_file_extension = _remove_actions(
-    procedures, settings['main/procedures'], 'use_file_extensions_in_layer_names')
-  if removed_use_file_extension:
-    # Use the last removed action as the previous actions had no effect.
-    old_action, old_action_index = removed_use_file_extension[-1]
-    new_action = actions_.add(
-      settings['main/procedures'], builtin_procedures.BUILTIN_PROCEDURES['export'])
-    actions_.reorder(settings['main/procedures'], new_action.name, old_action_index)
-    new_action['arguments/output_directory'].set_value(settings['main/output_directory'].value)
-    new_action['arguments/file_extension'].set_value(settings['main/file_extension'].value)
-    new_action['arguments/use_file_extension_in_item_name'].set_value(old_action['enabled'].value)
-  
-  constraints = _get_actions(settings['main/constraints'])
-  
-  _remove_actions(constraints, settings['main/constraints'], 'include_empty_layer_groups')
-  
-  removed_include_layers = _remove_actions(
-    constraints, settings['main/constraints'], 'include_layers')
-  
-  if (not removed_include_layers
-      or (removed_include_layers
-          and not removed_include_layers[0][0]['enabled'].value)):
-    new_action = actions_.add(
-      settings['main/constraints'], builtin_constraints.BUILTIN_CONSTRAINTS['layer_groups'])
-    if removed_include_layers:
-      actions_.reorder(settings['main/constraints'], new_action.name, removed_include_layers[0][1])
-      
-  removed_include_layer_groups = _remove_actions(
-    constraints, settings['main/constraints'], 'include_layer_groups')
-  
-  if (not removed_include_layer_groups
-      or (removed_include_layer_groups
-          and not removed_include_layer_groups[0][0]['enabled'].value)):
-    new_action = actions_.add(
-      settings['main/constraints'], builtin_constraints.BUILTIN_CONSTRAINTS['layers'])
-    if removed_include_layer_groups:
-      actions_.reorder(
-        settings['main/constraints'], new_action.name, removed_include_layer_groups[0][1])
-  
-  _refresh_actions(
-    constraints,
-    settings['main/constraints'],
-    'only_visible_layers',
-    'visible',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  for action in actions_.walk(settings['main/constraints']):
-    if action['orig_name'].value == 'visible':
-      action['also_apply_to_parent_folders'].set_value(True)
-  
-  _refresh_actions(
-    constraints,
-    settings['main/constraints'],
-    'only_toplevel_layers',
-    'top_level',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  _refresh_actions(
-    constraints,
-    settings['main/constraints'],
-    'only_layers_with_tags',
-    'with_tags',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  _refresh_actions(
-    constraints,
-    settings['main/constraints'],
-    'only_layers_without_tags',
-    'without_tags',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  _refresh_actions(
-    constraints,
-    settings['main/constraints'],
-    'only_layers_matching_file_extension',
-    'matching_file_extension',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  _refresh_actions(
-    constraints,
-    settings['main/constraints'],
-    'only_selected_layers',
-    'selected_in_preview',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
   )
 
 
@@ -737,6 +591,145 @@ def _remove_obsolete_plugin_files_3_3_2():
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'operations.pyc'))
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'gui', 'operations.py'))
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'gui', 'operations.pyc'))
+
+
+def _update_to_3_3_5(settings, sources):
+  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'settings_plugin.py'))
+  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'settings_plugin.pyc'))
+
+
+def _update_to_3_4(settings, sources):
+  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.py'))
+  _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.pyc'))
+  _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.py'))
+  _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.pyc'))
+  
+  if 'gui_session' in settings:
+    settings.remove(['gui_session'])
+  
+  if 'gui_persistent' in settings:
+    settings.remove(['gui_persistent'])
+  
+  if 'selected_layers_persistent' in settings['main']:
+    settings['main'].remove(['selected_layers_persistent'])
+  
+  _refresh_actions(
+    settings['main/procedures'],
+    'rename_layer',
+    'rename',
+    builtin_procedures.BUILTIN_PROCEDURES,
+  )
+  
+  _update_autocrop_procedures(settings['main/procedures'])
+  
+  _update_use_file_extensions_in_layer_names_procedure(settings['main/procedures'], settings)
+  
+  _update_include_constraints(settings['main/constraints'])
+  
+  _refresh_actions(
+    settings['main/constraints'],
+    'only_visible_layers',
+    'visible',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  for action in actions_.walk(settings['main/constraints']):
+    if action['orig_name'].value == 'visible':
+      action['also_apply_to_parent_folders'].set_value(True)
+  
+  _refresh_actions(
+    settings['main/constraints'],
+    'only_toplevel_layers',
+    'top_level',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  _refresh_actions(
+    settings['main/constraints'],
+    'only_layers_with_tags',
+    'with_tags',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  _refresh_actions(
+    settings['main/constraints'],
+    'only_layers_without_tags',
+    'without_tags',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  _refresh_actions(
+    settings['main/constraints'],
+    'only_layers_matching_file_extension',
+    'matching_file_extension',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+  
+  _refresh_actions(
+    settings['main/constraints'],
+    'only_selected_layers',
+    'selected_in_preview',
+    builtin_constraints.BUILTIN_CONSTRAINTS,
+  )
+
+
+def _update_autocrop_procedures(procedures):
+  removed_autocrop_background = _remove_actions(procedures, 'autocrop_background')
+  if removed_autocrop_background:
+    # While there may be multiple such procedures with different tags, only a
+    # single procedure will be added back.
+    old_action, old_action_index = removed_autocrop_background[0]
+    new_action = actions_.add(procedures, pdb.plug_in_autocrop_layer)
+    new_action['arguments/drawable'].set_value('background_layer')
+    new_action['enabled'].set_value(old_action['enabled'].value)
+    new_action['display_name'].set_value(old_action['display_name'].value)
+    actions_.reorder(procedures, new_action.name, old_action_index)
+  
+  removed_autocrop_foreground = _remove_actions(procedures, 'autocrop_foreground')
+  if removed_autocrop_foreground:
+    # While there may be multiple such procedures with different tags, only a
+    # single procedure will be added back.
+    old_action, old_action_index = removed_autocrop_foreground[0]
+    new_action = actions_.add(procedures, pdb.plug_in_autocrop_layer)
+    actions_.reorder(procedures, new_action.name, old_action_index)
+    new_action['arguments/drawable'].set_value('foreground_layer')
+    new_action['enabled'].set_value(old_action['enabled'].value)
+    new_action['display_name'].set_value(old_action['display_name'].value)
+
+
+def _update_use_file_extensions_in_layer_names_procedure(procedures, settings):
+  removed_use_file_extension = _remove_actions(procedures, 'use_file_extensions_in_layer_names')
+  if removed_use_file_extension:
+    # Use the last removed action as the previous actions had no effect.
+    old_action, old_action_index = removed_use_file_extension[-1]
+    new_action = actions_.add(procedures, builtin_procedures.BUILTIN_PROCEDURES['export'])
+    actions_.reorder(procedures, new_action.name, old_action_index)
+    new_action['arguments/output_directory'].set_value(settings['main/output_directory'].value)
+    new_action['arguments/file_extension'].set_value(settings['main/file_extension'].value)
+    new_action['arguments/use_file_extension_in_item_name'].set_value(old_action['enabled'].value)
+
+
+def _update_include_constraints(constraints):
+  _remove_actions(constraints, 'include_empty_layer_groups')
+  
+  removed_include_layers = _remove_actions(constraints, 'include_layers')
+  
+  if (not removed_include_layers
+      or (removed_include_layers
+          and not removed_include_layers[0][0]['enabled'].value)):
+    new_action = actions_.add(
+      constraints, builtin_constraints.BUILTIN_CONSTRAINTS['layer_groups'])
+    if removed_include_layers:
+      actions_.reorder(constraints, new_action.name, removed_include_layers[0][1])
+      
+  removed_include_layer_groups = _remove_actions(constraints, 'include_layer_groups')
+  
+  if (not removed_include_layer_groups
+      or (removed_include_layer_groups
+          and not removed_include_layer_groups[0][0]['enabled'].value)):
+    new_action = actions_.add(constraints, builtin_constraints.BUILTIN_CONSTRAINTS['layers'])
+    if removed_include_layer_groups:
+      actions_.reorder(constraints, new_action.name, removed_include_layer_groups[0][1])
 
 
 def _fix_pickle_paths(paths_to_rename, sources, key):
