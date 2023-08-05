@@ -188,7 +188,9 @@ class TestHandleUpdate(unittest.TestCase):
       {},
       self.update_handlers,
       pg.version.Version.parse(previous_version_str),
-      pg.version.Version.parse(current_version_str))
+      pg.version.Version.parse(current_version_str),
+      False,
+      False)
     
     self.assertEqual(self._invoked_handlers, invoked_handlers)
 

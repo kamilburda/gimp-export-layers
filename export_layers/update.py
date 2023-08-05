@@ -82,7 +82,7 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   
   current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
   
-  previous_version, load_status, load_message = (
+  previous_version, load_status, load_message, are_procedures_loaded, are_constraints_loaded = (
     _get_version_from_sources_and_update_setting_format(settings, sources, current_version))
   
   if load_status == pg.setting.Persistor.SUCCESS and previous_version == current_version:
@@ -92,7 +92,14 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
     utils_.save_plugin_version(settings, sources)
     
-    handle_update(settings, sources, _UPDATE_HANDLERS, previous_version, current_version)
+    handle_update(
+      settings,
+      sources,
+      _UPDATE_HANDLERS,
+      previous_version,
+      current_version,
+      are_procedures_loaded,
+      are_constraints_loaded)
     
     return UPDATE, load_message
   
@@ -119,8 +126,12 @@ def _get_version_from_sources_and_update_setting_format(settings, sources, curre
   key = pg.config.SOURCE_NAME.encode('utf-8')
   previous_version = _parse_version_using_old_format(sources, key)
   
+  are_procedures_loaded = False
+  are_constraints_loaded = False
+  
   if previous_version is not None:
-    _update_setting_format(settings, sources, current_version)
+    are_procedures_loaded, are_constraints_loaded = _update_setting_format(
+      settings, sources, current_version)
     
     load_status = pg.setting.Persistor.SUCCESS
     load_message = ''
@@ -137,7 +148,7 @@ def _get_version_from_sources_and_update_setting_format(settings, sources, curre
     load_message = '\n'.join(load_result.messages_per_source.values())
     previous_version = pg.version.Version.parse(settings['main/plugin_version'].value)
   
-  return previous_version, load_status, load_message
+  return previous_version, load_status, load_message, are_procedures_loaded, are_constraints_loaded
 
 
 def _parse_version_using_old_format(sources, key):
@@ -203,13 +214,18 @@ def _update_setting_format(settings, sources, current_version):
       settings_not_loaded = _update_source_format(
         settings_not_loaded, OldGimpParasiteSource, 'persistent')
   
-  _update_format_of_actions(settings['main/procedures'])
-  _update_format_of_actions(settings['main/constraints'])
+  are_procedures_loaded = settings['main/procedures/_added_data'] not in settings_not_loaded
+  _update_format_of_actions(settings['main/procedures'], are_procedures_loaded)
+  
+  are_constraints_loaded = settings['main/constraints/_added_data'] not in settings_not_loaded
+  _update_format_of_actions(settings['main/constraints'], are_constraints_loaded)
   
   for source in sources.values():
     if isinstance(
           source, (pg.setting.sources.GimpShelfSource, pg.setting.sources.GimpParasiteSource)):
       source.write([settings])
+  
+  return are_procedures_loaded, are_constraints_loaded
 
 
 def _rename_settings_with_specific_settings(sources):
@@ -363,11 +379,15 @@ class OldGimpParasiteSource(OldSource):
       gimp.Parasite(self.source_name, gimpenums.PARASITE_PERSISTENT, data))
 
 
-def _update_format_of_actions(actions):
+def _update_format_of_actions(actions, are_actions_loaded):
   action_dicts = actions['_added_data'].value
   setting_values = actions['_added_data_values'].value
   
-  actions_.clear(actions, add_initial_actions=False)
+  actions_.remove(actions, '_added_data')
+  actions_.remove(actions, '_added_data_values')
+  
+  if are_actions_loaded:
+    actions_.clear(actions, add_initial_actions=False)
   
   for action_dict in action_dicts:
     if 'type' in action_dict and action_dict['type'] == pg.setting.Setting:
@@ -415,10 +435,17 @@ def _update_format_of_actions(actions):
       actions[path].set_value(value)
 
 
-def handle_update(settings, sources, update_handlers, previous_version, current_version):
+def handle_update(
+      settings,
+      sources,
+      update_handlers,
+      previous_version,
+      current_version,
+      are_procedures_loaded,
+      are_constraints_loaded):
   for version_str, update_handler in update_handlers.items():
     if previous_version < pg.version.Version.parse(version_str) <= current_version:
-      update_handler(settings, sources)
+      update_handler(settings, sources, are_procedures_loaded, are_constraints_loaded)
   
   settings.save(sources)
 
@@ -527,7 +554,7 @@ def _try_remove_file(filepath):
     pass
 
 
-def _update_to_3_3_1(settings, sources):
+def _update_to_3_3_1(settings, sources, *args, **kwargs):
   settings['main/layer_filename_pattern'].set_value(
     replace_field_arguments_in_pattern(
       settings['main/layer_filename_pattern'].value,
@@ -540,7 +567,7 @@ def _update_to_3_3_1(settings, sources):
       ]))
 
 
-def _update_to_3_3_2(settings, sources):
+def _update_to_3_3_2(settings, sources, *args, **kwargs):
   _remove_obsolete_pygimplib_files_3_3_2()
   _remove_obsolete_plugin_files_3_3_2()
   
@@ -593,12 +620,12 @@ def _remove_obsolete_plugin_files_3_3_2():
   _try_remove_file(os.path.join(plugin_subdirectory_dirpath, 'gui', 'operations.pyc'))
 
 
-def _update_to_3_3_5(settings, sources):
+def _update_to_3_3_5(settings, sources, *args, **kwargs):
   _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'settings_plugin.py'))
   _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'settings_plugin.pyc'))
 
 
-def _update_to_3_4(settings, sources):
+def _update_to_3_4(settings, sources, are_procedures_loaded=True, are_constraints_loaded=True):
   _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.py'))
   _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.pyc'))
   _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.py'))
@@ -613,64 +640,66 @@ def _update_to_3_4(settings, sources):
   if 'selected_layers_persistent' in settings['main']:
     settings['main'].remove(['selected_layers_persistent'])
   
-  _refresh_actions(
-    settings['main/procedures'],
-    'rename_layer',
-    'rename',
-    builtin_procedures.BUILTIN_PROCEDURES,
-  )
+  if are_procedures_loaded:
+    _refresh_actions(
+      settings['main/procedures'],
+      'rename_layer',
+      'rename',
+      builtin_procedures.BUILTIN_PROCEDURES,
+    )
+    
+    _update_autocrop_procedures(settings['main/procedures'])
+    
+    _update_use_file_extensions_in_layer_names_procedure(settings['main/procedures'], settings)
   
-  _update_autocrop_procedures(settings['main/procedures'])
-  
-  _update_use_file_extensions_in_layer_names_procedure(settings['main/procedures'], settings)
-  
-  _update_include_constraints(settings['main/constraints'])
-  
-  _refresh_actions(
-    settings['main/constraints'],
-    'only_visible_layers',
-    'visible',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  for action in actions_.walk(settings['main/constraints']):
-    if action['orig_name'].value == 'visible':
-      action['also_apply_to_parent_folders'].set_value(True)
-  
-  _refresh_actions(
-    settings['main/constraints'],
-    'only_toplevel_layers',
-    'top_level',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  _refresh_actions(
-    settings['main/constraints'],
-    'only_layers_with_tags',
-    'with_tags',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  _refresh_actions(
-    settings['main/constraints'],
-    'only_layers_without_tags',
-    'without_tags',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  _refresh_actions(
-    settings['main/constraints'],
-    'only_layers_matching_file_extension',
-    'matching_file_extension',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
-  
-  _refresh_actions(
-    settings['main/constraints'],
-    'only_selected_layers',
-    'selected_in_preview',
-    builtin_constraints.BUILTIN_CONSTRAINTS,
-  )
+  if are_constraints_loaded:
+    _update_include_constraints(settings['main/constraints'])
+    
+    _refresh_actions(
+      settings['main/constraints'],
+      'only_visible_layers',
+      'visible',
+      builtin_constraints.BUILTIN_CONSTRAINTS,
+    )
+    
+    for action in actions_.walk(settings['main/constraints']):
+      if action['orig_name'].value == 'visible':
+        action['also_apply_to_parent_folders'].set_value(True)
+    
+    _refresh_actions(
+      settings['main/constraints'],
+      'only_toplevel_layers',
+      'top_level',
+      builtin_constraints.BUILTIN_CONSTRAINTS,
+    )
+    
+    _refresh_actions(
+      settings['main/constraints'],
+      'only_layers_with_tags',
+      'with_tags',
+      builtin_constraints.BUILTIN_CONSTRAINTS,
+    )
+    
+    _refresh_actions(
+      settings['main/constraints'],
+      'only_layers_without_tags',
+      'without_tags',
+      builtin_constraints.BUILTIN_CONSTRAINTS,
+    )
+    
+    _refresh_actions(
+      settings['main/constraints'],
+      'only_layers_matching_file_extension',
+      'matching_file_extension',
+      builtin_constraints.BUILTIN_CONSTRAINTS,
+    )
+    
+    _refresh_actions(
+      settings['main/constraints'],
+      'only_selected_layers',
+      'selected_in_preview',
+      builtin_constraints.BUILTIN_CONSTRAINTS,
+    )
 
 
 def _update_autocrop_procedures(procedures):
