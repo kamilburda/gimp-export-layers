@@ -282,14 +282,7 @@ class TestUpdateFrom331To34(unittest.TestCase):
     
     self.assertEqual(status, update.UPDATE)
     
-    self._test_lengths_of_groups()
-    
-    self._test_contents_of_procedures()
-    self._test_contents_of_constraints()
-    
-    self._test_main_settings()
-    
-    self._test_selected_and_collapsed_settings()
+    self._test_update()
   
   def test_data_in_persistent_source_only(self, *mocks):
     update.gimp.parasite_attach(
@@ -300,14 +293,7 @@ class TestUpdateFrom331To34(unittest.TestCase):
     
     self.assertEqual(status, update.UPDATE)
     
-    self._test_lengths_of_groups()
-    
-    self._test_contents_of_procedures()
-    self._test_contents_of_constraints()
-    
-    self._test_main_settings()
-    
-    self._test_selected_and_collapsed_settings()
+    self._test_update()
   
   def test_data_in_session_and_persistent_source(self, *mocks):
     update.gimp.set_data(pg.config.SOURCE_NAME, SESSION_DATA_3_3_1)
@@ -319,6 +305,9 @@ class TestUpdateFrom331To34(unittest.TestCase):
     
     self.assertEqual(status, update.UPDATE)
     
+    self._test_update()
+  
+  def _test_update(self):
     self._test_lengths_of_groups()
     
     self._test_contents_of_procedures()
