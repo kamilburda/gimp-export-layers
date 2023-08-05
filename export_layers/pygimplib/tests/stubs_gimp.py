@@ -131,16 +131,16 @@ class ParasiteFunctionsStubMixin(object):
 class ShelfFunctionsStubMixin(object):
   
   def __init__(self):
-    self._shelf_data = {}
+    self.shelf_data = {}
   
   def get_data(self, name):
-    if name in self._shelf_data:
-      return self._shelf_data[name]
+    if name in self.shelf_data:
+      return self.shelf_data[name]
     else:
       raise gimp.error('no data for id')
   
   def set_data(self, name, data):
-    self._shelf_data[name] = data
+    self.shelf_data[name] = data
 
 
 class ImageStub(ParasiteFunctionsStubMixin):
@@ -250,16 +250,16 @@ class ShelfStub(object):
   def __init__(self, shelf=None):
     # Passing explicit shelf data allows connecting this instance with the
     # shelf data from `GimpModuleStub`.
-    self._shelf = shelf if shelf is not None else {}
+    self.shelf = shelf if shelf is not None else {}
   
   def __getitem__(self, key):
-    return pickle.loads(self._shelf[key])
+    return pickle.loads(self.shelf[key])
   
   def __setitem__(self, key, value):
-    self._shelf[key] = pickle.dumps(value)
+    self.shelf[key] = pickle.dumps(value)
   
   def __delitem__(self, key):
-    self._shelf[key] = b''
+    self.shelf[key] = b''
   
   def has_key(self, key):
-    return key in self._shelf
+    return key in self.shelf

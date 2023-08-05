@@ -855,6 +855,9 @@ class TestSourceWrite(unittest.TestCase):
 @mock.patch(
   pgutils.get_pygimplib_module_path() + '.setting.sources.gimpshelf.shelf',
   new_callable=stubs_gimp.ShelfStub)
+@mock.patch(
+  pgutils.get_pygimplib_module_path() + '.setting.sources.gimp',
+  new_callable=stubs_gimp.GimpModuleStub)
 class TestGimpShelfSource(unittest.TestCase):
   
   @mock.patch(
@@ -865,7 +868,7 @@ class TestGimpShelfSource(unittest.TestCase):
     self.source = sources_.GimpShelfSource(self.source_name)
     self.settings = stubs_group.create_test_settings()
   
-  def test_write_read(self, mock_session_source):
+  def test_write_read(self, *mocks):
     self.settings['file_extension'].set_value('png')
     self.settings['flatten'].set_value(True)
     
@@ -879,17 +882,21 @@ class TestGimpShelfSource(unittest.TestCase):
     self.assertEqual(self.settings['file_extension'].value, 'png')
     self.assertEqual(self.settings['flatten'].value, True)
   
-  def test_clear(self, mock_session_source):
+  def test_clear(self, *mocks):
     self.source.write([self.settings])
     self.source.clear()
     
     with self.assertRaises(sources_.SourceNotFoundError):
       self.source.read([self.settings])
   
-  def test_has_data_with_no_data(self, mock_session_source):
+  def test_has_data_with_no_data(self, mock_gimp_module, mock_session_source):
+    mock_session_source.shelf = mock_gimp_module.shelf_data
+    
     self.assertFalse(self.source.has_data())
   
-  def test_has_data_with_data(self, mock_session_source):
+  def test_has_data_with_data(self, mock_gimp_module, mock_session_source):
+    mock_session_source.shelf = mock_gimp_module.shelf_data
+    
     self.source.write([self.settings['file_extension']])
     self.assertTrue(self.source.has_data())
 
@@ -907,7 +914,7 @@ class TestGimpParasiteSource(unittest.TestCase):
     self.source = sources_.GimpParasiteSource(self.source_name)
     self.settings = stubs_group.create_test_settings()
   
-  def test_write_read(self, mock_persistent_source):
+  def test_write_read(self, mock_gimp_module):
     self.settings['file_extension'].set_value('jpg')
     self.settings['flatten'].set_value(True)
     
@@ -921,11 +928,11 @@ class TestGimpParasiteSource(unittest.TestCase):
     self.assertEqual(self.settings['file_extension'].value, 'jpg')
     self.assertEqual(self.settings['flatten'].value, True)
   
-  def test_read_source_not_found(self, mock_persistent_source):
+  def test_read_source_not_found(self, mock_gimp_module):
     with self.assertRaises(sources_.SourceNotFoundError):
       self.source.read([self.settings])
   
-  def test_read_settings_invalid_format(self, mock_persistent_source):
+  def test_read_settings_invalid_format(self, mock_gimp_module):
     self.source.write([self.settings])
     
     # Simulate formatting error
@@ -936,17 +943,17 @@ class TestGimpParasiteSource(unittest.TestCase):
     with self.assertRaises(sources_.SourceInvalidFormatError):
       self.source.read([self.settings])
   
-  def test_clear(self, mock_persistent_source):
+  def test_clear(self, mock_gimp_module):
     self.source.write([self.settings])
     self.source.clear()
     
     with self.assertRaises(sources_.SourceNotFoundError):
       self.source.read([self.settings])
   
-  def test_has_data_with_no_data(self, mock_persistent_source):
+  def test_has_data_with_no_data(self, mock_gimp_module):
     self.assertFalse(self.source.has_data())
   
-  def test_has_data_with_data(self, mock_persistent_source):
+  def test_has_data_with_data(self, mock_gimp_module):
     self.source.write([self.settings['file_extension']])
     self.assertTrue(self.source.has_data())
 

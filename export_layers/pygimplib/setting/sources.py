@@ -567,9 +567,12 @@ class GimpShelfSource(Source):
     gimpshelf.shelf[self._get_key()] = None
   
   def has_data(self):
-    return (
-      gimpshelf.shelf.has_key(self._get_key())
-      and gimpshelf.shelf[self._get_key()] is not None)
+    try:
+      data = gimp.get_data(self._get_key())
+    except gimp.error:
+      return False
+    else:
+      return bool(data)
   
   def read_data_from_source(self):
     try:
