@@ -83,14 +83,14 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
   current_version = pg.version.Version.parse(pg.config.PLUGIN_VERSION)
   
   previous_version, load_status, load_message, are_procedures_loaded, are_constraints_loaded = (
-    _get_version_from_sources_and_update_setting_format(settings, sources, current_version))
+    _get_version_from_sources_and_load_settings(settings, sources, current_version))
   
   if load_status == pg.setting.Persistor.SUCCESS and previous_version == current_version:
     return NO_ACTION, load_message
   
   if (load_status == pg.setting.Persistor.SUCCESS
       and previous_version >= MIN_VERSION_WITHOUT_CLEAN_REINSTALL):
-    utils_.save_plugin_version(settings, sources)
+    settings['main/plugin_version'].reset()
     
     handle_update(
       settings,
@@ -122,7 +122,7 @@ def update(settings, handle_invalid='ask_to_clear', sources=None):
     return ABORT, load_message
 
 
-def _get_version_from_sources_and_update_setting_format(settings, sources, current_version):
+def _get_version_from_sources_and_load_settings(settings, sources, current_version):
   key = pg.config.SOURCE_NAME.encode('utf-8')
   previous_version = _parse_version_using_old_format(sources, key)
   
@@ -130,7 +130,7 @@ def _get_version_from_sources_and_update_setting_format(settings, sources, curre
   are_constraints_loaded = False
   
   if previous_version is not None:
-    are_procedures_loaded, are_constraints_loaded = _update_setting_format(
+    are_procedures_loaded, are_constraints_loaded = _load_settings_with_old_format(
       settings, sources, current_version)
     
     load_status = pg.setting.Persistor.SUCCESS
@@ -196,7 +196,7 @@ def _parse_version(str_):
     return None
 
 
-def _update_setting_format(settings, sources, current_version):
+def _load_settings_with_old_format(settings, sources, current_version):
   fix_element_paths_for_pickle(
     sources, _FIX_PICKLE_HANDLERS, current_version, pg.config.SOURCE_NAME.encode('utf-8'))
   
@@ -208,10 +208,10 @@ def _update_setting_format(settings, sources, current_version):
   
   for source in sources.values():
     if isinstance(source, pg.setting.sources.GimpShelfSource):
-      settings_not_loaded = _update_source_format(
+      settings_not_loaded = _read_settings_with_old_format(
         settings_not_loaded, OldGimpShelfSource, 'session')
     elif isinstance(source, pg.setting.sources.GimpParasiteSource):
-      settings_not_loaded = _update_source_format(
+      settings_not_loaded = _read_settings_with_old_format(
         settings_not_loaded, OldGimpParasiteSource, 'persistent')
   
   are_procedures_loaded = settings['main/procedures/_added_data'] not in settings_not_loaded
@@ -219,11 +219,6 @@ def _update_setting_format(settings, sources, current_version):
   
   are_constraints_loaded = settings['main/constraints/_added_data'] not in settings_not_loaded
   _update_format_of_actions(settings['main/constraints'], are_constraints_loaded)
-  
-  for source in sources.values():
-    if isinstance(
-          source, (pg.setting.sources.GimpShelfSource, pg.setting.sources.GimpParasiteSource)):
-      source.write([settings])
   
   return are_procedures_loaded, are_constraints_loaded
 
@@ -292,14 +287,13 @@ def _add_obsolete_settings(settings):
   ])
 
 
-def _update_source_format(settings, source_class, source_type):
+def _read_settings_with_old_format(settings, source_class, source_type):
   source = source_class(pg.config.SOURCE_NAME, source_type)
   
   settings_not_loaded = settings
   
   if source.has_data():
     settings_not_loaded = source.read(settings)
-    source.clear()
   
   return settings_not_loaded
 
@@ -443,6 +437,9 @@ def handle_update(
       current_version,
       are_procedures_loaded,
       are_constraints_loaded):
+  for source in sources.values():
+    source.clear()
+  
   for version_str, update_handler in update_handlers.items():
     if previous_version < pg.version.Version.parse(version_str) <= current_version:
       update_handler(settings, sources, are_procedures_loaded, are_constraints_loaded)

@@ -31,4 +31,4 @@ def clear_setting_sources(settings, sources=None):
 
 def save_plugin_version(settings, sources):
   settings['main/plugin_version'].reset()
-  pg.setting.Persistor.save([settings['main/plugin_version']], sources)
+  settings['main/plugin_version'].save(sources)
