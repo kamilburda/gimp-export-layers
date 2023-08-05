@@ -406,7 +406,6 @@ def _create_action(
 
 def _create_procedure(
       name,
-      function,
       additional_tags=None,
       action_groups=(DEFAULT_PROCEDURES_GROUP,),
       **kwargs):
@@ -419,7 +418,6 @@ def _create_procedure(
   
   return _create_action(
     name,
-    function,
     action_groups=action_groups,
     tags=tags,
     **kwargs)
@@ -427,7 +425,6 @@ def _create_procedure(
 
 def _create_constraint(
       name,
-      function,
       additional_tags=None,
       action_groups=(DEFAULT_CONSTRAINTS_GROUP,),
       also_apply_to_parent_folders=False,
@@ -441,7 +438,6 @@ def _create_constraint(
   
   constraint = _create_action(
     name,
-    function,
     action_groups=action_groups,
     tags=tags,
     **kwargs)
