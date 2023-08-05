@@ -130,11 +130,15 @@ def _get_version_from_sources_and_load_settings(settings, sources, current_versi
   are_constraints_loaded = False
   
   if previous_version is not None:
-    are_procedures_loaded, are_constraints_loaded = _load_settings_with_old_format(
+    are_procedures_loaded, are_constraints_loaded, error_message = _load_settings_with_old_format(
       settings, sources, current_version)
     
-    load_status = pg.setting.Persistor.SUCCESS
-    load_message = ''
+    if not error_message:
+      load_status = pg.setting.Persistor.SUCCESS
+      load_message = ''
+    else:
+      load_status = pg.setting.Persistor.FAIL
+      load_message = error_message
   else:
     load_result = settings['main/plugin_version'].load()
     
@@ -200,7 +204,9 @@ def _load_settings_with_old_format(settings, sources, current_version):
   fix_element_paths_for_pickle(
     sources, _FIX_PICKLE_HANDLERS, current_version, pg.config.SOURCE_NAME.encode('utf-8'))
   
-  _rename_settings_with_specific_settings(sources)
+  error_message = _rename_settings_with_specific_settings(sources)
+  if error_message:
+    return False, False, error_message
   
   _add_obsolete_settings(settings)
   
@@ -208,11 +214,14 @@ def _load_settings_with_old_format(settings, sources, current_version):
   
   for source in sources.values():
     if isinstance(source, pg.setting.sources.GimpShelfSource):
-      settings_not_loaded = _read_settings_with_old_format(
+      settings_not_loaded, error_message = _read_settings_with_old_format(
         settings_not_loaded, OldGimpShelfSource, 'session')
     elif isinstance(source, pg.setting.sources.GimpParasiteSource):
-      settings_not_loaded = _read_settings_with_old_format(
+      settings_not_loaded, error_message = _read_settings_with_old_format(
         settings_not_loaded, OldGimpParasiteSource, 'persistent')
+      
+    if error_message:
+      return False, False, error_message
   
   are_procedures_loaded = settings['main/procedures/_added_data'] not in settings_not_loaded
   _update_format_of_actions(settings['main/procedures'], are_procedures_loaded)
@@ -220,11 +229,11 @@ def _load_settings_with_old_format(settings, sources, current_version):
   are_constraints_loaded = settings['main/constraints/_added_data'] not in settings_not_loaded
   _update_format_of_actions(settings['main/constraints'], are_constraints_loaded)
   
-  return are_procedures_loaded, are_constraints_loaded
+  return are_procedures_loaded, are_constraints_loaded, error_message
 
 
 def _rename_settings_with_specific_settings(sources):
-  _rename_settings(
+  return _rename_settings(
     [
       ('gui/export_name_preview_sensitive',
        'gui/name_preview_sensitive'),
@@ -251,8 +260,14 @@ def _rename_settings_with_specific_settings(sources):
 
 
 def _rename_settings(settings_to_rename, sources):
+  error_message = None
+  
   for source in sources.values():
-    data = source.read_data_from_source()
+    try:
+      data = source.read_data_from_source()
+    except Exception as e:
+      error_message = str(e)
+      break
     
     if data:
       for orig_setting_name, new_setting_name in settings_to_rename:
@@ -261,6 +276,8 @@ def _rename_settings(settings_to_rename, sources):
           del data[orig_setting_name]
       
       source.write_data_to_source(data)
+  
+  return error_message
 
 
 def _add_obsolete_settings(settings):
@@ -291,11 +308,15 @@ def _read_settings_with_old_format(settings, source_class, source_type):
   source = source_class(pg.config.SOURCE_NAME, source_type)
   
   settings_not_loaded = settings
+  error_message = None
   
   if source.has_data():
-    settings_not_loaded = source.read(settings)
+    try:
+      settings_not_loaded = source.read(settings)
+    except Exception as e:
+      error_message = str(e)
   
-  return settings_not_loaded
+  return settings_not_loaded, error_message
 
 
 class OldSource(pg.setting.sources.Source):
