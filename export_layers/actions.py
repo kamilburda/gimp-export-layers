@@ -240,7 +240,9 @@ def _check_required_fields(action_kwargs):
 def _uniquify_name_and_display_name(actions, action_dict):
   action_dict['orig_name'] = action_dict['name']
   action_dict['name'] = _uniquify_action_name(actions, action_dict['name'])
-  action_dict['display_name'] = _uniquify_action_display_name(actions, action_dict['display_name'])
+  if 'display_name' in action_dict:
+    action_dict['display_name'] = _uniquify_action_display_name(
+      actions, action_dict['display_name'])
 
 
 def _uniquify_action_name(actions, name):
