@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: export_layers 3.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-31 21:43+0200\n"
+"POT-Creation-Date: 2023-08-05 21:25+0200\n"
 "PO-Revision-Date: 2017-10-21 17:20+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,23 +27,23 @@ msgstr ""
 msgid "Foreground"
 msgstr ""
 
-#: ../../export_layers/actions.py:340
+#: ../../export_layers/actions.py:342
 msgid "Built-in"
 msgstr ""
 
-#: ../../export_layers/actions.py:341
+#: ../../export_layers/actions.py:343
 msgid "GIMP PDB procedure"
 msgstr ""
 
-#: ../../export_layers/actions.py:374
+#: ../../export_layers/actions.py:376
 msgid "_More options"
 msgstr ""
 
-#: ../../export_layers/actions.py:381
+#: ../../export_layers/actions.py:383
 msgid "Enable for previews"
 msgstr ""
 
-#: ../../export_layers/actions.py:452
+#: ../../export_layers/actions.py:450
 msgid "Also apply to parent folders"
 msgstr ""
 
@@ -764,13 +764,13 @@ msgstr ""
 msgid "Could not find setting source \"{}\"."
 msgstr "Не вдалося знайти джерело налаштування \"{}\"."
 
-#: ../../export_layers/pygimplib/setting/sources.py:581
+#: ../../export_layers/pygimplib/setting/sources.py:584
 msgid ""
 "Settings for this plug-in may be corrupt.\n"
 "To fix this, save the settings again or reset them."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/sources.py:622
+#: ../../export_layers/pygimplib/setting/sources.py:625
 msgid ""
 "Settings for this plug-in stored in \"{}\" may be corrupt. This could happen "
 "if the file was edited manually.\n"
@@ -954,7 +954,7 @@ msgstr "Перейменувати _існуючий файл"
 msgid "Overwrite mode (non-interactive run mode only)"
 msgstr "Режим перезапису (лише для без інтерактивного режиму)"
 
-#: ../../export_layers/update.py:103
+#: ../../export_layers/update.py:108
 msgid ""
 "Due to significant changes in the plug-in, settings need to be reset. "
 "Proceed?"
