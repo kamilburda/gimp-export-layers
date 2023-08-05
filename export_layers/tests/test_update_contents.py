@@ -28,7 +28,7 @@ PERSISTENT_DATA_3_3_1 = b"ccollections\nOrderedDict\np1\n((lp2\n(lp3\nVmain/plug
 
 DATA_3_3_1_PLUGIN_VERSION_AND_TAGS_ONLY = b'ccollections\nOrderedDict\np1\n((lp2\n(lp3\nVmain/plugin_version\np4\naV3.3.1\np5\naa(lp6\nVmain/available_tags\np7\na(dp8\nVforeground\np9\nVForeground\np10\nsVbackground\np11\nVBackground\np12\nsaatRp13\n.'
 
-VERSION_TO_UPDATE_TO = '3.4'
+VERSION_TO_UPDATE_TO = '4.0'
 
 EXPECTED_PROCEDURE_ATTRIBUTES_FOR_FULL_DATA = [
   {

@@ -5,7 +5,7 @@
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: export_layers 3.4\n"
+"Project-Id-Version: export_layers 4.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-08-05 21:25+0200\n"
 "PO-Revision-Date: 2017-09-07 00:03+0200\n"

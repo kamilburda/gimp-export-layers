@@ -643,7 +643,7 @@ def _update_to_3_3_5(settings, sources, *args, **kwargs):
   _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'settings_plugin.pyc'))
 
 
-def _update_to_3_4(settings, sources, are_procedures_loaded=True, are_constraints_loaded=True):
+def _update_to_4_0(settings, sources, are_procedures_loaded=True, are_constraints_loaded=True):
   _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.py'))
   _try_remove_file(os.path.join(pg.config.PLUGIN_SUBDIRPATH, 'exportlayers.pyc'))
   _try_remove_file(os.path.join(pg.PYGIMPLIB_DIRPATH, 'executor.py'))
@@ -832,7 +832,7 @@ def _fix_pickle_paths_3_3_5(sources, key):
     sources, key)
 
 
-def _fix_pickle_paths_3_4(sources, key):
+def _fix_pickle_paths_4_0(sources, key):
   _fix_pickle_paths(
     [
       (b'export_layers.pygimplib.setting.settings\nSetting',
@@ -861,12 +861,12 @@ _UPDATE_HANDLERS = collections.OrderedDict([
   ('3.3.1', _update_to_3_3_1),
   ('3.3.2', _update_to_3_3_2),
   ('3.3.5', _update_to_3_3_5),
-  ('3.4', _update_to_3_4),
+  ('4.0', _update_to_4_0),
 ])
 
 
 _FIX_PICKLE_HANDLERS = collections.OrderedDict([
   ('3.3.2', _fix_pickle_paths_3_3_2),
   ('3.3.5', _fix_pickle_paths_3_3_5),
-  ('3.4', _fix_pickle_paths_3_4),
+  ('4.0', _fix_pickle_paths_4_0),
 ])
