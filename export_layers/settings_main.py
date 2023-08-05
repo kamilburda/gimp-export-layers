@@ -203,17 +203,14 @@ def _on_after_add_constraint(
       image_setting):
   if constraint['orig_name'].value == 'selected_in_preview':
     constraint['arguments/selected_layers'].gui.set_visible(False)
-    _sync_selected_items_and_only_selected_items_constraint(
-      selected_items_setting, constraint, image_setting)
+    _sync_selected_items_with_constraint(selected_items_setting, constraint, image_setting)
 
 
-def _sync_selected_items_and_only_selected_items_constraint(
-      selected_items_setting, constraint, image_setting):
+def _sync_selected_items_with_constraint(selected_items_setting, constraint, image_setting):
   
-  def _on_selected_items_changed(
-        selected_items_setting, only_selected_items_constraint, image_setting):
+  def _on_selected_items_changed(selected_items_setting, selected_items_constraint, image_setting):
     if image_setting.value is not None:
-      only_selected_items_constraint['arguments/selected_layers'].set_value(
+      selected_items_constraint['arguments/selected_layers'].set_value(
         selected_items_setting.value[image_setting.value.ID])
   
   _on_selected_items_changed(selected_items_setting, constraint, image_setting)

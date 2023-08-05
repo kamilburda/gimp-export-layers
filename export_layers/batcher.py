@@ -485,7 +485,7 @@ class Batcher(object):
         raise exceptions.InvalidPdbProcedureError(
           'invalid PDB procedure "{}"'.format(action['function'].value))
     else:
-      raise ValueError('invalid origin "{}" for action "{}"'.format(
+      raise ValueError('invalid origin {} for action "{}"'.format(
           action['origin'].value, action.name))
     
     if function is None:
