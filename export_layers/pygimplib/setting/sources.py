@@ -569,7 +569,7 @@ class GimpShelfSource(Source):
   def has_data(self):
     try:
       data = gimp.get_data(self._get_key())
-    except gimp.error:
+    except Exception:
       return False
     else:
       return bool(data)
