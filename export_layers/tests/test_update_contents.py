@@ -353,7 +353,7 @@ class TestUpdateFrom331To34(unittest.TestCase):
     
     self.assertEqual(status, update.UPDATE)
     
-    self._test_update_for_full_data(is_selected_layers_nonempty=True)
+    self._test_update_for_full_data(is_selected_layers_nonempty=False)
   
   def test_full_data_in_persistent_source_only(self, *mocks):
     update.gimp.parasite_attach(
@@ -376,7 +376,7 @@ class TestUpdateFrom331To34(unittest.TestCase):
     
     self.assertEqual(status, update.UPDATE)
     
-    self._test_update_for_full_data(is_selected_layers_nonempty=True)
+    self._test_update_for_full_data(is_selected_layers_nonempty=False)
   
   def _test_update_for_partial_data(self, is_selected_layers_nonempty):
     self._test_lengths_of_groups()
