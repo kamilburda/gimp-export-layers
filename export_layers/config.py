@@ -20,8 +20,8 @@ c.PLUGINS_LOG_DIRPATHS.insert(0, c.PLUGIN_SUBDIRPATH)
 c.LOG_MODE = 'exceptions'
 
 c.PLUGIN_TITLE = lambda: _('Export Layers')
-c.PLUGIN_VERSION = '3.3.7'
-c.PLUGIN_VERSION_RELEASE_DATE = 'July 03, 2023'
+c.PLUGIN_VERSION = '4.0'
+c.PLUGIN_VERSION_RELEASE_DATE = 'August 06, 2023'
 c.AUTHOR_NAME = 'Kamil Burda'
 c.COPYRIGHT_YEARS = '2013-2023'
 c.PAGE_URL = 'https://kamilburda.github.io/gimp-export-layers'
