@@ -578,7 +578,7 @@ def _update_to_3_3_1(settings, sources, *args, **kwargs):
       settings['main/layer_filename_pattern'].value,
       [
         ['layer name', 'keep extension', '%e'],
-        ['layer name', 'keep only identical extension', '%i']
+        ['layer name', 'keep only identical extension', '%i'],
         ['image name', 'keep extension', '%e'],
         ['layer path', r'\$\$', '%c'],
         ['tags', r'\$\$', '%t'],
