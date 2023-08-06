@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: export_layers 4.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-05 21:25+0200\n"
+"POT-Creation-Date: 2023-08-06 12:05+0200\n"
 "PO-Revision-Date: 2017-10-21 17:20+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -47,11 +47,11 @@ msgstr ""
 msgid "Also apply to parent folders"
 msgstr ""
 
-#: ../../export_layers/background_foreground.py:158
+#: ../../export_layers/background_foreground.py:159
 msgid "There are no background layers."
 msgstr ""
 
-#: ../../export_layers/background_foreground.py:167
+#: ../../export_layers/background_foreground.py:168
 msgid "There are no foreground layers."
 msgstr ""
 
@@ -108,123 +108,123 @@ msgstr ""
 msgid "Without tags"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:145
+#: ../../export_layers/builtin_procedures.py:151
 #: ../../export_layers/gui/main.py:886
 msgid "Export"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:153
+#: ../../export_layers/builtin_procedures.py:159
 msgid "Output folder"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:160
+#: ../../export_layers/builtin_procedures.py:166
 #: ../../export_layers/settings_main.py:75
 msgid "File extension"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:169
+#: ../../export_layers/builtin_procedures.py:175
 msgid "For each layer"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:171
+#: ../../export_layers/builtin_procedures.py:177
 msgid "For each top-level layer or group"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:174
+#: ../../export_layers/builtin_procedures.py:180
 msgid "For the entire image at once"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:177
+#: ../../export_layers/builtin_procedures.py:183
 msgid "Perform export:"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:183
+#: ../../export_layers/builtin_procedures.py:189
 msgid "Image filename pattern"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:190
+#: ../../export_layers/builtin_procedures.py:196
 msgid "Use file extension in layer name"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:197
+#: ../../export_layers/builtin_procedures.py:203
 msgid "Convert file extension to lowercase"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:204
+#: ../../export_layers/builtin_procedures.py:210
 msgid "Preserve layer name after export"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:212
+#: ../../export_layers/builtin_procedures.py:218
 msgid "Ignore folder structure"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:218
+#: ../../export_layers/builtin_procedures.py:224
 msgid "Inherit transparency from layer groups"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:223
+#: ../../export_layers/builtin_procedures.py:229
 msgid "Insert background layers"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:228
-#: ../../export_layers/builtin_procedures.py:241
+#: ../../export_layers/builtin_procedures.py:234
+#: ../../export_layers/builtin_procedures.py:247
 msgid "Tag"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:236
+#: ../../export_layers/builtin_procedures.py:242
 msgid "Insert foreground layers"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:249
+#: ../../export_layers/builtin_procedures.py:255
 msgid "Merge background"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:256
-#: ../../export_layers/builtin_procedures.py:274
+#: ../../export_layers/builtin_procedures.py:262
+#: ../../export_layers/builtin_procedures.py:280
 msgid "Expand as necessary"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:257
-#: ../../export_layers/builtin_procedures.py:275
+#: ../../export_layers/builtin_procedures.py:263
+#: ../../export_layers/builtin_procedures.py:281
 msgid "Clip to image"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:258
-#: ../../export_layers/builtin_procedures.py:276
+#: ../../export_layers/builtin_procedures.py:264
+#: ../../export_layers/builtin_procedures.py:282
 msgid "Clip to bottom layer"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:260
-#: ../../export_layers/builtin_procedures.py:278
+#: ../../export_layers/builtin_procedures.py:266
+#: ../../export_layers/builtin_procedures.py:284
 msgid "Merge type"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:267
+#: ../../export_layers/builtin_procedures.py:273
 msgid "Merge foreground"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:285
+#: ../../export_layers/builtin_procedures.py:291
 msgid "Rename"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:293
+#: ../../export_layers/builtin_procedures.py:299
 #: ../../export_layers/settings_main.py:90
 msgid "Layer filename pattern"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:300
+#: ../../export_layers/builtin_procedures.py:306
 msgid "Rename layers"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:307
+#: ../../export_layers/builtin_procedures.py:313
 msgid "Rename folders"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:315
+#: ../../export_layers/builtin_procedures.py:321
 msgid "Use layer size"
 msgstr ""
 
-#: ../../export_layers/config.py:20 ../../export_layers/config_dev.py:20
+#: ../../export_layers/config.py:22 ../../export_layers/config_dev.py:22
 msgid "Export Layers"
 msgstr "Експортувати шари"
 
