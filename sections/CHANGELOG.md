@@ -4,8 +4,8 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
-Upcoming
-========
+4.0
+===
 
 New features:
 * In-place batch editing of layers is now available. Procedures can now be applied directly to the layers without exporting them. This option is available by checking "Batch Editing" under the "Settings" button.

@@ -16,6 +16,11 @@ See [Installation](Installation.html) and [Usage](Usage.html).
 See [Customizing Export](Customizing-Export.html).
 
 
+### Need to edit layers without exporting them?
+
+See [Batch Editing](Batch-Editing.html).
+
+
 ### Having trouble?
 
 See the [known issues](Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/kamilburda/gimp-export-layers/issues).

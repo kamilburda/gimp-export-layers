@@ -4,26 +4,104 @@ title: Customizing Export
 navbar_active_tab: docs
 previous_doc_filename: Usage.html
 previous_doc_title: Usage
-next_doc_filename: Known-Issues.html
-next_doc_title: Known Issues
+next_doc_filename: Batch-Editing.html
+next_doc_title: Batch Editing
 ---
 
 * TOC
 {:toc}
 
-Introduction
-------------
+Getting Started with Customization
+----------------------------------
 
 Beyond the basic features, Export Layers allows you to:
 * customize the layer name,
-* apply additional procedures before the export (insert background, scale down, ...)
-* selecting which layers to export by applying constraints (only visible layers, ...)
+* apply additional *procedures* before the export (insert background, scale down, ...),
+* selecting which layers to process by applying *constraints* (only visible layers, ...),
+* customize export to save multi-layer images (e.g. multi-page PDFs).
 
-To enable customization, press the `Settings` button and choose `Show More Settings`.
+To enable customization, press the `Settings` button and select `Show More Settings`.
 
 ![Dialog of Export Layers with additional customization](../images/screenshot_dialog_customizing_export.png)
 
 You may adjust the height of the bottom pane by dragging the separator above the procedures and constraints.
+
+As the amount of customization may be overwhelming at first, you may want to take a look at a few [examples](#examples) below to help you get accustomed to the plug-in's features.
+
+
+Examples
+--------
+
+**I want to export all layers using the image size, not the layer size.**
+
+Uncheck or remove the "Use layer size" procedure.
+
+
+**I want to export only visible layers.**
+
+Check the "Visible" constraint (or add one if not already).
+
+
+**I want to export only visible layers, including those that have invisible parent layer groups.**
+
+1. Check the "Visible" constraint (or add one if not already).
+2. Edit the "Visible" constraint (hover over the constraint and click on the pen and paper icon). In the dialog, click on `More options` and then uncheck `Also apply to parent folders`.
+
+
+**I don't want to preserve folder hierarchy when exporting layers.**
+
+Add the "Ignore folder structure" procedure.
+
+
+**How do I rename the layers to form a sequence of numbers, e.g. "image001", "image002", ...?**
+
+Click on the text entry next to `Save as:` and choose `image001`, or type `image[001]` in the entry.
+
+
+**My layers contain a '.'. All characters after the '.' are replaced with the file extension. How do I prevent this?**
+
+In the text entry next to `Save as:`, type `[layer name, %e]`.
+This ensures that the resulting image name will be e.g. `some.layer.png` instead of `some.png` (the default behavior).
+
+
+**How do I export only layer groups at the top level?**
+
+1. Uncheck the "Layers" constraint.
+2. Add the "Layer groups" constraint.
+3. Add the "Top-level" constraint.
+
+
+**I want to adjust brightness in my layers before export. Can this be done?**
+
+Yes, you may insert any GIMP filter as a procedure:
+1. Select `Add Procedure...` → `Add Custom Procedure...`
+2. Find `gimp-brightness-contrast` in the procedure browser and select `Add`.
+3. Adjust the parameters as desired.
+4. Select `OK` to add the procedure.
+
+
+**I need every layer to have the same background.**
+
+1. In the preview to the right, right-click on the layer name you want to be your background.
+2. Check `Background`. A tag icon will be displayed next to the layer name.
+3. To add more layers as background, repeat steps 1 and 2. If you need to achieve a particular order of background layers, you need to reorder the layers in GIMP (i.e. outside the plug-in). The plug-in will sync with the changes done in GIMP.
+4. Add the "Insert background layers" procedure. If needed, you may place this procedure after "Use layer size" by dragging it onto "Use layer size".
+5. If you want to perform [batch editing](Batch-Editing.md) rather than export, you may want to merge the inserted background with each layer. To do so, add the "Merge background" procedure.
+
+
+**I want to save the image as a multi-page PDF file.**
+
+While multi-page PDF export is already possible in GIMP without any third-party plug-ins, Export Layers allows you to apply custom procedures before the export or export each layer group (instead of the entire image).
+
+1. Add the "Export" procedure.
+2. Adjust the output folder as needed. The folder explorer in the main dialog will be ignored.
+3. Type `pdf` next to `File extension`.
+4. Select an option in `Perform export:`. To export a single image, select `For the entire image at once`.
+5. If needed and if `For the entire image at once` was selected, adjust `Image filename pattern` as seen fit.
+6. Specifically for the PDF format, you need to check `Layers as pages` when the native PDF export dialog is shown. Otherwise, only a single page will be exported.
+7. You may also want to uncheck the "Use layer size" procedure to use the image size (since PDF pages have the same dimensions), otherwise you might obtain unexpected results.
+
+Also note that if you export top-level layer groups and the first layer group contains only a single layer, the `Layers as pages` option in the PDF dialog cannot be checked, even if subsequent layer groups contain multiple layers. This is the current behavior of the PDF export in GIMP (at least in GIMP 2.10).
 
 
 Customizing Layer Names
@@ -88,8 +166,8 @@ Arguments:
 * `%e`: If the image has a file extension, keep the extension.
 
 Examples:
-* `[layer name]` → `Image`
-* `[layer name, %e]` → `Image.xcf`
+* `[image name]` → `Image`
+* `[image name, %e]` → `Image.xcf`
 
 **\[layer path\]**
 
@@ -110,14 +188,14 @@ Examples:
 * `[layer path]` → `Body-Hands-Left`
 * `[layer path, _]` → `Body_Hands_Left`
 * `[layer path, _, (%c)]` → `(Body)_(Hands)_(Left)`
-* `[layer name, _, (%c), %e]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
-* `[layer name, _, (%c), %i]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
-* `[layer name, _, (%c), %i]` → `Body-Hands-Left` (if the layer name is `Left.png` and the file extension is e.g. `jpg`)
+* `[layer path, _, (%c), %e]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
+* `[layer path, _, (%c), %i]` → `Body-Hands-Left.png` (if the layer name is `Left.png` and the file extension is `png`)
+* `[layer path, _, (%c), %i]` → `Body-Hands-Left` (if the layer name is `Left.png` and the file extension is e.g. `jpg`)
 
 **\[replace\]**
 
 Replaces a part of the specified field with another string.
-This essentially allows to fine-tune the field.
+This essentially allows to fine-tune any field.
 Regular expressions are supported as well.
 
 Arguments:
@@ -140,8 +218,8 @@ While the square brackets (`[` and `]`) enclosing the first three field argument
 
 Examples:
 * `[replace, [layer name], [a], [b] ]` → `Animbl copy #1`
-* `[replace, [layer name], [a], [b], 1, ignorecase]` → `bnimal copy #1`,
-* `[replace, [layer name], [ copy(?: #[[0-9]]+)*$], [] ]` → `Animal`,
+* `[replace, [layer name], [a], [b], 1, ignorecase]` → `bnimal copy #1`
+* `[replace, [layer name], [ copy(?: #[[0-9]]+)*$], [] ]` → `Animal`
 
 **\[tags\]**
 
@@ -222,11 +300,11 @@ Examples:
 * `[layer path, [,], [[[%c]]] ]` → `[Body],[Hands],[Left]`
 
 
-Customizing Export with Procedures
-----------------------------------
+Procedures
+----------
 
-Procedures allow you to process layers before they are exported.
-To add procedures before the export of each layer, press the `Add Procedure...` button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
+Procedures allow you to apply image filters to each layer.
+Press the `Add Procedure...` button and select one of the available procedures, or add a [custom procedure](#Adding-Custom-Procedures).
 
 For each added procedure, you may perform any of the following:
 * enable and disable the procedure,
@@ -240,32 +318,45 @@ You can add the same procedure multiple times.
 
 ### Built-in Procedures
 
-**Autocrop background**
+**Export**
 
-Automatically crop the background formed by layers tagged with `Background`.
-Note that autocrop is performed on the entire background, not on the background layers individually.
+Performs export with additional customization not available in the main dialog.
 
-**Autocrop foreground**
+Options:
+* *Output folder*: Folder to save the output image(s).
+  When this procedure is added, the output folder is set to the folder displayed in the main dialog upon the plug-in startup.
+* *File extension*: File extension of the output image(s).
+  This overrides the file extension in the main dialog.
+* *Perform export*: Whether to export each layer separately ("For each layer"), each top-level layer or layer group separately ("For each top-level layer or group"), or a single image containing all layers ("For the entire image at once").
+  The latter two options provide multi-layer export. This allows exporting e.g. multi-page PDFs or animated GIFs per top-level layer group and/or with additional custom procedures applied before the export.
+* *Image filename pattern*: Filename pattern available when a single image is exported (the "Entire image at once" option is selected).
+  The text entry next to `Save as` still applies to individual layer names (since some multi-layer file formats also store layer names, e.g. TIFF or PSD).
+* *Use file extension in layer name*: If a layer name has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
+  You very likely need to type `[layer name, %e]` in the text entry next to `Save as` to preserve file extensions in layer names.
+* *Convert file extension to lowercase*: File extensions in layer names are converted to lowercase.
+* *Preserve layer name after export*: If enabled, layer names will revert to the state before export (i.e. without adding a file extension to them).
+  This is probably only ever useful if you want to perform export multiple times, e.g. with multiple different file formats (which is possible by adding multiple Export procedures).
 
-Same as `Autocrop background`, but works on the foreground layers instead.
+When exporting each layer separately (the default), the Export procedure usually makes sense to be applied as the last procedure since procedures after Export would have no effect.
+
 
 **Ignore folder structure**
 
-Export all layers to the output directory on the same level, i.e. do not create subfolders for layer groups.
+Export all layers to the output folder on the same level, i.e. do not create subfolders for layer groups.
 
 **Inherit transparency from layer groups**
 
 Combine opacity from all parent layer groups for each layer.
 This corresponds to how the layer is actually displayed in the image canvas.
 
-For example, if a layer has 50% opacity and its parent group also has 50% opacity, the resulting opacity of the exported layer will be 25%.
+For example, if a layer has 50% opacity and its parent group also has 50% opacity, the resulting opacity of the layer will be 25%.
 
 **Insert background layers**
 
 Insert layers tagged with `Background` as background for each layer.
 To set a layer as a background layer, see [Tagging Layers](#tagging-layers).
 
-Note that even background layers get exported - to prevent this behavior, enable the `Only layers without tags` constraint.
+Note that even background layers are processed and exported - to prevent this behavior, enable the `Without tags` constraint.
 
 You may modify the tag representing the background layers by editing the procedure argument `Tag`.
 
@@ -278,28 +369,31 @@ If this is your intention, you can always move this procedure below `Use layer s
 Insert layers tagged with `Foreground` as foreground for each layer.
 To set a layer as a foreground layer, see [Tagging Layers](#tagging-layers).
 
-Note that even foreground layers get exported - to prevent this behavior, enable the `Only layers without tags` constraint.
+For more information, see "Insert background layers" above.
 
-You may modify the tag representing the foreground layers by editing the procedure argument `Tag`.
+**Merge background**
 
-In the dialog, this procedure is always inserted in the first position.
-This prevents potential confusion when `Use layer size` is unchecked and the foreground is offset relative to the layer rather than the image canvas.
-If this is your intention, you can always move this procedure below `Use layer size`.
+Merges an already inserted background layer (via "Insert background layers", see above) with the current layer.
+
+This is useful if you wish to have a single merged layer rather than the background as a separate layer.
+
+When exporting layers, the background is merged automatically before the export, hence this procedure is only useful when batch editing layers.
+
+If there is no background layer inserted, this procedure has no effect.
+
+**Merge foreground**
+
+Merges an already inserted foreground layer (via "Insert foreground layers", see above) with the current layer.
+
+For more information, see "Merge background" above.
 
 **Rename layer**
 
 Rename a layer according to the specified pattern.
-This procedure is identical to the text entry next to `Save as` as described in [Customizing Layer Names](#customizing-layer-names).
+This procedure uses the same text entry for patterns as the one next to `Save as` (as described in [Customizing Layer Names](#customizing-layer-names)).
+If this procedure is specified, the text entry next to `Save as` has no effect.
 
-Additionally, this procedure allows renaming layer groups as well by enabling `Rename layer groups`.
-
-This procedure is also useful if other custom procedures modify layer names and you need to apply renaming after these procedures.
-
-**Use file extension in layer name**
-
-If a layer has a recognized file extension, use that file extension instead of the one in the `File extension` text entry.
-
-You may optionally convert file extensions in layer names to lowercase.
+Additionally, this procedure allows customizing whether to also rename folders (by enabling `Rename folders`) or only rename folders (by enabling `Rename folders` and disabling `Rename layers`).
 
 **Use layer size**
 
@@ -309,6 +403,8 @@ This procedure is enabled by default.
 To keep the size of the image canvas and the layer position within the image, disable this setting.
 Note that in that case the layers will be cut off if they are partially outside the image canvas.
 To export the entire layer, leave this setting enabled.
+
+When batch editing, you may want to disable this procedure as the image will be resized to the last processed layer's dimensions.
 
 
 ### Adding Custom Procedures <a name="Adding-Custom-Procedures"></a>
@@ -320,78 +416,75 @@ The edit dialog allows you to edit the procedure name and the values of its argu
 
 ### Editing procedures
 
-When editing a procedure, you may adjust its arguments or expand `More options` for further customization.
-Settings under `More options` are described below.
+When editing a procedure, you may (and sometimes have to) adjust its arguments.
+GIMP PDB procedures are usually accompanied with descriptions of the entire procedure as well as its arguments.
+Hover over argument names to display tooltips describing them in more detail.
+The description for an argument often indicates the range of valid values.
 
-**Enable for previews**
+If a procedure contains a layer/drawable/item argument, you may select one of the following:
+* (default) "Current Layer" - applies the procedure to the currently processed layer.
+* "Background Layer" - applies the procedure to the layer representing background, inserted via the "Insert background layers" procedure. If there is no such layer, the procedure will have no effect.
+* "Foreground Layer" - applies the procedure to the layer representing foreground, inserted via the "Insert foreground layers" procedure. If there is no such layer, the procedure will have no effect.
 
-If checked, the procedure is applied to previews.
-You may want to uncheck this if a procedure is very slow or e.g. manipulates the file system (reads or saves files).
 
+Constraints
+-----------
 
-Selecting Layers to Export with Constraints
--------------------------------------------
-
-To include or exclude layers from the export according to specific criteria, press the `Add Constraint...` button and select one of the available constraints.
+To exclude certain layers from processing and export, press the `Add Constraint...` button and select one of the available constraints.
 As with procedures, you can enable, disable, reorder, edit or remove constraints as needed.
 Adding the same constraint multiple times is also possible.
-
-Currently, only several built-in constraints are supported.
-Future versions will allow specifying custom constraints.
 
 
 ### Built-in Constraints
 
-**Include layers**
+**Layers**
 
-Export all layers that are not groups.
+Process only layers (i.e. ignore layer groups).
 This constraint is enabled by default.
 
-**Include layer groups**
+**Layer groups**
 
-Export all layer groups as layers.
+Process only layer groups.
 
-**Include empty layer groups**
+**Matching file extension**
 
-Create subfolders for empty layer groups.
+Process only layers having a file extension matching the extension typed in the text entry.
 
-**Only visible layers**
+**Selected in preview**
 
-If enabled, invisible layers will not be exported.
-Visible layers within invisible layer groups will also not be exported.
+Process only layers selected in the preview.
+If you save settings, the selection is saved as well.
 
-**Only top-level layers**
+**Top-level**
 
-Export only layers at the top of the layer tree (i.e. do not export layers inside any layer group).
+Process only layers at the top of the layer tree (i.e. do not process layers inside any layer group).
 
-**Only layers with tags**
+**Visible**
 
-Export only layers with tags.
+Process only visible layers.
 
-By default, all layers without tags are excluded from export.
-To export only layers with specific tags, edit this constraint and add the tags for the `Tags` argument.
-For example, adding `background` will export only layers containing the `background` tag.
+By default, layers (visible or not) whose parent layer groups are invisible are also ignored.
+To disable this behavior, edit the constraint, click on `More options` and then uncheck `Also apply to parent folders`.
+
+**With tags**
+
+Process only layers with tags.
+
+By default, all layers without tags are excluded.
+To process only layers with specific tags, edit this constraint and add the tags for the `Tags` argument.
+For example, by adding `background`, only layers containing the `background` tag will be processed.
 Other tagged layers will be excluded.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
 
-**Only layers without tags**
+**Without tags**
 
-Export only layers with no tags.
+Process only layers with no tags.
 
-By default, all layers with tags are excluded from export.
+By default, all layers with tags are excluded.
 To ignore only specific tags, edit this constraint and add the tags for the `Tags` argument.
 
 See [Tagging Layers](#tagging-layers) for information about tags.
-
-**Only layers matching file extension**
-
-Export only layers having a file extension matching the extension typed in the text entry.
-
-**Only layers selected in preview**
-
-Export only layers selected in the preview.
-If you save settings, the selection is saved as well.
 
 
 Tagging Layers
@@ -404,8 +497,27 @@ Tagged layers are indicated with a tag icon in the preview.
 Adding or removing tags modifies the current image.
 Save the image to keep the tags permanently.
 
-By default, Export Layers defines `Background` and `Foreground` tags.
+By default, Export Layers provides `Background` and `Foreground` tags.
 To add custom tags, right-click anywhere on the preview, select `Add New Tag...` and name your new tag.
 The new tag will be immediately added to the currently selected layer(s).
 
 To remove custom tags, remove them first from all layers, then right-click anywhere on the preview, select `Remove Tag...` and select the tag you wish to remove.
+
+
+More Options
+------------
+
+When editing procedures or constraints, you may adjust additional options when clicking on `More options`.
+
+**Enable for previews**
+
+If checked (the default), apply the procedure or constraint in the preview.
+
+Unchecking this can be handy if a procedure takes too long or manipulates the file system (reads or saves files).
+
+**Also apply to parent folders** (constraints only)
+
+If checked, a layer will satisfy a constraint if all of its parent groups also satisfy the constraint.
+For example, if checking this option for the "Visible" constraint, a visible layer would be ignored if any of its parent layer groups are not visible.
+
+This option is unchecked by default and is only checked for the "Visible" constraint that is displayed when running this plug-in for the first time.
