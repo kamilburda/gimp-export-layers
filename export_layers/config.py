@@ -15,6 +15,8 @@ c.PLUGINS_DIRPATH = os.path.dirname(os.path.dirname(c.PYGIMPLIB_DIRPATH))
 c.PLUGIN_SUBDIRPATH = os.path.join(c.PLUGINS_DIRPATH, c.PLUGIN_NAME)
 c.LOCALE_DIRPATH = os.path.join(c.PLUGIN_SUBDIRPATH, 'locale')
 
+c.PLUGINS_LOG_DIRPATHS.insert(0, c.PLUGIN_SUBDIRPATH)
+
 c.LOG_MODE = 'exceptions'
 
 c.PLUGIN_TITLE = lambda: _('Export Layers')
