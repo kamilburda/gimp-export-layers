@@ -6,11 +6,11 @@ Features
 --------
 
 * Export in any file format provided by GIMP and third-party plug-ins
-* Preview layers to be exported
-* Customize export with additional procedures and constraints
+* Batch edit layers
+* Customize processing with procedures and constraints
 
 
-[**Download latest release**](https://github.com/kamilburda/gimp-export-layers/releases/tag/3.3.7) (3.3.7, July 03, 2023)
+### [Download latest release](https://github.com/kamilburda/gimp-export-layers/releases/tag/3.3.7) (3.3.7, July 03, 2023)
 
 See the [documentation](https://kamilburda.github.io/gimp-export-layers/sections) for information about installation, usage and known issues.
 
