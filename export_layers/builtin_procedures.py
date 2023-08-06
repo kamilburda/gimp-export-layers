@@ -65,8 +65,12 @@ def preserve_locks_between_actions(batcher):
   for item_or_parent in [item] + item.parents:
     if pdb.gimp_item_is_valid(item_or_parent.raw):
       locks_content[item_or_parent] = pdb.gimp_item_get_lock_content(item_or_parent.raw)
+  
   if not is_item_group and pdb.gimp_item_is_valid(item.raw):
-    lock_position = pdb.gimp_item_get_lock_position(item.raw)
+    if gimp.version >= (2, 10):
+      lock_position = pdb.gimp_item_get_lock_position(item.raw)
+    else:
+      lock_position = None
     lock_alpha = pdb.gimp_layer_get_lock_alpha(item.raw)
   else:
     lock_position = None
@@ -75,6 +79,7 @@ def preserve_locks_between_actions(batcher):
   for item_or_parent, lock_content in locks_content.items():
     if lock_content:
       pdb.gimp_item_set_lock_content(item_or_parent.raw, False)
+  
   if not is_item_group:
     if lock_position:
       if gimp.version >= (2, 10):
@@ -87,6 +92,7 @@ def preserve_locks_between_actions(batcher):
   for item_or_parent, lock_content in locks_content.items():
     if lock_content and pdb.gimp_item_is_valid(item_or_parent.raw):
       pdb.gimp_item_set_lock_content(item_or_parent.raw, lock_content)
+  
   if not is_item_group and pdb.gimp_item_is_valid(item.raw):
     if lock_position:
       if gimp.version >= (2, 10):
