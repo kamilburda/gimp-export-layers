@@ -640,11 +640,7 @@ class Setting(
     attributes depending on the value of `source_type`. If a subclass uses
     `source_type`, it is mentioned in the subclass' documentation.
     """
-    settings_dict = {
-      'name': self.name,
-      'value': self._value_to_raw(self.value, source_type),
-      'type': pgutils.safe_decode(SettingTypes[self.__class__], 'utf-8'),
-    }
+    settings_dict = {}
     
     for key, val in self._dict_on_init.items():
       if key == 'gui_type' and val is not None and not isinstance(val, types.StringTypes):
@@ -662,6 +658,12 @@ class Setting(
         settings_dict[key] = list(val)
       else:
         settings_dict[key] = val
+    
+    settings_dict.update({
+      'name': self.name,
+      'value': self._value_to_raw(self.value, source_type),
+      'type': pgutils.safe_decode(SettingTypes[self.__class__], 'utf-8'),
+    })
     
     return settings_dict
   
