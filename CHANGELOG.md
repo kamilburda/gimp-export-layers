@@ -1,3 +1,9 @@
+Upcoming
+========
+
+* Fixed JSON serialization for procedures or constraints containing array arguments.
+
+
 4.0
 ===
 

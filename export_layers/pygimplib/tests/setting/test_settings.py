@@ -1516,6 +1516,28 @@ class TestArraySetting(unittest.TestCase):
         'element_default_value': [],
       })
   
+  def test_to_dict_with_element_type_as_class(self):
+    setting = settings_.ArraySetting(
+      'coordinates',
+      default_value=(1.0, 5.0, 10.0),
+      element_type=settings_.FloatSetting,
+      element_default_value=0.0,
+      element_min_value=-100.0,
+      element_max_value=100.0)
+    
+    self.assertDictEqual(
+      setting.to_dict(),
+      {
+        'name': 'coordinates',
+        'value': [1.0, 5.0, 10.0],
+        'type': 'array',
+        'default_value': [1.0, 5.0, 10.0],
+        'element_type': 'float',
+        'element_default_value': 0.0,
+        'element_max_value': 100.0,
+        'element_min_value': -100.0,
+      })
+  
   @parameterized.parameterized.expand([
     ('first', 0, 1.0),
     ('middle', 1, 5.0),
