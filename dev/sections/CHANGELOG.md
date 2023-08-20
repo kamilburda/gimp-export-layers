@@ -4,6 +4,13 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
+Upcoming
+========
+
+* Fixed JSON serialization for procedures or constraints containing array arguments.
+* Fixed a crash when a PDB procedure is no longer available (which could happen if GIMP removed a procedure in a later version or a custom script/plug-in is not available in a different GIMP installation). A warning message will be displayed instead.
+
+
 4.0
 ===
 
