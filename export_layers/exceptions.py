@@ -30,10 +30,6 @@ class SkipAction(BatcherError):
   pass
 
 
-class InvalidPdbProcedureError(BatcherError):
-  pass
-
-
 @future.utils.python_2_unicode_compatible
 class ExportError(BatcherError):
   

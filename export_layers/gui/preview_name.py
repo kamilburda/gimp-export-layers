@@ -7,6 +7,7 @@ from future.builtins import *
 
 import collections
 import os
+import traceback
 
 import pygtk
 pygtk.require('2.0')
@@ -17,8 +18,11 @@ from gimp import pdb
 
 from export_layers import pygimplib as pg
 
+from export_layers import exceptions
 from export_layers import utils as utils_
 from export_layers.gui import preview_base as preview_base_
+
+from export_layers.gui import messages as messages_
 
 
 class NamePreview(preview_base_.Preview):
@@ -39,13 +43,18 @@ class NamePreview(preview_base_.Preview):
     by the user or by calling `set_selected_items()`.
   * `'preview-updated'` - The preview was updated by calling `update()`. This
     signal is not emitted if the update is locked.
+    
+    Arguments:
+    
+    * `update_successful` - If `True`, the preview was updated successfully,
+      `False` otherwise (indicating that an error was captured).
   * `'preview-tags-changed'` - An existing tag was added to or removed from an
     item.
   """
   
   __gsignals__ = {
     b'preview-selection-changed': (gobject.SIGNAL_RUN_FIRST, None, ()),
-    b'preview-updated': (gobject.SIGNAL_RUN_FIRST, None, ()),
+    b'preview-updated': (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_BOOLEAN,)),
     b'preview-tags-changed': (gobject.SIGNAL_RUN_FIRST, None, ()),
   }
   
@@ -86,6 +95,7 @@ class NamePreview(preview_base_.Preview):
     self._available_tags_setting = available_tags_setting
     
     self.is_filtering = False
+    self._last_error = None
     
     # key: `Item.raw.ID` or (`Item.raw.ID`, 'folder') instance
     # value: `gtk.TreeIter` instance
@@ -104,10 +114,29 @@ class NamePreview(preview_base_.Preview):
     
     self._init_gui()
   
+  @property
+  def batcher(self):
+    return self._batcher
+  
+  @property
+  def tree_view(self):
+    return self._tree_view
+  
+  @property
+  def collapsed_items(self):
+    return self._collapsed_items
+  
+  @property
+  def selected_items(self):
+    return self._selected_items
+  
+  @property
+  def last_error(self):
+    return self._last_error
+  
   def update(self, reset_items=False, update_existing_contents_only=False):
-    """
-    Update the preview (add/remove item, move item to a different parent item
-    group, etc.).
+    """Updates the preview (add/remove item, move item to a different parent
+    item group, etc.).
     
     If `reset_items` is `True`, perform full update - add new items, remove
     non-existent items, etc. Note that setting this to `True` may introduce a
@@ -117,6 +146,10 @@ class NamePreview(preview_base_.Preview):
     the existing items. Note that the items will not be reparented,
     expanded/collapsed or added/removed even if they need to be. This option is
     useful if you know the item structure will be preserved.
+    
+    If an exception was captured during the update, the method is terminated
+    prematurely. It is the responsibility of the caller to handle the error
+    (e.g. lock or clear the preview).
     """
     update_locked = super().update()
     if update_locked:
@@ -126,6 +159,10 @@ class NamePreview(preview_base_.Preview):
       self.clear()
     
     self._process_items(reset_items=reset_items)
+    
+    if self._last_error:
+      self.emit('preview-updated', False)
+      return
     
     items = self._get_items_to_process()
     
@@ -142,7 +179,7 @@ class NamePreview(preview_base_.Preview):
     
     self._tree_view.columns_autosize()
     
-    self.emit('preview-updated')
+    self.emit('preview-updated', True)
   
   def clear(self):
     """
@@ -179,22 +216,6 @@ class NamePreview(preview_base_.Preview):
       return self._batcher.item_tree[item_key]
     else:
       return None
-  
-  @property
-  def batcher(self):
-    return self._batcher
-  
-  @property
-  def tree_view(self):
-    return self._tree_view
-  
-  @property
-  def collapsed_items(self):
-    return self._collapsed_items
-  
-  @property
-  def selected_items(self):
-    return self._selected_items
   
   def _init_gui(self):
     self._tree_model = gtk.TreeStore(*[column[1] for column in self._COLUMNS])
@@ -537,13 +558,34 @@ class NamePreview(preview_base_.Preview):
       for item in item_tree.iter_all():
         item.reset()
     
-    self._batcher.run(
-      item_tree=item_tree,
-      is_preview=True,
-      process_contents=False,
-      process_names=True,
-      process_export=False,
-      **utils_.get_settings_for_batcher(self._settings['main']))
+    self._last_error = None
+    
+    try:
+      self._batcher.run(
+        item_tree=item_tree,
+        is_preview=True,
+        process_contents=False,
+        process_names=True,
+        process_export=False,
+        **utils_.get_settings_for_batcher(self._settings['main']))
+    except exceptions.BatcherCancelError as e:
+      pass
+    except exceptions.ActionError as e:
+      messages_.display_failure_message(
+        messages_.get_failing_action_message(e),
+        failure_message=str(e),
+        details=traceback.format_exc(),
+        parent=pg.gui.get_toplevel_window(self))
+      
+      self._last_error = e
+    except Exception as e:
+      messages_.display_failure_message(
+        _('There was a problem with updating the name preview:'),
+        failure_message=str(e),
+        details=traceback.format_exc(),
+        parent=pg.gui.get_toplevel_window(self))
+      
+      self._last_error = e
   
   def _update_items(self, items):
     updated_parents = set()

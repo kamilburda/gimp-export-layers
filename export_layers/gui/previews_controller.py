@@ -9,12 +9,15 @@ from export_layers import pygimplib as pg
 
 from export_layers import builtin_constraints
 from export_layers import builtin_procedures
+from export_layers import exceptions
 
 
 class PreviewsController(object):
   
   _DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS = 50
   _DELAY_PREVIEWS_PANE_DRAG_UPDATE_MILLISECONDS = 500
+  
+  _ACTION_ERROR_KEY = 'action_error'
   
   def __init__(self, name_preview, image_preview, settings, image):
     self._name_preview = name_preview
@@ -25,6 +28,8 @@ class PreviewsController(object):
     self._selected_in_preview_constraints = {}
     self._custom_actions = {}
     self._is_initial_selection_set = False
+    
+    self._last_name_preview_update_successful = True
     
     self._paned_outside_previews_previous_position = (
       self._settings['gui/size/paned_outside_previews_position'].value)
@@ -150,8 +155,11 @@ class PreviewsController(object):
     actions_.connect_event('before-remove-action', _on_before_remove_action)
   
   def _update_previews_on_setting_change(self, setting):
+    self._name_preview.lock_update(False, self._ACTION_ERROR_KEY)
     pg.invocation.timeout_add_strict(
       self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._name_preview.update)
+    
+    self._image_preview.lock_update(False, self._ACTION_ERROR_KEY)
     pg.invocation.timeout_add_strict(
       self._DELAY_PREVIEWS_SETTING_UPDATE_MILLISECONDS, self._image_preview.update)
   
@@ -268,7 +276,11 @@ class PreviewsController(object):
     self._update_selected_items()
     self._update_image_preview()
   
-  def _on_name_preview_updated(self, preview):
+  def _on_name_preview_updated(self, preview, update_successful):
+    if not update_successful and isinstance(self._name_preview.last_error, exceptions.ActionError):
+      self._name_preview.lock_update(True, self._ACTION_ERROR_KEY)
+      self._image_preview.lock_update(True, self._ACTION_ERROR_KEY)
+    
     self._image_preview.update_item()
   
   def _on_name_preview_tags_changed(self, preview):

@@ -479,11 +479,20 @@ class Batcher(object):
           'invalid action "{}" - must contain "procedure" or "constraint" in tags'.format(
             action.name))
     elif action['origin'].is_item('gimp_pdb'):
-      try:
+      if pdb.gimp_procedural_db_proc_exists(action['function'].value):
         function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
-      except KeyError:
-        raise exceptions.InvalidPdbProcedureError(
-          'invalid PDB procedure "{}"'.format(action['function'].value))
+      else:
+        if action['enabled'].value:
+          message = 'PDB procedure "{}" not found'.format(action['function'].value)
+          
+          if 'procedure' in action.tags:
+            self._failed_procedures[action.name].append((None, message, None))
+          if 'constraint' in action.tags:
+            self._failed_constraints[action.name].append((None, message, None))
+          
+          raise exceptions.ActionError(message, action, None, None)
+        else:
+          return
     else:
       raise ValueError('invalid origin {} for action "{}"'.format(
           action['origin'].value, action.name))
