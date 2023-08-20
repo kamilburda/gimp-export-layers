@@ -475,9 +475,9 @@ class Batcher(object):
       elif 'constraint' in action.tags:
         function = builtin_constraints.BUILTIN_CONSTRAINTS_FUNCTIONS[action['orig_name'].value]
       else:
-        raise ValueError(
-          'invalid action "{}" - must contain "procedure" or "constraint" in tags'.format(
-            action.name))
+        message = 'invalid action "{}" - must contain "procedure" or "constraint" in tags'.format(
+          action.name)
+        raise exceptions.ActionError(message, action, None, None)
     elif action['origin'].is_item('gimp_pdb'):
       if pdb.gimp_procedural_db_proc_exists(action['function'].value):
         function = pdb[pg.utils.safe_encode_gimp(action['function'].value)]
@@ -494,8 +494,8 @@ class Batcher(object):
         else:
           return
     else:
-      raise ValueError('invalid origin {} for action "{}"'.format(
-          action['origin'].value, action.name))
+      message = 'invalid origin {} for action "{}"'.format(action['origin'].value, action.name)
+      raise exceptions.ActionError(message, action, None, None)
     
     if function is None:
       return
