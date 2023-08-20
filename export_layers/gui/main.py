@@ -578,6 +578,7 @@ class ExportLayersDialog(object):
     self._previews_controller.connect_name_preview_events()
     
     self._image_preview.connect('preview-updated', self._on_image_preview_updated)
+    self._name_preview.connect('preview-updated', self._on_name_preview_updated)
   
   def _finish_init_and_show(self):
     while gtk.events_pending():
@@ -899,17 +900,7 @@ class ExportLayersDialog(object):
       return
   
   def _on_image_preview_updated(self, preview, update_duration_seconds):
-    self._set_warning_on_actions(self._batcher_for_previews)
-    
-    self._set_action_skipped_tooltips(
-      self._box_procedures,
-      self._batcher_for_previews.skipped_procedures,
-      _('This procedure is skipped. Reason: {}'))
-    
-    self._set_action_skipped_tooltips(
-      self._box_constraints,
-      self._batcher_for_previews.skipped_constraints,
-      _('This constraint is skipped. Reason: {}'))
+    self._display_warnings_and_tooltips_for_actions()
     
     if (self._settings[
          'gui/image_preview_automatic_update_if_below_maximum_duration'].value
@@ -923,6 +914,22 @@ class ExportLayersDialog(object):
           _('The preview takes too long to update.'
             ' You may turn automatic updates back on from the menu above the previewed image.')),
         gtk.MESSAGE_INFO)
+  
+  def _on_name_preview_updated(self, preview, update_successful):
+    self._display_warnings_and_tooltips_for_actions()
+  
+  def _display_warnings_and_tooltips_for_actions(self):
+    self._set_warning_on_actions(self._batcher_for_previews)
+    
+    self._set_action_skipped_tooltips(
+      self._box_procedures,
+      self._batcher_for_previews.skipped_procedures,
+      _('This procedure is skipped. Reason: {}'))
+    
+    self._set_action_skipped_tooltips(
+      self._box_constraints,
+      self._batcher_for_previews.skipped_constraints,
+      _('This constraint is skipped. Reason: {}'))
   
   def _on_dialog_key_press_event(self, dialog, event):
     if gtk.gdk.keyval_name(event.keyval) == 'Escape':
