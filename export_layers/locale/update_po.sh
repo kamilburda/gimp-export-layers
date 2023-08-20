@@ -6,6 +6,7 @@
 #
 # Options:
 # -r - do not preserve the old .po file
+# -f - remove all entries marked as "fuzzy"
 
 PROGNAME="$(basename "$0")"
 
