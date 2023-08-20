@@ -916,20 +916,22 @@ class ExportLayersDialog(object):
         gtk.MESSAGE_INFO)
   
   def _on_name_preview_updated(self, preview, error):
-    self._display_warnings_and_tooltips_for_actions()
+    self._display_warnings_and_tooltips_for_actions(clear_previous=False)
   
-  def _display_warnings_and_tooltips_for_actions(self):
-    self._set_warning_on_actions(self._batcher_for_previews)
+  def _display_warnings_and_tooltips_for_actions(self, clear_previous=True):
+    self._set_warning_on_actions(self._batcher_for_previews, clear_previous=clear_previous)
     
     self._set_action_skipped_tooltips(
       self._box_procedures,
       self._batcher_for_previews.skipped_procedures,
-      _('This procedure is skipped. Reason: {}'))
+      _('This procedure is skipped. Reason: {}'),
+      clear_previous=clear_previous)
     
     self._set_action_skipped_tooltips(
       self._box_constraints,
       self._batcher_for_previews.skipped_constraints,
-      _('This constraint is skipped. Reason: {}'))
+      _('This constraint is skipped. Reason: {}'),
+      clear_previous=clear_previous)
   
   def _on_dialog_key_press_event(self, dialog, event):
     if gtk.gdk.keyval_name(event.keyval) == 'Escape':
@@ -1147,16 +1149,17 @@ class ExportLayersDialog(object):
     
     webbrowser.open_new_tab(docs_url)
   
-  def _set_action_skipped_tooltips(self, action_box, skipped_actions, message):
+  def _set_action_skipped_tooltips(self, action_box, skipped_actions, message, clear_previous=True):
     for box_item in action_box.items:
       if not box_item.has_warning():
         if box_item.action.name in skipped_actions:
           skipped_message = skipped_actions[box_item.action.name][0][1]
           box_item.set_tooltip(message.format(skipped_message))
         else:
-          box_item.set_tooltip(None)
+          if clear_previous:
+            box_item.set_tooltip(None)
   
-  def _set_warning_on_actions(self, batcher):
+  def _set_warning_on_actions(self, batcher, clear_previous=True):
     action_boxes = [self._box_procedures, self._box_constraints]
     failed_actions_dict = [batcher.failed_procedures, batcher.failed_constraints]
     
@@ -1171,7 +1174,8 @@ class ExportLayersDialog(object):
             failed_actions[box_item.action.name][0][2],
             parent=self._dialog)
         else:
-          box_item.set_warning(False)
+          if clear_previous:
+            box_item.set_warning(False)
   
   def _reset_action_tooltips_and_indicators(self):
     for action_box in [self._box_procedures, self._box_constraints]:
