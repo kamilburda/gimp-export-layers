@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: export_layers 4.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-06 12:05+0200\n"
+"POT-Creation-Date: 2023-08-20 14:00+0200\n"
 "PO-Revision-Date: 2017-10-21 17:12+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -55,7 +55,7 @@ msgstr ""
 msgid "There are no foreground layers."
 msgstr ""
 
-#: ../../export_layers/batcher.py:861
+#: ../../export_layers/batcher.py:870
 msgid "Processing \"{}\""
 msgstr ""
 
@@ -109,7 +109,7 @@ msgid "Without tags"
 msgstr ""
 
 #: ../../export_layers/builtin_procedures.py:151
-#: ../../export_layers/gui/main.py:886
+#: ../../export_layers/gui/main.py:887
 msgid "Export"
 msgstr ""
 
@@ -228,11 +228,11 @@ msgstr ""
 msgid "Export Layers"
 msgstr "Экспортировать слои"
 
-#: ../../export_layers/exceptions.py:51
+#: ../../export_layers/exceptions.py:47
 msgid "Layer:"
 msgstr "Слой:"
 
-#: ../../export_layers/exceptions.py:53
+#: ../../export_layers/exceptions.py:49
 msgid "File extension:"
 msgstr "Расширение файла:"
 
@@ -316,7 +316,7 @@ msgstr ""
 msgid "_Cancel"
 msgstr "Отменить"
 
-#: ../../export_layers/gui/main.py:475 ../../export_layers/gui/main.py:1229
+#: ../../export_layers/gui/main.py:475 ../../export_layers/gui/main.py:1240
 msgid "_Stop"
 msgstr "_Стоп"
 
@@ -352,85 +352,85 @@ msgstr ""
 msgid "_Help"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:692
+#: ../../export_layers/gui/main.py:693
 msgid "Failed to import settings from file \"{}\""
 msgstr ""
 
-#: ../../export_layers/gui/main.py:713
+#: ../../export_layers/gui/main.py:714
 msgid "Failed to export settings to file \"{}\""
 msgstr ""
 
-#: ../../export_layers/gui/main.py:725
+#: ../../export_layers/gui/main.py:726
 msgid "Settings successfully saved."
 msgstr "Настройки успешно сохранены."
 
-#: ../../export_layers/gui/main.py:734
+#: ../../export_layers/gui/main.py:735
 msgid "Import Settings"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:738
+#: ../../export_layers/gui/main.py:739
 msgid "Export Settings"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:756
+#: ../../export_layers/gui/main.py:757
 msgid "Import size-related settings"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:768
+#: ../../export_layers/gui/main.py:769
 msgid "JSON file ({})"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:779
+#: ../../export_layers/gui/main.py:780
 msgid "Pickle file ({})"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:784
+#: ../../export_layers/gui/main.py:785
 msgid "Any file"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:880
+#: ../../export_layers/gui/main.py:881
 msgid "Run"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:881
+#: ../../export_layers/gui/main.py:882
 msgid "Close"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:887
+#: ../../export_layers/gui/main.py:888
 msgid "Cancel"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:907
-msgid "This procedure is skipped. Reason: {}"
-msgstr ""
-
-#: ../../export_layers/gui/main.py:912
-msgid "This constraint is skipped. Reason: {}"
-msgstr ""
-
-#: ../../export_layers/gui/main.py:922
+#: ../../export_layers/gui/main.py:913
 msgid "Disabling automatic preview update."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:923
+#: ../../export_layers/gui/main.py:914
 msgid ""
 "The preview takes too long to update. You may turn automatic updates back on "
 "from the menu above the previewed image."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:955
-msgid "Settings successfully imported."
+#: ../../export_layers/gui/main.py:927
+msgid "This procedure is skipped. Reason: {}"
+msgstr ""
+
+#: ../../export_layers/gui/main.py:933
+msgid "This constraint is skipped. Reason: {}"
 msgstr ""
 
 #: ../../export_layers/gui/main.py:964
+msgid "Settings successfully imported."
+msgstr ""
+
+#: ../../export_layers/gui/main.py:973
 msgid "Settings successfully exported."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:988
+#: ../../export_layers/gui/main.py:997
 msgid "Settings reset."
 msgstr "Настройки сброшены."
 
-#: ../../export_layers/gui/main.py:1032 ../../export_layers/gui/main.py:1279
+#: ../../export_layers/gui/main.py:1041 ../../export_layers/gui/main.py:1290
 msgid "No layers were exported."
 msgstr "Никакие слои не экспортировались."
 
@@ -477,32 +477,36 @@ msgstr ""
 msgid "_More"
 msgstr ""
 
-#: ../../export_layers/gui/preview_image.py:257
+#: ../../export_layers/gui/preview_image.py:261
 msgid "Update Preview Automatically"
 msgstr ""
 
-#: ../../export_layers/gui/preview_image.py:265
+#: ../../export_layers/gui/preview_image.py:269
 msgid "Update Preview"
 msgstr ""
 
-#: ../../export_layers/gui/preview_image.py:384
+#: ../../export_layers/gui/preview_image.py:392
 msgid "There was a problem with updating the image preview:"
 msgstr ""
 
-#: ../../export_layers/gui/preview_image.py:546
+#: ../../export_layers/gui/preview_image.py:556
 msgid "No selection"
 msgstr ""
 
-#: ../../export_layers/gui/preview_name.py:281
+#: ../../export_layers/gui/preview_name.py:298
 msgid "Add New Tag..."
 msgstr ""
 
-#: ../../export_layers/gui/preview_name.py:285
+#: ../../export_layers/gui/preview_name.py:302
 msgid "Remove Tag"
 msgstr ""
 
-#: ../../export_layers/gui/preview_name.py:438
+#: ../../export_layers/gui/preview_name.py:455
 msgid "Tag Name:"
+msgstr ""
+
+#: ../../export_layers/gui/preview_name.py:579
+msgid "There was a problem with updating the name preview:"
 msgstr ""
 
 #: ../../export_layers/placeholders.py:57
@@ -673,105 +677,105 @@ msgstr "Расширение файла не должно заканчивать
 msgid "File extension cannot end with a period."
 msgstr "Расширение файла не должно заканчиваться периодом."
 
-#: ../../export_layers/pygimplib/setting/settings.py:939
+#: ../../export_layers/pygimplib/setting/settings.py:941
 msgid "Value cannot be less than {}."
 msgstr "Значение не может быть меньше {}."
 
-#: ../../export_layers/pygimplib/setting/settings.py:941
+#: ../../export_layers/pygimplib/setting/settings.py:943
 msgid "Value cannot be greater than {}."
 msgstr "Значение не может быть больше {}."
 
-#: ../../export_layers/pygimplib/setting/settings.py:1117
+#: ../../export_layers/pygimplib/setting/settings.py:1119
 msgid "Invalid item value; valid values: {}"
 msgstr "Недопустимое значение элемента; допустымые значения: {}"
 
-#: ../../export_layers/pygimplib/setting/settings.py:1323
+#: ../../export_layers/pygimplib/setting/settings.py:1325
 msgid "Invalid image."
 msgstr "Недопустимое изображение."
 
-#: ../../export_layers/pygimplib/setting/settings.py:1429
+#: ../../export_layers/pygimplib/setting/settings.py:1431
 msgid "Invalid item."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1456
+#: ../../export_layers/pygimplib/setting/settings.py:1458
 msgid "Invalid drawable."
 msgstr "Недопустимая подпись."
 
-#: ../../export_layers/pygimplib/setting/settings.py:1483
+#: ../../export_layers/pygimplib/setting/settings.py:1485
 msgid "Invalid layer."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1510
+#: ../../export_layers/pygimplib/setting/settings.py:1512
 msgid "Invalid channel."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1560
+#: ../../export_layers/pygimplib/setting/settings.py:1562
 msgid "Invalid vectors."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1588
+#: ../../export_layers/pygimplib/setting/settings.py:1590
 msgid "Invalid color."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1634
+#: ../../export_layers/pygimplib/setting/settings.py:1636
 msgid "Invalid display."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1670
+#: ../../export_layers/pygimplib/setting/settings.py:1672
 msgid "Invalid parasite."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:1863
+#: ../../export_layers/pygimplib/setting/settings.py:1865
 msgid "Invalid number of tuple elements (must be at most {})."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2204
+#: ../../export_layers/pygimplib/setting/settings.py:2209
 msgid "Number of elements in \"{}\""
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2219
+#: ../../export_layers/pygimplib/setting/settings.py:2224
 msgid "Not an array."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2221
+#: ../../export_layers/pygimplib/setting/settings.py:2226
 msgid "Minimum size ({}) cannot be negative."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2223
+#: ../../export_layers/pygimplib/setting/settings.py:2228
 msgid "Minimum size ({}) cannot be greater than maximum size ({})."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2225
+#: ../../export_layers/pygimplib/setting/settings.py:2230
 msgid "Minimum size ({}) cannot be greater than the length of the value ({})."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2227
+#: ../../export_layers/pygimplib/setting/settings.py:2232
 msgid "Maximum size ({}) cannot be less than the length of the value ({})."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2229
+#: ../../export_layers/pygimplib/setting/settings.py:2234
 msgid "Cannot delete any more elements - at least {} elements must be present."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2231
+#: ../../export_layers/pygimplib/setting/settings.py:2236
 msgid "Cannot add any more elements - at most {} elements are allowed."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/settings.py:2372
+#: ../../export_layers/pygimplib/setting/settings.py:2377
 msgid "Cannot assign a null value (None) if the setting is not nullable."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/sources.py:117
+#: ../../export_layers/pygimplib/setting/sources.py:118
 msgid "Could not find setting source \"{}\"."
 msgstr "Не удалось найти источник настроек \"{}\"."
 
-#: ../../export_layers/pygimplib/setting/sources.py:584
+#: ../../export_layers/pygimplib/setting/sources.py:585
 msgid ""
 "Settings for this plug-in may be corrupt.\n"
 "To fix this, save the settings again or reset them."
 msgstr ""
 
-#: ../../export_layers/pygimplib/setting/sources.py:625
+#: ../../export_layers/pygimplib/setting/sources.py:626
 msgid ""
 "Settings for this plug-in stored in \"{}\" may be corrupt. This could happen "
 "if the file was edited manually.\n"
