@@ -46,15 +46,16 @@ class NamePreview(preview_base_.Preview):
     
     Arguments:
     
-    * `update_successful` - If `True`, the preview was updated successfully,
-      `False` otherwise (indicating that an error was captured).
+    * `error` - If `None`, the preview was updated successfully. Otherwise,
+      this is an `Exception` object describing the error that occurred during
+      the update.
   * `'preview-tags-changed'` - An existing tag was added to or removed from an
     item.
   """
   
   __gsignals__ = {
     b'preview-selection-changed': (gobject.SIGNAL_RUN_FIRST, None, ()),
-    b'preview-updated': (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_BOOLEAN,)),
+    b'preview-updated': (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT,)),
     b'preview-tags-changed': (gobject.SIGNAL_RUN_FIRST, None, ()),
   }
   
@@ -95,7 +96,6 @@ class NamePreview(preview_base_.Preview):
     self._available_tags_setting = available_tags_setting
     
     self.is_filtering = False
-    self._last_error = None
     
     # key: `Item.raw.ID` or (`Item.raw.ID`, 'folder') instance
     # value: `gtk.TreeIter` instance
@@ -130,10 +130,6 @@ class NamePreview(preview_base_.Preview):
   def selected_items(self):
     return self._selected_items
   
-  @property
-  def last_error(self):
-    return self._last_error
-  
   def update(self, reset_items=False, update_existing_contents_only=False):
     """Updates the preview (add/remove item, move item to a different parent
     item group, etc.).
@@ -158,10 +154,10 @@ class NamePreview(preview_base_.Preview):
     if not update_existing_contents_only:
       self.clear()
     
-    self._process_items(reset_items=reset_items)
+    error = self._process_items(reset_items=reset_items)
     
-    if self._last_error:
-      self.emit('preview-updated', False)
+    if error:
+      self.emit('preview-updated', error)
       return
     
     items = self._get_items_to_process()
@@ -179,7 +175,7 @@ class NamePreview(preview_base_.Preview):
     
     self._tree_view.columns_autosize()
     
-    self.emit('preview-updated', True)
+    self.emit('preview-updated', None)
   
   def clear(self):
     """
@@ -558,7 +554,7 @@ class NamePreview(preview_base_.Preview):
       for item in item_tree.iter_all():
         item.reset()
     
-    self._last_error = None
+    error = None
     
     try:
       self._batcher.run(
@@ -577,7 +573,7 @@ class NamePreview(preview_base_.Preview):
         details=traceback.format_exc(),
         parent=pg.gui.get_toplevel_window(self))
       
-      self._last_error = e
+      error = e
     except Exception as e:
       messages_.display_failure_message(
         _('There was a problem with updating the name preview:'),
@@ -585,7 +581,9 @@ class NamePreview(preview_base_.Preview):
         details=traceback.format_exc(),
         parent=pg.gui.get_toplevel_window(self))
       
-      self._last_error = e
+      error = e
+    
+    return error
   
   def _update_items(self, items):
     updated_parents = set()

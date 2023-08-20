@@ -276,8 +276,8 @@ class PreviewsController(object):
     self._update_selected_items()
     self._update_image_preview()
   
-  def _on_name_preview_updated(self, preview, update_successful):
-    if not update_successful and isinstance(self._name_preview.last_error, exceptions.ActionError):
+  def _on_name_preview_updated(self, preview, error):
+    if isinstance(error, exceptions.ActionError):
       self._name_preview.lock_update(True, self._ACTION_ERROR_KEY)
       self._image_preview.lock_update(True, self._ACTION_ERROR_KEY)
     

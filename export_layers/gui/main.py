@@ -899,7 +899,7 @@ class ExportLayersDialog(object):
       self._initial_layer_tree = None
       return
   
-  def _on_image_preview_updated(self, preview, update_duration_seconds):
+  def _on_image_preview_updated(self, preview, error, update_duration_seconds):
     self._display_warnings_and_tooltips_for_actions()
     
     if (self._settings[
@@ -915,7 +915,7 @@ class ExportLayersDialog(object):
             ' You may turn automatic updates back on from the menu above the previewed image.')),
         gtk.MESSAGE_INFO)
   
-  def _on_name_preview_updated(self, preview, update_successful):
+  def _on_name_preview_updated(self, preview, error):
     self._display_warnings_and_tooltips_for_actions()
   
   def _display_warnings_and_tooltips_for_actions(self):

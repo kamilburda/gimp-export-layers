@@ -42,13 +42,17 @@ class ImagePreview(preview_base_.Preview):
     
     Arguments:
     
+    * `error` - If `None`, the preview was updated successfully. Otherwise,
+      this is an `Exception` object describing the error that occurred during
+      the update.
     * `update_duration_seconds` - Duration of the update in seconds as a float.
       The duration only considers the update of the image contents (i.e. does
       not consider the duration of updating the label of the image name).
   """
   
   __gsignals__ = {
-    b'preview-updated': (gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_FLOAT,)),
+    b'preview-updated': (
+      gobject.SIGNAL_RUN_FIRST, None, (gobject.TYPE_PYOBJECT, gobject.TYPE_FLOAT)),
   }
   
   _MANUAL_UPDATE_LOCK = '_manual_update'
@@ -233,7 +237,7 @@ class ImagePreview(preview_base_.Preview):
     start_update_time = time.time()
     
     with pg.pdbutils.redirect_messages():
-      preview_pixbuf = self._get_in_memory_preview(self.item.raw)
+      preview_pixbuf, error = self._get_in_memory_preview(self.item.raw)
     
     if preview_pixbuf is not None:
       self._preview_image.set_from_pixbuf(preview_pixbuf)
@@ -246,7 +250,7 @@ class ImagePreview(preview_base_.Preview):
     
     update_duration_seconds = time.time() - start_update_time
     
-    self.emit('preview-updated', update_duration_seconds)
+    self.emit('preview-updated', error, update_duration_seconds)
   
   def _init_gui(self):
     self._button_menu = gtk.Button()
@@ -312,14 +316,14 @@ class ImagePreview(preview_base_.Preview):
       raw_item.width, raw_item.height)
     self._preview_scaling_factor = self._preview_width / raw_item.width
     
-    image_preview = self._get_image_preview()
+    image_preview, error = self._get_image_preview()
     
     if image_preview is None or not pdb.gimp_image_is_valid(image_preview):
-      return None
+      return None, error
     
     if not image_preview.layers:
       pg.pdbutils.try_delete_image(image_preview)
-      return None
+      return None, error
     
     if image_preview.base_type != gimpenums.RGB:
       pdb.gimp_image_convert_rgb(image_preview)
@@ -341,7 +345,7 @@ class ImagePreview(preview_base_.Preview):
     
     pdb.gimp_image_delete(image_preview)
     
-    return raw_item_preview_pixbuf
+    return raw_item_preview_pixbuf, error
   
   def _get_image_preview(self):
     # The processing requires items in their original state as some procedures
@@ -361,6 +365,8 @@ class ImagePreview(preview_base_.Preview):
       groups=[actions.DEFAULT_CONSTRAINTS_GROUP],
       args=[[self.item.raw.ID]])
     
+    error = None
+    
     try:
       image_preview = self._batcher.run(
         keep_image_copy=True,
@@ -378,6 +384,8 @@ class ImagePreview(preview_base_.Preview):
         failure_message=str(e),
         details=traceback.format_exc(),
         parent=pg.gui.get_toplevel_window(self))
+      
+      error = e
       image_preview = None
     except Exception as e:
       messages_.display_failure_message(
@@ -385,6 +393,8 @@ class ImagePreview(preview_base_.Preview):
         failure_message=str(e),
         details=traceback.format_exc(),
         parent=pg.gui.get_toplevel_window(self))
+      
+      error = e
       image_preview = None
     
     self._batcher.remove_action(
@@ -394,7 +404,7 @@ class ImagePreview(preview_base_.Preview):
       for item in self._batcher.item_tree.iter_all():
         item.pop_state()
     
-    return image_preview
+    return image_preview, error
   
   def _resize_image_for_batcher(self, batcher, *args, **kwargs):
     image = batcher.current_image
