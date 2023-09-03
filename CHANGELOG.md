@@ -1,5 +1,5 @@
-Upcoming
-========
+4.0.2
+=====
 
 * Image metadata (Exif, XMP, IPTC) are now added to each exported layer. Applies to GIMP 2.10 only.
 
