@@ -79,6 +79,11 @@ def create_image_from_metadata(image_to_copy_metadata_from):
   else:
     pdb.gimp_image_set_filename(new_image, image.name)
   
+  if gimp.version >= (2, 10):
+    image_string_metadata = pdb.gimp_image_get_metadata(image)
+    if image_string_metadata:
+      pdb.gimp_image_set_metadata(new_image, image_string_metadata)
+  
   return new_image
 
 
