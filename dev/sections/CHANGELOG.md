@@ -4,6 +4,12 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
+Upcoming
+========
+
+* Image metadata (Exif, XMP, IPTC) are now added to each exported layer. Applies to GIMP 2.10 only.
+
+
 4.0.1
 =====
 
