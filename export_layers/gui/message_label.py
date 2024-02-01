@@ -164,8 +164,11 @@ class MessageLabel(gtk.HBox):
     text_buffer.set_text(pg.utils.safe_encode_gtk(text))
     self._text_view_more.set_buffer(text_buffer)
     
-    self._popup_more.move(*pg.gui.get_position_below_widget(self))
     self._popup_more.show()
+
+    absolute_label_position = pg.gui.get_position_below_widget(self)
+    if absolute_label_position is not None:
+      self._popup_more.move(*absolute_label_position)
   
   def _on_popup_more_show(self, popup):
     self._popup_hide_context.connect_button_press_events_for_hiding()
