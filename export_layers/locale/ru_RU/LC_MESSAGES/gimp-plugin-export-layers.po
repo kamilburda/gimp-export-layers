@@ -473,10 +473,6 @@ msgstr ""
 msgid "Failed to apply constraint \"{}\" because:"
 msgstr ""
 
-#: ../../export_layers/gui/message_label.py:106
-msgid "_More"
-msgstr ""
-
 #: ../../export_layers/gui/preview_image.py:261
 msgid "Update Preview Automatically"
 msgstr ""
