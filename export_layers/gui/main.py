@@ -934,6 +934,9 @@ class ExportLayersDialog(object):
       clear_previous=clear_previous)
   
   def _on_dialog_key_press_event(self, dialog, event):
+    if not dialog.get_mapped():
+      return False
+    
     if gtk.gdk.keyval_name(event.keyval) == 'Escape':
       stopped = stop_batcher(self._batcher)
       return stopped
