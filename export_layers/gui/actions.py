@@ -465,6 +465,9 @@ class _ActionEditDialog(gimpui.Dialog):
   _MORE_OPTIONS_SPACING = 4
   _MORE_OPTIONS_BORDER_WIDTH = 4
   
+  _LABEL_NAME_MAX_WIDTH_CHARS = 50
+  _LABEL_DESCRIPTION_MAX_WIDTH_CHARS = 50
+  
   def __init__(self, action, pdb_procedure, *args, **kwargs):
     super().__init__(*args, **kwargs)
     
@@ -483,6 +486,7 @@ class _ActionEditDialog(gimpui.Dialog):
     self._label_procedure_name = pg.gui.EditableLabel()
     self._label_procedure_name.label.set_use_markup(True)
     self._label_procedure_name.label.set_ellipsize(pango.ELLIPSIZE_END)
+    self._label_procedure_name.label.set_max_width_chars(self._LABEL_NAME_MAX_WIDTH_CHARS)
     self._label_procedure_name.label.set_markup(
       '<b>{}</b>'.format(gobject.markup_escape_text(action['display_name'].value)))
     self._label_procedure_name.connect(
@@ -537,6 +541,8 @@ class _ActionEditDialog(gimpui.Dialog):
     label_description.set_line_wrap(True)
     label_description.set_alignment(0.0, 0.5)
     label_description.set_label(summary)
+    label_description.set_ellipsize(pango.ELLIPSIZE_END)
+    label_description.set_max_width_chars(self._LABEL_DESCRIPTION_MAX_WIDTH_CHARS)
     if full_description:
       label_description.set_tooltip_text(full_description)
     

@@ -4,6 +4,7 @@ Upcoming
 Bug fixes:
 * Fixed width and height of images exported using the "For each top-level layer or group" option.
 * Fixed procedure and constraint names not being truncated properly if the text does not fit the dialog width.
+* Fixed edit dialog for procedures and constraints stretching because of long names or descriptions.
 * Fixed tooltip for filename pattern entry not hiding properly.
 * Fixed a crash when clicking on the contents of a popup spawned when an in-line message is too long. The popup was replaced with a tooltip.
 
