@@ -124,10 +124,10 @@ class CheckButtonLabelPresenter(GtkPresenter):
   """
   
   def _get_value(self):
-    return pgutils.safe_decode_gtk(self._element.get_label())
+    return pgutils.safe_decode_gtk(self._element.get_child().get_text())
   
   def _set_value(self, value):
-    self._element.set_label(pgutils.safe_encode_gtk(value))
+    self._element.get_child().set_text(pgutils.safe_encode_gtk(value))
 
 
 class CheckMenuItemPresenter(GtkPresenter):
