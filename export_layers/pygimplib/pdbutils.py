@@ -59,6 +59,8 @@ def create_image_from_metadata(image_to_copy_metadata_from):
   
   new_image = pdb.gimp_image_new(image.width, image.height, image.base_type)
   
+  pdb.gimp_image_undo_disable(new_image)
+  
   pdb.gimp_image_set_resolution(new_image, *pdb.gimp_image_get_resolution(image))
   pdb.gimp_image_set_unit(new_image, pdb.gimp_image_get_unit(image))
   
@@ -83,6 +85,8 @@ def create_image_from_metadata(image_to_copy_metadata_from):
     image_string_metadata = pdb.gimp_image_get_metadata(image)
     if image_string_metadata:
       pdb.gimp_image_set_metadata(new_image, image_string_metadata)
+  
+  pdb.gimp_image_undo_enable(new_image)
   
   return new_image
 
