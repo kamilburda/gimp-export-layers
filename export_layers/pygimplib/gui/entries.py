@@ -22,6 +22,7 @@ from . import cell_renderers as cell_renderers_
 from . import entry_expander as entry_expander_
 from . import entry_popup as entry_popup_
 from . import entry_undo_context as entry_undo_context_
+from . import popup_hide_context as popup_hide_context_
 
 __all__ = [
   'ExtendedEntry',
@@ -289,6 +290,17 @@ class FilenamePatternEntry(ExtendedEntry):
     self._field_tooltip_frame.show_all()
     
     self._field_tooltip_window.add(self._field_tooltip_frame)
+    
+    self._field_tooltip_popup_hide_context = popup_hide_context_.PopupHideContext(
+      self._field_tooltip_window, self)
+    
+    wigets_to_exclude_from_hiding_popup_with_button_press = [
+      self._field_tooltip_window,
+      self,
+    ]
+    
+    for widget in wigets_to_exclude_from_hiding_popup_with_button_press:
+      self._field_tooltip_popup_hide_context.exclude_widget_from_hiding_with_button_press(widget)
   
   def _add_columns(self):
     self._popup.tree_view.append_column(
@@ -333,11 +345,13 @@ class FilenamePatternEntry(ExtendedEntry):
         tooltip_text = ''
       self._field_tooltip_text.set_markup(tooltip_text)
       self._field_tooltip_window.show()
+      self._field_tooltip_popup_hide_context.connect_button_press_events_for_hiding()
       self._update_field_tooltip_position()
   
   def _hide_field_tooltip(self):
     if self._field_tooltip_window.get_mapped():
       self._field_tooltip_window.hide()
+      self._field_tooltip_popup_hide_context.disconnect_button_press_events_for_hiding()
   
   def _update_field_tooltip_position(self):
     self._update_window_position(self._field_tooltip_window, place_above=True)
