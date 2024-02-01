@@ -125,6 +125,8 @@ def export(
     if batcher.process_export:
       if export_mode == ExportModes.EACH_LAYER:
         raw_item_to_process = _merge_and_resize_image(batcher, image_copy, raw_item_to_process)
+      else:
+        pdb.gimp_image_resize_to_layers(image_to_process)
       
       overwrite_mode, export_status = _export_item(
         batcher, item_to_process, image_to_process, raw_item_to_process,

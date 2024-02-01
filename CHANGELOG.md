@@ -1,3 +1,9 @@
+Upcoming
+========
+
+* Fixed width and height of images exported using the "For each top-level layer or group" option.
+
+
 4.0.2
 =====
 
