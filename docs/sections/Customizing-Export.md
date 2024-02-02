@@ -382,6 +382,22 @@ If this procedure is specified, the text entry next to `Save as` has no effect.
 
 Additionally, this procedure allows customizing whether to also rename folders (by enabling `Rename folders`) or only rename folders (by enabling `Rename folders` and disabling `Rename layers`).
 
+**Scale**
+
+Scales layers.
+
+This is similar to the built-in `Scale layer...` procedure in GIMP that allows scaling width and height individually, using absolute (pixels) or relative (percentages) measures.
+
+Options:
+* *Image*: Image to use for computing the new width or height.
+* *Layer*: Layer to scale and to use for computing the new width or height.
+* *New width*: The new width.
+* *Unit for width*: Unit for the new width - pixels or percentages of layer/image width/height.
+* *New height*: The new height.
+* *Unit for height*: Unit for the new height - pixels or percentages of layer/image width/height.
+* *Interpolation*: Type of interpolation to use.
+* *Use local origin*: If checked, the layer will be scaled around its center. If not checked, the layer will be placed to the upper left corner of the image.
+
 **Use layer size**
 
 If enabled, layers will be resized (not scaled) to their size instead of the image size.

@@ -1,6 +1,9 @@
 Upcoming
 ========
 
+New features:
+* Added a Scale procedure that allows scaling layers, with the option to scale to a percentage of image/layer width/height.
+
 Bug fixes:
 * Fixed width and height of images exported using the "For each top-level layer or group" option.
 * Fixed a crash when removing a new action while the edit dialog is open.
