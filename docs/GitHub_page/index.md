@@ -21,7 +21,7 @@ See [Batch Editing](sections/Batch-Editing.html).
 
 ### Feeling adventurous?
 
-For GIMP 2.99.16 and above (development versions of GIMP 3.0), you can use [Batcher](https://github.com/kamilburda/batcher), a successor to this plug-in.
+For GIMP 2.99.16 and above (development versions of GIMP 3.0), you can use [Batcher](https://kamilburda.github.io/batcher/), a successor to this plug-in.
 
 
 ### Having trouble?
