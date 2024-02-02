@@ -14,6 +14,16 @@ See [Installation](sections/Installation.html) and [Usage](sections/Usage.html).
 See [Customizing Export](sections/Customizing-Export.html).
 
 
+### Need to edit layers without exporting them?
+
+See [Batch Editing](sections/Batch-Editing.html).
+
+
+### Feeling adventurous?
+
+For GIMP 2.99.16 and above (development versions of GIMP 3.0), you can use [Batcher](https://github.com/kamilburda/batcher), a successor to this plug-in.
+
+
 ### Having trouble?
 
 See the [known issues](sections/Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/kamilburda/gimp-export-layers/issues).

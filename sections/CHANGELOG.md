@@ -4,6 +4,23 @@ title: Release Notes
 navbar_active_tab: docs
 ---
 
+Upcoming
+========
+
+**This is very likely the last release of Export Layers. For GIMP 2.99.16 and above (development versions of GIMP 3.0), you can use [Batcher](https://github.com/kamilburda/batcher), a successor to this plug-in.**
+
+New features:
+* Added a Scale procedure that allows scaling layers, with the option to scale to a percentage of image/layer width/height.
+
+Bug fixes:
+* Fixed width and height of images exported using the "For each top-level layer or group" option.
+* Fixed a crash when removing a new action while the edit dialog is open.
+* Fixed procedure and constraint names not being truncated properly if the text does not fit the dialog width.
+* Fixed edit dialog for procedures and constraints stretching because of long names or descriptions.
+* Fixed tooltip for filename pattern entry not hiding properly.
+* Fixed a crash when clicking on the contents of a popup spawned when an in-line message is too long. The popup was replaced with a tooltip.
+
+
 4.0.2
 =====
 
