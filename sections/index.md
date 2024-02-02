@@ -4,8 +4,6 @@ title: Export Layers – Documentation
 navbar_active_tab: docs
 ---
 
-Export Layers is a [GIMP](https://www.gimp.org/) plug-in that exports layers as separate images.
-
 ### Getting started and need help?
 
 See [Installation](Installation.html) and [Usage](Usage.html).
@@ -19,6 +17,11 @@ See [Customizing Export](Customizing-Export.html).
 ### Need to edit layers without exporting them?
 
 See [Batch Editing](Batch-Editing.html).
+
+
+### Feeling adventurous?
+
+For GIMP 2.99.16 and above (development versions of GIMP 3.0), you can use [Batcher](https://github.com/kamilburda/batcher), a successor to this plug-in.
 
 
 ### Having trouble?
