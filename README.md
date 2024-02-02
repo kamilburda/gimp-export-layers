@@ -12,7 +12,7 @@ Features
 * Customize processing with procedures and constraints
 
 
-### [Download latest release](https://github.com/kamilburda/gimp-export-layers/releases/tag/4.0.2) (4.0.2, September 03, 2023)
+### [Download latest release](https://github.com/kamilburda/gimp-export-layers/releases/tag/4.1) (4.1, February 02, 2024)
 
 See the [documentation](https://kamilburda.github.io/gimp-export-layers/sections) for information about installation, usage and known issues.
 

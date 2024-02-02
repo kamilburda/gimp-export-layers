@@ -1,5 +1,5 @@
-Upcoming
-========
+4.1
+===
 
 **This is very likely the last release of Export Layers. For GIMP 2.99.16 and above (development versions of GIMP 3.0), you can use [Batcher](https://github.com/kamilburda/batcher), a successor to this plug-in.**
 

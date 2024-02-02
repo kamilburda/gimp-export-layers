@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: 'export_layers' 4.0.2\n"
+"Project-Id-Version: 'export_layers' 4.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-03 23:06+0200\n"
+"POT-Creation-Date: 2024-02-02 21:12+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -106,119 +106,198 @@ msgstr ""
 msgid "Without tags"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:151
+#: ../../export_layers/builtin_procedures.py:207
 #: ../../export_layers/gui/main.py:887
 msgid "Export"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:159
+#: ../../export_layers/builtin_procedures.py:215
 msgid "Output folder"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:166
+#: ../../export_layers/builtin_procedures.py:222
 #: ../../export_layers/settings_main.py:75
 msgid "File extension"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:175
+#: ../../export_layers/builtin_procedures.py:231
 msgid "For each layer"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:177
+#: ../../export_layers/builtin_procedures.py:233
 msgid "For each top-level layer or group"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:180
+#: ../../export_layers/builtin_procedures.py:236
 msgid "For the entire image at once"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:183
+#: ../../export_layers/builtin_procedures.py:239
 msgid "Perform export:"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:189
+#: ../../export_layers/builtin_procedures.py:245
 msgid "Image filename pattern"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:196
+#: ../../export_layers/builtin_procedures.py:252
 msgid "Use file extension in layer name"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:203
+#: ../../export_layers/builtin_procedures.py:259
 msgid "Convert file extension to lowercase"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:210
+#: ../../export_layers/builtin_procedures.py:266
 msgid "Preserve layer name after export"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:218
+#: ../../export_layers/builtin_procedures.py:274
 msgid "Ignore folder structure"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:224
+#: ../../export_layers/builtin_procedures.py:280
 msgid "Inherit transparency from layer groups"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:229
+#: ../../export_layers/builtin_procedures.py:285
 msgid "Insert background layers"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:234
-#: ../../export_layers/builtin_procedures.py:247
+#: ../../export_layers/builtin_procedures.py:290
+#: ../../export_layers/builtin_procedures.py:303
 msgid "Tag"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:242
+#: ../../export_layers/builtin_procedures.py:298
 msgid "Insert foreground layers"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:255
+#: ../../export_layers/builtin_procedures.py:311
 msgid "Merge background"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:262
-#: ../../export_layers/builtin_procedures.py:280
+#: ../../export_layers/builtin_procedures.py:318
+#: ../../export_layers/builtin_procedures.py:336
 msgid "Expand as necessary"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:263
-#: ../../export_layers/builtin_procedures.py:281
+#: ../../export_layers/builtin_procedures.py:319
+#: ../../export_layers/builtin_procedures.py:337
 msgid "Clip to image"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:264
-#: ../../export_layers/builtin_procedures.py:282
+#: ../../export_layers/builtin_procedures.py:320
+#: ../../export_layers/builtin_procedures.py:338
 msgid "Clip to bottom layer"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:266
-#: ../../export_layers/builtin_procedures.py:284
+#: ../../export_layers/builtin_procedures.py:322
+#: ../../export_layers/builtin_procedures.py:340
 msgid "Merge type"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:273
+#: ../../export_layers/builtin_procedures.py:329
 msgid "Merge foreground"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:291
+#: ../../export_layers/builtin_procedures.py:347
 msgid "Rename"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:299
+#: ../../export_layers/builtin_procedures.py:355
 #: ../../export_layers/settings_main.py:90
 msgid "Layer filename pattern"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:306
+#: ../../export_layers/builtin_procedures.py:362
 msgid "Rename layers"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:313
+#: ../../export_layers/builtin_procedures.py:369
 msgid "Rename folders"
 msgstr ""
 
-#: ../../export_layers/builtin_procedures.py:321
+#: ../../export_layers/builtin_procedures.py:377
+msgid "Scale"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:383
+#: ../../export_layers/settings_main.py:59
+msgid "Image"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:388
+#: ../../export_layers/pygimplib/gui/gimp_item_combo_box.py:60
+msgid "Layer"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:394
+msgid "New width"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:401
+#: ../../export_layers/builtin_procedures.py:420
+#, python-format
+msgid "% of layer width"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:402
+#: ../../export_layers/builtin_procedures.py:421
+#, python-format
+msgid "% of layer height"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:403
+#: ../../export_layers/builtin_procedures.py:422
+#, python-format
+msgid "% of image width"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:404
+#: ../../export_layers/builtin_procedures.py:423
+#, python-format
+msgid "% of image height"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:405
+#: ../../export_layers/builtin_procedures.py:424
+msgid "Pixels"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:407
+msgid "Unit for width"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:413
+msgid "New height"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:426
+msgid "Unit for height"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:433
+msgid "None"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:434
+msgid "Linear"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:435
+msgid "Cubic"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:439
+msgid "Interpolation"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:445
+msgid "Use local origin"
+msgstr ""
+
+#: ../../export_layers/builtin_procedures.py:453
 msgid "Use layer size"
 msgstr ""
 
@@ -234,7 +313,7 @@ msgstr ""
 msgid "File extension:"
 msgstr ""
 
-#: ../../export_layers/export.py:258
+#: ../../export_layers/export.py:260
 msgid "Saving \"{}\""
 msgstr ""
 
@@ -258,11 +337,11 @@ msgid ""
 "of the sites below"
 msgstr ""
 
-#: ../../export_layers/gui/actions.py:479
+#: ../../export_layers/gui/actions.py:486
 msgid "_Reset"
 msgstr ""
 
-#: ../../export_layers/gui/actions.py:603
+#: ../../export_layers/gui/actions.py:613
 msgid "Cannot modify this parameter"
 msgstr ""
 
@@ -314,7 +393,7 @@ msgstr ""
 msgid "_Cancel"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:475 ../../export_layers/gui/main.py:1240
+#: ../../export_layers/gui/main.py:475 ../../export_layers/gui/main.py:1243
 msgid "_Stop"
 msgstr ""
 
@@ -416,19 +495,19 @@ msgstr ""
 msgid "This constraint is skipped. Reason: {}"
 msgstr ""
 
-#: ../../export_layers/gui/main.py:964
+#: ../../export_layers/gui/main.py:967
 msgid "Settings successfully imported."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:973
+#: ../../export_layers/gui/main.py:976
 msgid "Settings successfully exported."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:997
+#: ../../export_layers/gui/main.py:1000
 msgid "Settings reset."
 msgstr ""
 
-#: ../../export_layers/gui/main.py:1041 ../../export_layers/gui/main.py:1290
+#: ../../export_layers/gui/main.py:1044 ../../export_layers/gui/main.py:1293
 msgid "No layers were exported."
 msgstr ""
 
@@ -521,10 +600,6 @@ msgstr ""
 
 #: ../../export_layers/placeholders.py:104
 msgid "Invalid placeholder."
-msgstr ""
-
-#: ../../export_layers/pygimplib/gui/gimp_item_combo_box.py:60
-msgid "Layer"
 msgstr ""
 
 #: ../../export_layers/pygimplib/gui/gimp_item_combo_box.py:66
@@ -911,10 +986,6 @@ msgstr ""
 
 #: ../../export_layers/settings_main.py:53
 msgid "The run mode"
-msgstr ""
-
-#: ../../export_layers/settings_main.py:59
-msgid "Image"
 msgstr ""
 
 #: ../../export_layers/settings_main.py:82
