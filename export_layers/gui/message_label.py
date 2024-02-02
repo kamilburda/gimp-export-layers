@@ -50,8 +50,7 @@ class MessageLabel(gtk.HBox):
     
     If `clear_delay` is not `None` and `message_type` is not
     `gtk.MESSAGE_ERROR`, make the message automatically disappear after the
-    specified delay in milliseconds. The timer is stopped if the tooltip is
-    displayed and restarted if the tooltip gets hidden.
+    specified delay in milliseconds.
     """
     if not text:
       self._label_text = ''
