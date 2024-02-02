@@ -4,7 +4,6 @@ title: {% include-config 'PLUGIN_TITLE' %} – Documentation
 navbar_active_tab: docs
 ---
 
-
 ### Getting started and need help?
 
 See [Installation](Installation.html) and [Usage](Usage.html).
