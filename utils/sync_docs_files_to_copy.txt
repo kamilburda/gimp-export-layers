@@ -1,9 +1,6 @@
 docs/images/download_icon.svg
 docs/gh-pages/dev/images/download_icon.svg
 
-docs/images/logo.svg
-docs/gh-pages/dev/images/logo.svg
-
 docs/images/screenshot_dialog_basic_usage.png
 docs/gh-pages/dev/images/screenshot_dialog_basic_usage.png
 

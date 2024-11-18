@@ -1,4 +1,4 @@
-# [![](docs/images/logo_small.svg)](https://kamilburda.github.io/gimp-export-layers/) Export Layers
+# Export Layers
 
 {% include-section 'sections/Intro.md' %}
 
