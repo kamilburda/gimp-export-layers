@@ -10,6 +10,8 @@ navbar_active_tab: home
 * Batch edit layers
 * Customize processing with procedures and constraints
 
+For GIMP 3, you can use [Batcher](https://kamilburda.github.io/batcher/), a successor to this plug-in.
+
 
 ### Getting started and need help?
 
@@ -24,11 +26,6 @@ See [Customizing Export](sections/Customizing-Export.html).
 ### Need to edit layers without exporting them?
 
 See [Batch Editing](sections/Batch-Editing.html).
-
-
-### Feeling adventurous?
-
-For GIMP 2.99.16 and above (development versions of GIMP 3.0), you can use [Batcher](https://kamilburda.github.io/batcher/), a successor to this plug-in.
 
 
 ### Having trouble?
