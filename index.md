@@ -4,6 +4,13 @@ title: Home
 navbar_active_tab: home
 ---
 
+### What can Export Layers do?
+
+* Export in any file format provided by GIMP and third-party plug-ins
+* Batch edit layers
+* Customize processing with procedures and constraints
+
+
 ### Getting started and need help?
 
 See [Installation](sections/Installation.html) and [Usage](sections/Usage.html).

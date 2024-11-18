@@ -1,19 +1,6 @@
 <section class="page-header">
-  <div class="page-header-container">
-    <div class="page-header-image">
-      <img src="{{ '/images/logo.svg' | relative_url }}" alt="">
-    </div>
-    <div class="page-header-text">
-      <h1 class="project-name">{{ site.title | default: site.github.repository_name }}</h1>
-      <h2 class="project-tagline">
-        {{ site.description | default: site.github.project_tagline }}
-        {% capture markdown-insert %}
-{% include Features.md %}
-        {% endcapture %}
-        {{ markdown-insert | markdownify }}
-      </h2>
-    </div>
-  </div>
+  <h1 class="project-name">{{ site.title | default: site.github.repository_name }}</h1>
+  <h2 class="project-tagline">{{ site.description | default: site.github.project_tagline }}</h2>
   {% if site.github.is_project_page %}
     <div class="downloads-container">
       <div class="download-buttons">
