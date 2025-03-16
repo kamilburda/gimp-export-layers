@@ -90,6 +90,12 @@ While multi-page PDF export is already possible in GIMP without any third-party 
 
 Also note that if you export top-level layer groups and the first layer group contains only a single layer, the `Layers as pages` option in the PDF dialog cannot be checked, even if subsequent layer groups contain multiple layers. This is the current behavior of the PDF export in GIMP (at least in GIMP 2.10).
 
+**How do I reverse the order of the exported layers?**
+
+In the text entry next to `Save as:`, you can type e.g. `image[000, %d]`.
+This results in the exported layer names having a descending number.
+
+
 
 Customizing Layer Names
 -----------------------
