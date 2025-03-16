@@ -19,16 +19,6 @@ See [Customizing Export](Customizing-Export.html).
 See [Batch Editing](Batch-Editing.html).
 
 
-### Having trouble?
-
-See the [known issues](Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/kamilburda/gimp-export-layers/issues).
-
-
-### Want to translate {% include-config 'PLUGIN_TITLE' %} into your language?
-
-See the [instructions for providing translations](Providing-Translations.html).
-
-
 ### Curious about the latest changes?
 
 See the [release notes](CHANGELOG.html).

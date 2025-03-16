@@ -1,6 +1,7 @@
-Export Layers is a [GIMP 2.8/2.10](https://www.gimp.org/) plug-in that exports layers as separate images.
+Export Layers is a GIMP 2.8/2.10 plug-in that exports layers as separate images.
 
-For GIMP 3, you can use [Batcher](https://github.com/kamilburda/batcher), a successor to this plug-in.
+**This plug-in is no longer maintained. For GIMP 3, you can use [Batcher](https://github.com/kamilburda/batcher), which is also capable of batch image file conversion and exporting images opened in GIMP.**
+
 
 Features
 --------
