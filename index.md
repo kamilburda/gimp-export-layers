@@ -10,7 +10,7 @@ navbar_active_tab: home
 * Batch edit layers
 * Customize processing with procedures and constraints
 
-For GIMP 3, you can use [Batcher](https://kamilburda.github.io/batcher/), a successor to this plug-in.
+**This plug-in is no longer maintained. For GIMP 3, you can use [Batcher](https://github.com/kamilburda/batcher), which is also capable of batch image file conversion and exporting images opened in GIMP.**
 
 
 ### Getting started and need help?
@@ -26,16 +26,6 @@ See [Customizing Export](sections/Customizing-Export.html).
 ### Need to edit layers without exporting them?
 
 See [Batch Editing](sections/Batch-Editing.html).
-
-
-### Having trouble?
-
-See the [known issues](sections/Known-Issues.html) or feel free to [report other issues or ask questions](https://github.com/kamilburda/gimp-export-layers/issues).
-
-
-### Want to translate Export Layers into your language?
-
-See the [instructions for providing translations](sections/Providing-Translations.html).
 
 
 ### Curious about the latest changes?

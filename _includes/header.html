@@ -1,14 +1,4 @@
 <section class="page-header">
   <h1 class="project-name">{{ site.title | default: site.github.repository_name }}</h1>
   <h2 class="project-tagline">{{ site.description | default: site.github.project_tagline }}</h2>
-  {% if site.github.is_project_page %}
-    <div class="downloads-container">
-      <div class="download-buttons">
-        <a href="{{ site.github.releases_url }}/download/{{ site.plugin_version }}/{{ site.plugin_name }}-{{ site.plugin_version }}{{ site.download_zip_suffix }}" class="btn">
-          <img src="{{ '/images/download_icon.svg' | relative_url }}" alt="">
-          Download {{ site.plugin_version }} ({{ site.plugin_version_release_date }})
-        </a>
-      </div>
-    </div>
-  {% endif %}
 </section>
