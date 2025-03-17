@@ -1,7 +1,7 @@
 4.1
 ===
 
-**This is very likely the last release of Export Layers. For GIMP 3, you can use [Batcher](https://github.com/kamilburda/batcher), a successor to this plug-in.**
+**This is very likely the last release of Export Layers. For GIMP 3, you can use [Batcher](https://github.com/kamilburda/batcher), a successor to this plug-in that is also capable of batch image file conversion and exporting images opened in GIMP.**
 
 New features:
 * Added a Scale procedure that allows scaling layers, with the option to scale to a percentage of image/layer width/height.
